@@ -53,15 +53,44 @@ public:
     void set_dof(const int *d) { for(int n=0; n<6; ++n) dof[n]=d[n]; }
 
     // the stage of the body integrator (sixdof_obj::motion_stage_begin, CFD, NHFLOW, SFLOW and FNPF): the
-    // time it ends, with the position of the body at its start.  A motion file takes its velocity at that
-    // time; not set: at p->simtime, the start of the step
-    virtual void stage_begin(lexer*, double t, const Eigen::Vector3d&) { tstage = t; }
-    // the prescribed translations at that time into the position of the body (motion file)
-    virtual void stage_position(lexer*, Eigen::Vector3d&) {}
+    // time it ends, with the pose of the body (CoG c, quaternion e) at its start.  A motion table (the motion
+    // files X 240 1 and 11) takes its velocities there; not set: at p->simtime, the start of the step
+    void stage_begin(lexer*, double t, const Eigen::Vector3d &c, const Eigen::Vector4d &e, bool twoD);
+    // the prescribed translations and orientation at that time into the pose of the body (motion tables)
+    void stage_position(lexer*, Eigen::Vector3d &c, Eigen::Vector4d &e);
 
 protected:
     int dof[6] = {1,1,1,1,1,1};
     double tstage = -1.0e20;
+
+    // motion table (6DOF_motionext_table.cpp): rows t, columns; the column of each translation x, y, z and
+    // each rotation angle phi, theta, psi [rad] (-1: none, the DOF keeps its pose when prescribed)
+    std::vector<std::vector<double>> data;
+    double ts=0.0, te=0.0;
+    int tcol[3] = {-1,-1,-1};
+    int rcol[3] = {-1,-1,-1};
+
+    double table_vel(int col, double t);
+    double table_pos(int col, double t);
+    // the stage time is set and inside the table, the offsets of the body are taken, no velocity ramp (X 206)
+    bool table_stage() const;
+    // the orientation from the table: no free rotational DOF and at least one prescribed
+    bool table_rotation() const;
+    // the angular velocity of the body (body frame) at the stage time from the rates of the Euler angles
+    void table_omega(Eigen::Vector3d &omega);
+
+private:
+    int ktab = 0;               // interval of the table at the last time asked
+    double c0[3] = {0.0,0.0,0.0};   // the body at the table: c = c0 + table, angles = a0 + table
+    double a0[3] = {0.0,0.0,0.0};
+    bool offset_set = false;
+    bool twoD_ = false;
+    bool ramp_ = false;
+
+    bool table_rot_col(int q) const;
+    void table_angles(double t, double *ang);
+
+protected:
 
     inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {
         std::ifstream file(path);

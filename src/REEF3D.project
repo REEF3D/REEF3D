@@ -3100,6 +3100,7 @@
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_read.cpp"/>
             <File Name="6DOF_motion-file.cpp"/>
+            <File Name="6DOF_motionext_table.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">

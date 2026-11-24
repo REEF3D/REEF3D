@@ -289,20 +289,22 @@ void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
     motion_stage_end(p);
 }
 
-// Prescribed motion from a file (X 240 1): the velocity and the position of the body at the time the stage of
-// its integrator ends, the time of the fluid state that sees the body next.  The body moves before the fluid
+// Prescribed motion from a file (X 240 1, X 240 11): the velocity and the pose of the body at the time the stage
+// of its integrator ends, the time of the fluid state that sees the body next.  The body moves before the fluid
 // stage (CFD, NHFLOW, SFLOW: the forcing of the stage; FNPF: the body boundary of the next Laplace solve).
 // The velocity of the file interval at p->simtime, the start of the step, in every stage was a step function
 // in time and the same target for stages that end at different times.  Other motions ignore the time.
+// The translations, and the orientation of a body without free rotation, are taken from the file after the
+// stage (6DOF_motionext_table.cpp).
 void sixdof_obj::motion_stage_begin(lexer *p, double cend)
 {
     if(pmotion!=nullptr)
-    pmotion->stage_begin(p, p->simtime + cend*p->dt, rb.c);
+    pmotion->stage_begin(p, p->simtime + cend*p->dt, rb.c, rb.e, rb.twoD);
 }
 
 void sixdof_obj::motion_stage_end(lexer *p)
 {
     if(pmotion!=nullptr)
-    pmotion->stage_position(p,rb.c);
+    pmotion->stage_position(p,rb.c,rb.e);
 }
 

@@ -37,6 +37,12 @@ sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc, i
     
     // read file
     read_format_1(p,pgc);
+    
+    // the columns of the table (6DOF_motionext_table.cpp): t, x, y and the yaw angle psi (read in degrees,
+    // converted to rad); heave, roll and pitch keep their pose when prescribed
+    tcol[0] = 1;
+    tcol[1] = 2;
+    rcol[2] = 3;
 }
 
 sixdof_motionext_file_CoG::~sixdof_motionext_file_CoG()
@@ -76,6 +82,13 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
             Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         }
         
+        // the velocity at the time the stage of the body integrator ends (6DOF_motionext_table.cpp)
+        if(tstage>-1.0e19)
+        {
+            Uext = table_vel(1,tstage);
+            Vext = table_vel(2,tstage);
+        }
+        
         if (dof[0] == 2)
         {
             dp_(0) = 0.0;
@@ -97,12 +110,29 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
 
 void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
+        // no free rotation: the angular velocity from the rate of the yaw angle of the file at the time the
+        // stage ends, the orientation from the file after the stage (stage_position)
+        if(table_stage() && table_rotation())
+        {
+            table_omega(omega_);
+            
+            Rext = omega_(2);
+            
+            dh_.setZero();
+            h_ = I_*omega_;
+            de_ = 0.5*G_.transpose()*omega_;
+            return;
+        }
+        
         Rext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
         {
             Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
         }
+        
+        if(tstage>-1.0e19)
+        Rext = table_vel(3,tstage);
     
     
         if(dof[3] == 2) dh_(0) = 0.0;

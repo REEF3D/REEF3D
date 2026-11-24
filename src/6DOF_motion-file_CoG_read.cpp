@@ -59,9 +59,15 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
     
+    data.resize(ptnum);
+    
 // add deltas
     for(qn=0;qn<ptnum;++qn)
     data[qn][0] += p->X241;
+    
+    // the time range of the shifted file
+    ts += p->X241;
+    te += p->X241;
     
 // convert rotation
     for(qn=0;qn<ptnum;++qn)
