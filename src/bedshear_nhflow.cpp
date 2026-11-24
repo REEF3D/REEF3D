@@ -135,6 +135,15 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         V = d->V[IJK];
         W = d->W[IJK];
         
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006) in the log-law part, as for S 16 1; the 0.3 rho k
+        // part keeps the k of the bed cell (with A 543 the turbulence of breaking)
+        if(p->S37==2 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
+        
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
         uabs = sqrt(U*U + V*V + W*W);
