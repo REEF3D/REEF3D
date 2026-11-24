@@ -417,6 +417,7 @@ public:
     int G14;                     // SFLOW mesh refinement: the rectangles of the marked tiles (0 row by row, 1 the largest rectangle first)
     int G9;                      // CFD mesh refinement: the density of the faces of a patch edge with the interface width of both levels (1 the mean, 2 that of the coarse level)
     int G17;                     // CFD mesh refinement: 1 the hydrostatic columns of the patch edges start at the coarse cell above the patch (the free surface near the top of a patch)
+    int G18;                     // CFD mesh refinement with F 41 1: 1 the coarse value at a fine cell of a patch edge from the water cells, with the ghost values of the ghost fluid method for its neighbours in the air
     int G28;                     // CFD mesh refinement: one interface width of the fluid properties on all levels (1 that of level 0, 2 that of the finest level, 3 the mean of the levels)
     int G29;                     // CFD mesh refinement: 1 the pressure under the patches restricted relative to the discrete hydrostatic pressure of each grid
     double G24,G26,G27,G41,G42,G44,G46;

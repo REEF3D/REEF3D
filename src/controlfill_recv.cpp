@@ -209,6 +209,8 @@ void control::ctrlrecv()
     ii++;
     G17 = ictrl[ii];
     ii++;
+    G18 = ictrl[ii];
+    ii++;
     G14 = ictrl[ii];
     ii++;
 

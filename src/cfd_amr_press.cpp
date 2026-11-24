@@ -1466,6 +1466,9 @@ void cfd_amr::pr_weights()
                 F.sw[0] -= mf/mm;
             }
         }
+
+        for(int m=0; m<F.ns; ++m)
+        F.sh[m] = F.sw[m];
     }
 
     // F 41 1: p = 0 at the free surface by the ghost fluid method across the faces at the patch
@@ -1490,6 +1493,60 @@ void cfd_amr::pr_weights()
         const double wf = pic_gfm_wet41_level(CP(F.pid)->pp), wc = pic_gfm_wet41_level(glex(F.gc));
         F.fw = phf>=wf;
         F.cw = gfd(F.gc)->phi.V[F.qc]>=wc;
+
+        // G 18: the coarse value at the position of the fine cell from the water only (where that
+        // position lies in the water).  A neighbour in the air has the row p = 0; linear with it, the
+        // value of a fine cell next to the surface was not hydrostatic, and still water moved in and
+        // out of the patch there (0.06 m/s).  A neighbour in the air takes the ghost value of the
+        // ghost fluid method of its grid, p of the coarse cell extrapolated to p = 0 at the surface;
+        // a coarse cell in the air the value on the line from its neighbour in the water to the
+        // surface.  Linear pressures are then exact
+        if(p0->G18==1 && phs>=wc)
+        {
+            field &fc = gfd(F.gc)->phi;
+            const double phC = fc.V[F.qc];
+            if(phC>=wc)
+            {
+                for(int m=1; m<F.ns; ++m)
+                {
+                    const double phm = fc.V[F.sq[m]];
+                    if(phm>=wc)
+                    continue;
+                    // x_m = x_C (1 - 1/theta)
+                    F.sw[0] += F.sw[m]*(1.0 - 1.0/pic_gfm_theta(phC,phm));
+                    F.sw[m] = 0.0;
+                }
+            }
+            else
+            {
+                // the coarse cell in the air: from the neighbour in the water with the largest level
+                // set, along its direction (the other directions without slope)
+                int mb = -1, tb = -1, sb = 0;
+                for(int m=1; m<F.ns; ++m)
+                {
+                    const double phm = fc.V[F.sq[m]];
+                    if(phm<wc || (mb>=0 && phm<=fc.V[F.sq[mb]]))
+                    continue;
+                    for(int t=0; t<3; ++t)
+                    if(F.sc[m][t]!=F.ci[t])
+                    {
+                        tb = t;
+                        sb = F.sc[m][t]-F.ci[t];
+                    }
+                    mb = m;
+                }
+                if(mb>=0 && tb>=0)
+                {
+                    // the line from the neighbour (at sb) to the surface (theta from it towards the
+                    // coarse cell), at the offset tdel of the fine cell
+                    const double a = F.tdel[tb]/double(sb);
+                    const double wv = MAX(0.0,1.0 - (1.0-a)/pic_gfm_theta(fc.V[F.sq[mb]],phC));
+                    for(int m=0; m<F.ns; ++m)
+                    F.sw[m] = 0.0;
+                    F.sw[mb] = wv;
+                }
+            }
+        }
 
         if(phf>=wf && phs>=wc)
         continue;
@@ -1703,7 +1760,7 @@ void cfd_amr::pr_hydro(int lsub)
             if(!column(gh,sc[0],sc[1],ktop,sc[2],hc))
             ok = false;
             else
-            hs += F.sw[m]*hc;
+            hs += F.sh[m]*hc;
         }
         if(!ok)
         continue;

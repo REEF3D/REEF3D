@@ -274,6 +274,7 @@ struct cfd_amr_cf
     int ns;             // the coarse value at the position of the fine cell: sum of sw x[sg][sq]
     int sg[5], sq[5];   // (the coarse cell and its leaf neighbours in the transverse directions,
     double sw[5];       // weights of the stage: pr_weights)
+    double sh[5];       // (the linear weights, before G 18: the hydrostatic columns of pr_hydro)
     int sc[5][3];       // (their local cell indices)
     double ufin;        // G 7 1 level projection: the corrected face velocity
     double hf, hs;      // hydrostatic pressure of the fine cell and at its position on the coarse side
