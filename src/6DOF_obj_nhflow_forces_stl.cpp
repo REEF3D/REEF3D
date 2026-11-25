@@ -29,6 +29,10 @@ Author: Hans Bihs
 #include"nhflow_hullbody.h"
 #include"nhflow_thinbody.h"
 
+// NHF_BL: the loads on the hull itself while the solver runs with its displacement body (nhflow_shipbl_apply.cpp)
+int nhflow_shipbl_loads(const Eigen::Matrix3d&, const Eigen::Vector3d&, int&);
+void nhflow_shipbl_loadtri(int, double*, double*, double*, double&);
+
 void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
@@ -139,14 +143,26 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     // the loads of the last stage belong to the end of the step (simtime is advanced after it)
     curr_time = finalize ? p->simtime + p->dt : p->simtime;
     
-    for(int n=0; n<tricount; ++n)
+    // NHF_BL: the solver runs with the displacement body of the hull, the loads act on the hull itself: its kept
+    // triangles (after the bl_ts triangles before the hull), the pressure taken bloff along the normal, at the body
+    int bl_ts = tricount;
+    const int bl_n = (n6DOF==0) ? nhflow_shipbl_loads(R_,c_,bl_ts) : 0;
+    const int ntri = bl_n>0 ? bl_ts+bl_n : tricount;
+    
+    for(int n=0; n<ntri; ++n)
     {     
+        double bloff = 0.0;
+        
+        if(n<bl_ts)
         for(int q=0; q<3; ++q)
         {
             vx[q] = tri_x[n][q];
             vy[q] = tri_y[n][q];
             vz[q] = tri_z[n][q];
         }
+        
+        else
+        nhflow_shipbl_loadtri(n-bl_ts,vx,vy,vz,bloff);
         
 		// Center of triangle
 		const double xc = (vx[0] + vx[1] + vx[2])/3.0;
@@ -288,10 +304,10 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             {
             for(int q=0; q<3; ++q)
             {
-                const double sx = mx[q] + p->X42*nx*dsm, sy = my[q] + p->X42*ny*dsm;
+                const double sx = mx[q] + (p->X42*dsm + bloff)*nx, sy = my[q] + (p->X42*dsm + bloff)*ny;
                 amr_point_nhflow(p,sx,sy,plc,dlc,WLc,pl,dl,WLl);
                 
-                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, sx, sy, mz[q] + p->X42*nz*dsm);
+                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, sx, sy, mz[q] + (p->X42*dsm + bloff)*nz);
                 const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
                 
                 const double w  = A_sub/3.0;
@@ -324,7 +340,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
-                const double doff = frac ? sample_dist_nhflow(pl,*WLl,mx[q],my[q],mz[q],nx,ny,nz) : p->X42*dsm;
+                const double doff = frac ? sample_dist_nhflow(pl,*WLl,mx[q],my[q],mz[q],nx,ny,nz) : p->X42*dsm + bloff;
                 
                 double pval = pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + nx*doff, 
                                                                     my[q] + ny*doff, 

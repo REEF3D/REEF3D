@@ -119,6 +119,10 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
         
+        // pose and velocity of the hull at the end of the time step for the samples of the ship boundary layer
+        if(finalize==true)
+        fb_obj[nb]->shipbl_step(p,nullptr,pgc);
+        
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
@@ -161,6 +165,10 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
+        
+        // pose and velocity of the hull at the end of the time step for the samples of the ship boundary layer
+        if(finalize==true)
+        fb_obj[nb]->shipbl_step(p,nullptr,pgc);
         
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);

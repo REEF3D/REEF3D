@@ -26,10 +26,12 @@ Author: Ahmet Soydan
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"increment.h"
+#include<algorithm>
 #include<cmath>
 #include<cstdio>
 #include<cstdlib>
 #include<iostream>
+#include<vector>
 
 // The hull triangles read from floating.stl are replaced by the displacement body of the hull (nhflow_shipbl): the
 // solver then runs with the body as it does with a displacement body written by Cases/KCS/shipbl.py.
@@ -58,6 +60,15 @@ Author: Ahmet Soydan
 //   NHF_BL_DUMP=1     writes REEF3D_NHFLOW_6DOF/NHF_BL_dispbody.stl (NHF_BL=2, 3: NHF_BL_dispbody2.stl and the mean
 //                     velocity at the sample points, NHF_BL_edge.bin, at NHF_BL_T1)
 //
+//   NHF_BL_LOADS     the loads of the body (6DOF_obj_nhflow_forces_stl.cpp) are taken on the hull itself, not on its
+//                     displacement body (0: on the body, as before; 2: on the kept hull triangles also before the first
+//                     update of NHF_BL=2, a test). The body is 10 % larger than the hull (KCS, with a wake body behind the
+//                     stern) and that volume counted as buoyancy. The hull as it was read is kept (start pose, outward
+//                     winding) and follows the pose of the body; the hydrostatic part acts on it, the pressure of a hull
+//                     triangle is taken at the displacement body, at the distance to it along the outward normal (the
+//                     pressure across the boundary layer is the one at its edge), where the normal does not meet the
+//                     body within NHF_BL_LMAX (default 0.02 L) at the hull.     default 1
+//
 // Rank 0 computes (seconds; the dense matrix of the double body takes 8 N^2 bytes, N about 8000), the triangles
 // are broadcast. Not written to the checkpoints: a restart begins again with the hull of floating.stl.
 
@@ -77,8 +88,216 @@ namespace
         std::vector<double> pt;             // sample points in the tank, M x (x, y - yc, z)
         std::vector<double> acc;            // M x (u v w weight) port, then starboard: time integrals of this rank
         std::vector<double> last;           // the same of the last time step (NHF_BL_DUMP)
+        // pose of the hull (every rank): at the start of the run and at the end of the last time step, with the velocity
+        // of the body there (u_fb). moved: the pose differs from the start or the hull has a velocity
+        bool pose0 = false, moved = false;
+        Eigen::Matrix3d R0 = Eigen::Matrix3d::Identity(), R = Eigen::Matrix3d::Identity();
+        Eigen::Vector3d c0 = Eigen::Vector3d::Zero(), c = Eigen::Vector3d::Zero();
+        Eigen::Matrix<double,6,1> ufb = Eigen::Matrix<double,6,1>::Zero();
+        // loads on the hull itself (NHF_BL_LOADS, every rank): the hull as read (start pose, outward winding), for every
+        // triangle the distance to the displacement body along the normal; swapped: the solver runs with the body
+        int loads = 1;
+        bool swapped = false, lstill = true;
+        double L = 0.0;
+        std::vector<double> hull, hoff;
+        Eigen::Matrix3d lR = Eigen::Matrix3d::Identity();
+        Eigen::Vector3d lc = Eigen::Vector3d::Zero();
     };
     blstate bs;
+
+    double envd(const char *name, double def);
+
+    // triangles (9 numbers each) in bins along x, rays against them (Moeller-Trumbore, both faces)
+    struct raybins
+    {
+        const double *T = nullptr;
+        int N = 0, nb = 1;
+        double x0 = 0.0, h = 1.0, diag = 1.0;
+        std::vector<int> start, id, stamp;
+        int mark = 0;
+
+        inline int bin(double x) const
+        {
+            const double r = (x-x0)/h;
+            return r<=0.0 ? 0 : (r>=double(nb) ? nb-1 : int(r));
+        }
+
+        void build(const double *tri, int num, double hbin)
+        {
+            T = tri;
+            N = num;
+            double lo[3] = {1.0e30,1.0e30,1.0e30}, hi[3] = {-1.0e30,-1.0e30,-1.0e30};
+            for(int n=0; n<3*N; ++n)
+            for(int q=0; q<3; ++q)
+            {
+                lo[q] = std::min(lo[q],T[3*n+q]);
+                hi[q] = std::max(hi[q],T[3*n+q]);
+            }
+            if(N==0)
+            lo[0] = lo[1] = lo[2] = hi[0] = hi[1] = hi[2] = 0.0;
+            diag = sqrt((hi[0]-lo[0])*(hi[0]-lo[0]) + (hi[1]-lo[1])*(hi[1]-lo[1]) + (hi[2]-lo[2])*(hi[2]-lo[2])) + 1.0e-12;
+            x0 = lo[0];
+            nb = std::max(1,std::min(8192,int((hi[0]-lo[0])/std::max(hbin,1.0e-12))+1));
+            h = (hi[0]-lo[0])/double(nb) + 1.0e-12;
+            start.assign(nb+1,0);
+            for(int pass=0; pass<2; ++pass)
+            {
+                std::vector<int> pos(start.begin(),start.end()-1);
+                for(int n=0; n<N; ++n)
+                {
+                    const double *a = &T[9*n];
+                    const int b0 = bin(std::min(a[0],std::min(a[3],a[6]))), b1 = bin(std::max(a[0],std::max(a[3],a[6])));
+                    for(int b=b0; b<=b1; ++b)
+                    if(pass==0)
+                    ++start[b+1];
+                    else
+                    id[pos[b]++] = n;
+                }
+                if(pass==0)
+                {
+                    for(int b=0; b<nb; ++b)
+                    start[b+1] += start[b];
+                    id.resize(start[nb]);
+                }
+            }
+            stamp.assign(N,0);
+            mark = 0;
+        }
+
+        // the ray o + t d (d a unit vector), tlo <= t <= thi: number of triangles met (not the triangle skip), the smallest t
+        int cast(const double *o, const double *d, double tlo, double thi, int skip, double &tmin)
+        {
+            ++mark;
+            int count = 0;
+            tmin = 1.0e30;
+            const double xa = o[0]+tlo*d[0], xb = o[0]+thi*d[0];
+            const int b0 = bin(std::min(xa,xb)), b1 = bin(std::max(xa,xb));
+            for(int b=b0; b<=b1; ++b)
+            for(int k=start[b]; k<start[b+1]; ++k)
+            {
+                const int n = id[k];
+                if(n==skip || stamp[n]==mark)
+                continue;
+                stamp[n] = mark;
+                const double *a = &T[9*n];
+                const double e1[3] = {a[3]-a[0],a[4]-a[1],a[5]-a[2]}, e2[3] = {a[6]-a[0],a[7]-a[1],a[8]-a[2]};
+                const double pv[3] = {d[1]*e2[2]-d[2]*e2[1], d[2]*e2[0]-d[0]*e2[2], d[0]*e2[1]-d[1]*e2[0]};
+                const double det = e1[0]*pv[0] + e1[1]*pv[1] + e1[2]*pv[2];
+                if(fabs(det)<1.0e-300)
+                continue;
+                const double tv[3] = {o[0]-a[0],o[1]-a[1],o[2]-a[2]};
+                const double u = (tv[0]*pv[0] + tv[1]*pv[1] + tv[2]*pv[2])/det;
+                if(u<0.0 || u>1.0)
+                continue;
+                const double qv[3] = {tv[1]*e1[2]-tv[2]*e1[1], tv[2]*e1[0]-tv[0]*e1[2], tv[0]*e1[1]-tv[1]*e1[0]};
+                const double v = (d[0]*qv[0] + d[1]*qv[1] + d[2]*qv[2])/det;
+                if(v<0.0 || u+v>1.0)
+                continue;
+                const double t = (e2[0]*qv[0] + e2[1]*qv[1] + e2[2]*qv[2])/det;
+                if(t<tlo || t>thi)
+                continue;
+                ++count;
+                tmin = std::min(tmin,t);
+            }
+            return count;
+        }
+    };
+
+    // unit normal of the winding and area of a triangle (9 numbers); false: no area
+    inline bool tri_normal(const double *a, double *nv, double &area)
+    {
+        const double e1[3] = {a[3]-a[0],a[4]-a[1],a[5]-a[2]}, e2[3] = {a[6]-a[0],a[7]-a[1],a[8]-a[2]};
+        nv[0] = e1[1]*e2[2]-e1[2]*e2[1];
+        nv[1] = e1[2]*e2[0]-e1[0]*e2[2];
+        nv[2] = e1[0]*e2[1]-e1[1]*e2[0];
+        const double norm = sqrt(nv[0]*nv[0] + nv[1]*nv[1] + nv[2]*nv[2]);
+        area = 0.5*norm;
+        if(norm<1.0e-20)
+        return false;
+        nv[0] /= norm;
+        nv[1] /= norm;
+        nv[2] /= norm;
+        return true;
+    }
+
+    // outward winding of the kept hull: a ray from a triangle along its normal leaves a closed surface through an even
+    // number of other triangles (three rays, slightly apart, the majority counts). Returns the number of triangles turned
+    int orient_hull(std::vector<double> &H)
+    {
+        const int N = int(H.size()/9);
+        raybins rb;
+        rb.build(H.data(),N,0.0);
+        rb.build(H.data(),N,rb.diag/2000.0);
+        const double tilt[3][2] = {{0.0,0.0},{0.02,0.011},{-0.013,0.017}};
+        std::vector<char> turn(N,0);
+        int nturn = 0;
+        for(int n=0; n<N; ++n)
+        {
+            const double *a = &H[9*n];
+            double nv[3], area;
+            if(!tri_normal(a,nv,area))
+            continue;
+            const double o[3] = {0.31*a[0]+0.33*a[3]+0.36*a[6], 0.31*a[1]+0.33*a[4]+0.36*a[7], 0.31*a[2]+0.33*a[5]+0.36*a[8]};
+            double t1[3] = {a[3]-a[0],a[4]-a[1],a[5]-a[2]};
+            const double l1 = sqrt(t1[0]*t1[0] + t1[1]*t1[1] + t1[2]*t1[2]);
+            for(int q=0; q<3; ++q)
+            t1[q] /= l1;
+            const double t2[3] = {nv[1]*t1[2]-nv[2]*t1[1], nv[2]*t1[0]-nv[0]*t1[2], nv[0]*t1[1]-nv[1]*t1[0]};
+            int out = 0;
+            for(int r=0; r<3; ++r)
+            {
+                double d[3], tmin;
+                for(int q=0; q<3; ++q)
+                d[q] = nv[q] + tilt[r][0]*t1[q] + tilt[r][1]*t2[q];
+                const double dl = sqrt(d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
+                for(int q=0; q<3; ++q)
+                d[q] /= dl;
+                if(rb.cast(o,d,1.0e-9*rb.diag,rb.diag,n,tmin)%2==0)
+                ++out;
+            }
+            if(out<2)
+            {
+                turn[n] = 1;
+                ++nturn;
+            }
+        }
+        for(int n=0; n<N; ++n)
+        if(turn[n])
+        for(int q=0; q<3; ++q)
+        std::swap(H[9*n+3+q],H[9*n+6+q]);
+        return nturn;
+    }
+
+    // distance from every hull triangle to the body (triangles buf, start pose) along the outward normal
+    void hull_offsets(const std::vector<double> &buf, bool log)
+    {
+        const int N = int(bs.hull.size()/9);
+        const double dmax = envd("NHF_BL_LMAX",0.02*bs.L), back = 0.001*bs.L;
+        raybins rb;
+        rb.build(buf.data(),int(buf.size()/9),0.25*dmax);
+        bs.hoff.assign(N,0.0);
+        double asum=0.0, vsum=0.0, omax=0.0;
+        int nmiss=0;
+        for(int n=0; n<N; ++n)
+        {
+            const double *a = &bs.hull[9*n];
+            double nv[3], area, tmin;
+            if(!tri_normal(a,nv,area))
+            continue;
+            const double o[3] = {(a[0]+a[3]+a[6])/3.0, (a[1]+a[4]+a[7])/3.0, (a[2]+a[5]+a[8])/3.0};
+            if(rb.cast(o,nv,-back,dmax,-1,tmin)>0)
+            bs.hoff[n] = std::max(tmin,0.0);
+            else
+            ++nmiss;
+            asum += area;
+            vsum += area*bs.hoff[n];
+            omax = std::max(omax,bs.hoff[n]);
+        }
+        bs.swapped = true;
+        if(log)
+        std::cout<<"NHF_BL: the loads are taken on the hull itself ("<<N<<" triangles, "<<asum<<" m^2), the pressure at the displacement body: distance mean "
+                 <<1.0e3*vsum/std::max(asum,1.0e-30)<<" mm, largest "<<1.0e3*omax<<" mm, volume between them "<<vsum<<" m^3, "<<nmiss<<" triangles whose normal does not meet the body"<<std::endl;
+    }
 
     double envd(const char *name, double def)
     {
@@ -149,6 +368,8 @@ void nhflow_shipbl_apply(lexer *p, ghostcell *pgc, double **&tri_x, double **&tr
     bs.sink = envd("NHF_BL_SINK",0.0);
     const double trim = envd("NHF_BL_TRIM",0.0)*3.14159265358979323846/180.0;
     bs.xm = xfp + 0.5*L;
+    bs.L = L;
+    bs.loads = int(envd("NHF_BL_LOADS",1.0));
     bs.ct = cos(trim);
     bs.st = sin(trim);
     bs.ts = ts;
@@ -166,6 +387,29 @@ void nhflow_shipbl_apply(lexer *p, ghostcell *pgc, double **&tri_x, double **&tr
     }
 
     const double zw = bs.zw, sink = bs.sink, xm = bs.xm, ct = bs.ct, st = bs.st;
+
+    // the hull itself is kept for the loads (every rank)
+    if(bs.loads!=0)
+    {
+        bs.hull.resize(9*(tricount-ts));
+        for(int n=ts; n<tricount; ++n)
+        for(int q=0; q<3; ++q)
+        {
+            bs.hull[9*(n-ts)+3*q]   = tri_x[n][q];
+            bs.hull[9*(n-ts)+3*q+1] = tri_y[n][q];
+            bs.hull[9*(n-ts)+3*q+2] = tri_z[n][q];
+        }
+        const int nturn = orient_hull(bs.hull);
+        bs.hoff.assign(tricount-ts,0.0);
+        double vol = 0.0;
+        for(int n=0; n<tricount-ts; ++n)
+        {
+            const double *a = &bs.hull[9*n];
+            vol += ((a[3]-a[0])*(a[7]-a[1]) - (a[4]-a[1])*(a[6]-a[0]))*(a[2]+a[5]+a[8])/6.0;
+        }
+        if(p->mpirank==0)
+        std::cout<<"NHF_BL: hull kept for the loads, "<<tricount-ts<<" triangles, "<<nturn<<" turned to the outward winding, volume "<<vol<<" m^3"<<std::endl;
+    }
 
     int nnew=0;
     std::vector<double> buf;
@@ -258,6 +502,9 @@ void nhflow_shipbl_apply(lexer *p, ghostcell *pgc, double **&tri_x, double **&tr
     buf.resize(9*nnew);
     pgc->bcast_double(buf.data(),9*nnew);
 
+    if(bs.loads!=0)
+    hull_offsets(buf,p->mpirank==0);
+
     p->Dresize(tri_x,tricount,ts+nnew,3,3);
     p->Dresize(tri_y,tricount,ts+nnew,3,3);
     p->Dresize(tri_z,tricount,ts+nnew,3,3);
@@ -347,14 +594,38 @@ void nhflow_shipbl_sample(lexer *p, fdm_nhf *d, ghostcell *pgc)
         return true;
     };
 
+    // A hull that moves (free sinkage and trim, motion in waves): the sample points are fixed to the hull, x = R b + c with
+    // b = R0^T (x0 - c0) of the point x0 at the start pose, and the velocity is the one relative to the hull at the point,
+    // v - (U_b + omega x r), turned back to the frame of the start pose, in which the boundary layer is computed
+    const Eigen::Matrix3d Rrel = bs.R*bs.R0.transpose();
+    const Eigen::Matrix3d Rback = Rrel.transpose();
+
     for(int m=0; m<M; ++m)
     for(int side=0; side<2; ++side)
     {
         double v[3];
         const int n = 4*(side*M + m);
         bs.last[n]=bs.last[n+1]=bs.last[n+2]=bs.last[n+3]=0.0;
-        if(!sample(bs.pt[3*m],bs.yc + (side==0 ? 1.0 : -1.0)*bs.pt[3*m+1],bs.pt[3*m+2],v))
+        double xs = bs.pt[3*m], ys = bs.yc + (side==0 ? 1.0 : -1.0)*bs.pt[3*m+1], zs = bs.pt[3*m+2];
+        Eigen::Vector3d r = Eigen::Vector3d::Zero();
+        if(bs.moved)
+        {
+            r = Rrel*(Eigen::Vector3d(xs,ys,zs) - bs.c0);
+            xs = bs.c(0) + r(0);
+            ys = bs.c(1) + r(1);
+            zs = bs.c(2) + r(2);
+        }
+        if(!sample(xs,ys,zs,v))
         continue;
+        if(bs.moved && !coords)
+        {
+            const Eigen::Vector3d vr = Rback*Eigen::Vector3d(v[0] - (bs.ufb(0) + bs.ufb(4)*r(2) - bs.ufb(5)*r(1)),
+                                                             v[1] - (bs.ufb(1) + bs.ufb(5)*r(0) - bs.ufb(3)*r(2)),
+                                                             v[2] - (bs.ufb(2) + bs.ufb(3)*r(1) - bs.ufb(4)*r(0)));
+            v[0] = vr(0);
+            v[1] = vr(1);
+            v[2] = vr(2);
+        }
         for(int q=0; q<3; ++q)
         {
             bs.acc[n+q] += p->dt*v[q];
@@ -374,7 +645,32 @@ void nhflow_shipbl_sample(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // sample of an interval the hull is replaced by its displacement body.
 void sixdof_obj_nhflow::shipbl_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(bs.mode<2 || bs.done || !bs.ready || n6DOF!=0)
+    if(bs.mode<1 || n6DOF!=0)
+    return;
+
+    // d = nullptr: only the pose and the velocity of the hull are taken (after the initialisation: the start pose; after
+    // the position and velocity update of the last stage: the state at the end of the time step, used by the samples)
+    if(d==nullptr)
+    {
+        if(!bs.pose0)
+        {
+            bs.R0 = R_;
+            bs.c0 = c_;
+            bs.pose0 = true;
+        }
+        bs.R = R_;
+        bs.c = c_;
+        bs.ufb = u_fb;
+        const bool moved = (bs.R-bs.R0).cwiseAbs().maxCoeff()>1.0e-12 || (bs.c-bs.c0).cwiseAbs().maxCoeff()>1.0e-12
+                           || bs.ufb.cwiseAbs().maxCoeff()>1.0e-12;
+        if(moved && !bs.moved && p->mpirank==0 && bs.mode>=2)
+        std::cout<<"NHF_BL: the hull moves, the sample points follow it and the velocity is taken relative to it (t = "<<p->simtime<<" s)"<<std::endl;
+        if(moved)
+        bs.moved = true;
+        return;
+    }
+
+    if(bs.mode<2 || bs.done || !bs.ready)
     return;
 
     const int M = bs.M;
@@ -460,6 +756,9 @@ void sixdof_obj_nhflow::shipbl_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
     buf.resize(9*nnew);
     pgc->bcast_double(buf.data(),9*nnew);
 
+    if(bs.loads!=0)
+    hull_offsets(buf,p->mpirank==0);
+
     const int ts = bs.ts, told = tricount;
 
     p->Dresize(tri_x,told,ts+nnew,3,3);
@@ -481,8 +780,9 @@ void sixdof_obj_nhflow::shipbl_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(tstart[e]==ts)
     tend[e] = tricount;
 
-    // orientation and remeshing as after reading (sixdof_obj::objects_create), then the body frame (the hull does not
-    // move: the pose of the start). Mass and inertia stay
+    // orientation and remeshing as after reading (sixdof_obj::objects_create), then the body frame: the new body is
+    // built at the start pose, b = R0^T (x0 - c0); the position update that follows takes it to the pose of the hull
+    // now. Mass and inertia stay
     geom.orient(p,pgc);
 
     if(p->X185>0 && p->X60!=2 && entity_count>0 && p->X170==0 && p->X171==0 && p->X172==0)
@@ -494,9 +794,46 @@ void sixdof_obj_nhflow::shipbl_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int n=0; n<tricount; ++n)
     for(int q=0; q<3; ++q)
     {
-        const Eigen::Vector3d r = R_.transpose()*Eigen::Vector3d(tri_x[n][q]-c_(0),tri_y[n][q]-c_(1),tri_z[n][q]-c_(2));
+        const Eigen::Vector3d r = bs.moved ? Eigen::Vector3d(bs.R0.transpose()*Eigen::Vector3d(tri_x[n][q]-bs.c0(0),tri_y[n][q]-bs.c0(1),tri_z[n][q]-bs.c0(2)))
+                                           : Eigen::Vector3d(R_.transpose()*Eigen::Vector3d(tri_x[n][q]-c_(0),tri_y[n][q]-c_(1),tri_z[n][q]-c_(2)));
         tri_x0[n][q] = r(0);
         tri_y0[n][q] = r(1);
         tri_z0[n][q] = r(2);
+    }
+}
+
+// NHF_BL_LOADS: the triangles the loads of the body are taken on (6DOF_obj_nhflow_forces_stl.cpp). Returns the number of
+// kept hull triangles (0: the triangles of the body as they are) and the first triangle of the hull in the body, ts; the
+// pose R, c of the body now places them
+int nhflow_shipbl_loads(const Eigen::Matrix3d &R, const Eigen::Vector3d &c, int &ts)
+{
+    if(bs.mode==0 || bs.hull.empty() || !(bs.loads==2 || (bs.loads==1 && bs.swapped)))
+    return 0;
+
+    ts = bs.ts;
+    bs.lstill = !bs.pose0 || (R==bs.R0 && c==bs.c0);
+    bs.lR = R*bs.R0.transpose();
+    bs.lc = c;
+    return int(bs.hull.size()/9);
+}
+
+// hull triangle n at the pose given to nhflow_shipbl_loads, and the distance to the displacement body along its normal
+void nhflow_shipbl_loadtri(int n, double *vx, double *vy, double *vz, double &off)
+{
+    const double *h = &bs.hull[9*n];
+    off = bs.hoff[n];
+    for(int q=0; q<3; ++q)
+    {
+        if(bs.lstill)
+        {
+            vx[q] = h[3*q];
+            vy[q] = h[3*q+1];
+            vz[q] = h[3*q+2];
+            continue;
+        }
+        const Eigen::Vector3d r = bs.lR*(Eigen::Vector3d(h[3*q],h[3*q+1],h[3*q+2]) - bs.c0) + bs.lc;
+        vx[q] = r(0);
+        vy[q] = r(1);
+        vz[q] = r(2);
     }
 }

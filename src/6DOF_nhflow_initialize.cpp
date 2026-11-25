@@ -34,7 +34,12 @@ void sixdof_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->X10==1 || p->X10==2)
     for (int nb = 0; nb < number6DOF; nb++)
+    {
     fb_obj[nb]->initialize_nhflow(p, d, pgc);
+    
+    // start pose of the hull for the ship boundary layer of the run (NHF_BL=2, 3)
+    fb_obj[nb]->shipbl_step(p,nullptr,pgc);
+    }
     
     if(p->X10==3)
     for (int nb = 0; nb < number6DOF; nb++)
