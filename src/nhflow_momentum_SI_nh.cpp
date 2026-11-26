@@ -325,8 +325,8 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         wb[k] = WHp[PIJK];
         }
 
-        if(vr)
-        vr_cell_col(true);
+        if(ld)
+        ld_cell(p,2);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         if(thv<1.0)

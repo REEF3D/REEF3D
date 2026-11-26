@@ -223,6 +223,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // VRANS (B 200): porous structures (nhflow_momentum_SI_vrans.cpp)
     vr_ini(p);
 
+    // wall friction at every wall face (A 519 2; nhflow_momentum_SI_wall.cpp)
+    wf_ini(p);
+
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
     wcl.assign(p->knoz,0.0);
@@ -547,8 +550,9 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->G1>0 && elm_mode(p)>0)
     msg("semi-Lagrangian momentum advection (A 549 1) with mesh refinement (G 1) is");
 
-    if(p->A519==2)
-    msg("wall friction at every wall face (A 519 2) is");
+    // wall friction at every wall face (A 519 2; nhflow_momentum_SI_wall.cpp): one Cartesian grid
+    if(p->A519==2 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("wall friction at every wall face (A 519 2) on curvilinear, multi-block or refined grids is");
 
     // VRANS (B 200, nhflow_momentum_SI_vrans.cpp): one Cartesian grid, the drag implicit in the column operator
     if(p->B200>0 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
@@ -1054,6 +1058,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     if(vr)
     vr_begin(p,d,pgc);
 
+    // A 519 2: the drag of the wall faces of the cells
+    if(wf)
+    wf_begin(p,d,pgc);
+
     // A 547: the algebraic eddy viscosity of t^n (without a turbulence model)
     if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     eddy_algebraic(p,d);
@@ -1388,7 +1396,7 @@ void nhflow_momentum_SI::friction(lexer *p, fdm_nhf *d)
     SLICELOOP4
     gmc(i,j) = 0.0;
 
-    if(p->A519!=1)
+    if(p->A519!=1 && p->A519!=2)
     return;
 
     k=0;
@@ -1655,8 +1663,8 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
 
     i=ii; j=jj; k=kk;
 
-    // VRANS: the rows times the inertia factor, the drag on the diagonal
-    if(vcC!=nullptr)
+    // VRANS: the rows times the inertia factor; the layer drag (VRANS, the walls of A 519 2) on the diagonal
+    if(vcD!=nullptr)
     vr_col(p,cu,cl,cd);
 }
 
@@ -2068,7 +2076,7 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         Hf(f.fi,f.fj) = h;
 
-            if(p->A519==1)
+            if(p->A519==1 || p->A519==2)
             {
             k=0;
             const double ds0 = p->DZN[KP];
@@ -3001,8 +3009,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // column: Q~ = A^-1 (I - dt L_v) Q^, r = A^-1 1
         col_nu(p,d,i,j,i+1,j,wnu.data());
-        if(vr)
-        vr_face_col(1);
+        if(ld)
+        ld_face(p,1);
         col_coef(p,d,Hx(i,j),i,j,i+1,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         double fl,fr;
@@ -3112,8 +3120,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ho_gradient(p,d,2,gy0(i,j),cy0(i,j));
 
         col_nu(p,d,i,j,i,j+1,wnu.data());
-        if(vr)
-        vr_face_col(2);
+        if(ld)
+        ld_face(p,2);
         col_coef(p,d,Hy(i,j),i,j,i,j+1,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         double fl,fr;
@@ -3242,8 +3250,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
         // column of the boundary face with the interior predictor and viscosity
         col_nu(p,d,i,j,i,j,wnu.data());
-        if(vr)
-        vr_cell_col(false);
+        if(ld)
+        ld_cell(p,xf ? 0 : 1);
         col_coef(p,d,Hf(f.fi,f.fj),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         for(k=0;k<p->knoz;++k)
@@ -3871,8 +3879,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // column: UH = A^-1 (I - dt L_v) UH* - dt g [H G] r,  r = A^-1 1
         col_nu(p,d,i,j,i,j,wnu.data());
-        if(vr)
-        vr_cell_col(false);
+        if(ld)
+        ld_cell(p,0);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         for(k=0;k<p->knoz;++k)
@@ -3936,6 +3944,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             if(p->j_dir==1)
             {
+            // A 519 2: the walls of v in the column operator, its r
+            if(wf)
+            wf_vcol(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wr.data());
+
             for(k=0;k<p->knoz;++k)
             wb[k] = VHD[PIJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0) + (nhc ? wny[k] : 0.0);
 
@@ -3973,8 +3985,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         wb[k] = WHp[PIJK];
         }
 
-        if(vr)
-        vr_cell_col(true);
+        if(ld)
+        ld_cell(p,2);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         if(thv<1.0)

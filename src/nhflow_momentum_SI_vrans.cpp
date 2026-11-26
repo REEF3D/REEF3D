@@ -180,7 +180,7 @@ void nhflow_momentum_SI::vr_col(lexer *p, double *cu, double *cl, double *cd)
 
     for(int q=0;q<K;++q)
     {
-    const double C = vcC[q];
+    const double C = vcC!=nullptr ? vcC[q] : 1.0;    // (nullptr: the wall drag alone, A 519 2)
 
     cu[q] *= C;
     cl[q] *= C;
@@ -249,8 +249,10 @@ void nhflow_momentum_SI::vr_cell_faces(lexer *p, const double *cu, const double 
     const int K = p->knoz;
     bool por = false;
 
+    const size_t q0 = (size_t)(lso + i*lsi + j*lsj);
+
     for(int q=0;q<K;++q)
-    if(vcD[q]>0.0 || vcC[q]!=1.0)
+    if(vrDh[q0+q]>0.0 || vrCc[q0+q]!=1.0)
     por = true;
 
     if(!por)
