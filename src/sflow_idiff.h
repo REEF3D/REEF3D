@@ -47,6 +47,10 @@ public:
 	sflow_idiff(lexer*);
 	virtual ~sflow_idiff();
 
+    // a refined patch or a block of the mesh refinement (sflow_amr): its own solver (the cells around the patch as
+    // Dirichlet values, sflow_amr::turb_solver), owned here, with local reductions
+    solver2D *own_solver = nullptr;
+
 	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
 	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
     void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
@@ -54,6 +58,8 @@ public:
     
 private:
     void bc(lexer*, fdm2D*, slice&);
+    void solve(lexer*, ghostcell*, solver2D*, fdm2D*, slice&);
+    void curv_diff(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double, int);
     
     slice4 f;
     int count;

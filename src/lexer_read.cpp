@@ -31,10 +31,16 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
     control::read_control(this);
 
-    // SFLOW: A 212 not given in ctrl.txt -> explicit horizontal diffusion when a turbulence model is on (A 260 > 0),
-    // so that the eddy viscosity reaches the momentum equations; no diffusion otherwise (the previous default)
+    // SFLOW: A 212 not given in ctrl.txt -> horizontal diffusion when a turbulence model is on (A 260 > 0), so that the
+    // eddy viscosity reaches the momentum equations: explicit (A 212 1) with the explicit step A 210 2/3, implicit
+    // (A 212 2) with the semi-implicit step A 210 11/12/13 (the explicit limit 0.2/(nu (1/dx^2+1/dy^2)) would set its
+    // time step: C6 bend with k-epsilon 1e-4 s instead of 2.6e-3 s; the algebraic models A 260 3/4 stay explicit, they
+    // are computed by each grid in its explicit diffusion on curvilinear and refined grids); no diffusion otherwise
     if(mpirank==0 && A212<0)
-    A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
+    {
+    const bool si = (A210==11 || A210==12 || A210==13);
+    A212 = (A260>0) ? ((si && (A260==1 || A260==2)) ? 2 : 1) : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
+    }
 
     // FNPF: A 316 not given -> the first-order wet-dry gradient fallback only with the moving wet-dry front
     // (A 343 2/3); with the static coastline (A 343 0/1) the legacy zero gradient: the fallback lowered the

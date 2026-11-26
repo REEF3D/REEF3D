@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
+#include"patchBC_codes.h"
 #include<cmath>
 
 void sflow_curv::normal(lexer *p, int dir, int ii, int jj, double &nx, double &ny, double &len)
@@ -61,13 +62,15 @@ void sflow_curv::check(lexer *p)
     };
 
     refuse(p->j_dir!=1, "a 1D grid (j_dir 0)");
-    // horizontal diffusion explicit (A 212 1, sflow_ediff::curv_stress) with W 2 and the algebraic eddy viscosity
-    // (A 260 3 mixing length, A 260 4 parabolic); the implicit diffusion and the transport models not yet
-    refuse(p->A212==2, "the implicit horizontal diffusion A 212 2 (use A 212 1)");
+    // horizontal diffusion explicit (A 212 1, sflow_ediff::curv_stress) or implicit (A 212 2, sflow_idiff::curv_diff:
+    // the orthogonal part of the normal stress implicit, the rest deferred) with W 2 and the eddy viscosity of
+    // A 260 1 k-epsilon, 2 k-omega (convection and diffusion of k, eps / omega on the faces of the logical grid,
+    // sflow_turb_io::curv_convection / curv_diffusion), 3 mixing length, 4 parabolic (A 212 1)
+    refuse(p->A212==2 && (p->A260==3 || p->A260==4), "the algebraic eddy viscosity A 260 3/4 with the implicit diffusion A 212 2 (use A 212 1)");
     refuse(p->A246==4, "the breaking model with crest tracking A 246 4 (Cartesian grids; use A 246 1/2)");
-    refuse(p->A260!=0 && p->A260!=3 && p->A260!=4, "the turbulence models A 260 1/2 (A 260 3 and 4 are)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
-    refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");
+    // patch boundary conditions (B 440-442): the face centres from the nodes, the inlet velocity along the face
+    // normal (patchBC_2D::curv_velocity), the patch faces in flux_bc and in the semi-implicit bc_setup
     // 6DOF (P5c): prescribed bodies (X 10 2) and the ship pressure patch (X 10 3) with the waterline level set of
     // 6DOF_obj_ray2D_curv.cpp
     refuse(p->A750>0, "the SEASTATE coupling (A 750)");
@@ -307,6 +310,25 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
     ghostj(i,j+1,i,j);
     else
     ghost(i+1,j,i,j);
+    }
+
+    // patch boundaries (B 440-442 on the walls): physical flux of the ghost state (patchBC_2D: the inlet velocity
+    // along the face normal, the water level of B 413/422), as sflow_HLL::flux_bc
+    GCSL4LOOP
+    if(patch_bc(p->gcbsl4[n][4]))
+    {
+    i=p->gcbsl4[n][0];
+    j=p->gcbsl4[n][1];
+    const int cs = p->gcbsl4[n][3];
+
+    if(cs==1)
+    ghost(i-1,j,i-1,j);
+    if(cs==4)
+    ghost(i+1,j,i,j);
+    if(cs==3)
+    ghostj(i,j-1,i,j-1);
+    if(cs==2)
+    ghostj(i,j+1,i,j);
     }
 }
 

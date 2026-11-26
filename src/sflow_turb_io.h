@@ -68,6 +68,13 @@ protected:
     void timesource(lexer*, fdm2D*, slice&);    // 1/dt, the explicit terms L and f^n/dt
     void wall_bc(lexer*, fdm2D*, slice&);       // no flux through walls and to dry cells, f = 0 in dry cells
 
+    // curvilinear grid (G 50): the rows of the convection (implicit first-order upwind in advective form, as
+    // sflow_ifou) and of the diffusion (compact Laplacian of sflow_curv::lapcoef, as sflow_idiff::diff_scalar) on
+    // the faces of the logical grid, and the velocity gradients of the production (sflow_curv::grad5)
+    void curv_convection(lexer*, fdm2D*);
+    void curv_diffusion(lexer*, fdm2D*, double);
+    void curv_velgrad(lexer*, fdm2D*, int, int, double&, double&, double&, double&);
+
 private:
     
     double val;

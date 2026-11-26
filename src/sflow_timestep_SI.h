@@ -55,6 +55,9 @@ public:
     // the wave limit without A 228 > 0 of a cell of width dx and water depth h (sflow_amr::si_timestep: the patches)
     static double wave_cap(lexer*, double dx, double h);
 
+    // the factor of the advective limit (A 210 11, A 220 2/3, A 235 the flow Courant number)
+    static double flowfac(lexer*);
+
 	double wd_criterion,cfl;
     double capw;        // the wave limit of the step (A 228 <= 0)
 };

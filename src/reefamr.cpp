@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"patchBC_codes.h"
 #include"mgcslice1.h"
 #include"mgcslice2.h"
 #include"mgcslice4.h"
@@ -665,6 +666,19 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     forbid_around(p->gcslin[n][0],p->gcslin[n][1]);
     for(n=0; n<p->gcslout_count; ++n)
     forbid_around(p->gcslout[n][0],p->gcslout[n][1]);
+
+    // nor next to the faces of the patch boundary conditions (B 440-442, the codes of patchBC_ini on the wall faces of
+    // level 0): the patch in- and outlets act on level 0 only, as the in- and outflow (CFD: reefamr3d)
+    int npatch = 0;
+    for(n=0; n<p->gcbsl4_count; ++n)
+    if(p->gcbsl4[n][3]>0 && patch_bc(p->gcbsl4[n][4]))
+    {
+    forbid_around(p->gcbsl4[n][0],p->gcbsl4[n][1]);
+    ++npatch;
+    }
+    MPI_Allreduce(MPI_IN_PLACE,&npatch,1,MPI_INT,MPI_SUM,reef3d_comm());
+    if(npatch>0 && p->mpirank==0)
+    cout<<"REEFAMR: no refinement within "<<B<<" cells of the "<<npatch<<" faces of the patch boundary conditions (B 440-442)"<<endl;
 
     // (curvilinear grid: the cell centres, as F 72)
     for(size_t q=0; q+3<par.fbox.size(); q+=4)

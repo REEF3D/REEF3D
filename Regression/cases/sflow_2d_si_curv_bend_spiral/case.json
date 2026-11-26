@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_curv_bend_ke",
+ "np": 2,
+ "steps": 150,
+ "ctrl_add": [
+  "S 98 0.5"
+ ],
+ "description": "sflow_2d_si_curv_bend_ke with the dispersion of the main-flow momentum by the spiral flow (S 98 0.5) on a fixed bed (S 10 0): the equilibrium intensity h |U| K_c from the velocities (sflow_momentum_func::spiral_intensity, patch 261125/0004) and the source in the semi-implicit predictor (sflow_momentum_SI::stage_rhs).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "semi_implicit",
+  "mpi",
+  "spiral"
+ ],
+ "covers": [
+  "sflow_momentum_func::spiral_intensity",
+  "spiral_source in sflow_momentum_SI::stage_rhs"
+ ]
+}

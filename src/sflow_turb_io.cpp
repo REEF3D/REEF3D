@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sflow_curv.h"
 
 sflow_turb_io::sflow_turb_io(lexer* p) : kin(p), eps(p)
 {
@@ -175,4 +176,94 @@ void sflow_turb_io::wall_bc(lexer* p, fdm2D *b, slice &f)
         }
     ++n;
     }
+}
+
+// Curvilinear grid (G 50 1/2): k-epsilon and k-omega (A 260 1/2) on the faces of the logical grid.
+// Convection: implicit first-order upwind in advective form, as sflow_ifou on the Cartesian grid, with the face
+// fluxes (u.n) L of the normal velocity (mean of the two cells, the own cell at walls and dry neighbours) over the
+// cell area A:
+//   M.p = (F_w+ - F_e- + F_s+ - F_n-)/A,  M.s = -F_w+/A,  M.n = F_e-/A,  M.e = -F_s+/A,  M.w = F_n-/A
+// (F_w, F_s the flux in through the faces i-1/2, j-1/2, F_e, F_n out through i+1/2, j+1/2; + and - the positive and
+// negative parts). The rows sum to zero and the off-diagonals are not positive: k and epsilon / omega stay positive
+// at any Courant number of the semi-implicit time steps. On a Cartesian grid (L/A = 1/dx) these are the rows of
+// sflow_ifou with the face velocities averaged from the cells.
+void sflow_turb_io::curv_convection(lexer *p, fdm2D *b)
+{
+    auto fluid = [&](int a, int d) { const int q=(a-p->imin)*p->jmax+(d-p->jmin); return p->flagslice4[q]>0 && p->wet[q]==1; };
+
+    n=0;
+    SLICELOOP4
+    {
+        auto flux = [&](int dir, int fi, int fj, int a, int d)
+        {
+            double nx,ny,len;
+            sflow_curv::normal(p,dir,fi,fj,nx,ny,len);
+
+            double u = b->U(i,j), v = b->V(i,j);
+
+            if(fluid(a,d))
+            {
+            u = 0.5*(u + b->U(a,d));
+            v = 0.5*(v + b->V(a,d));
+            }
+
+            return (u*nx + v*ny)*len;
+        };
+
+        const double A = sflow_curv::area(p,i,j);
+        const double fe = flux(1,i,j,i+1,j), fw = flux(1,i-1,j,i-1,j);
+        const double fn = flux(2,i,j,i,j+1), fs = flux(2,i,j-1,i,j-1);
+
+        const double wp = MAX(fw,0.0), em = MIN(fe,0.0), sp = MAX(fs,0.0), nm = MIN(fn,0.0);
+
+        b->M.p[n] = (wp - em + sp - nm)/A;
+        b->M.s[n] = -wp/A;
+        b->M.n[n] =  em/A;
+        b->M.e[n] = -sp/A;
+        b->M.w[n] =  nm/A;
+    ++n;
+    }
+}
+
+// diffusion nu + nu_t/sig with the face mean of the two cells (as sflow_idiff::diff_scalar), the orthogonal part of
+// the face gradients (sflow_curv::lapcoef: L/(A dn)); walls and dry neighbours by wall_bc
+void sflow_turb_io::curv_diffusion(lexer *p, fdm2D *b, double sig)
+{
+    n=0;
+    SLICELOOP4
+    {
+        double cE,cW,cN,cS;
+        sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+
+        const double vc = p->W2 + b->eddyv(i,j)/sig;
+        const double dE = 0.5*(vc + p->W2 + b->eddyv(i+1,j)/sig);
+        const double dW = 0.5*(vc + p->W2 + b->eddyv(i-1,j)/sig);
+        const double dN = 0.5*(vc + p->W2 + b->eddyv(i,j+1)/sig);
+        const double dS = 0.5*(vc + p->W2 + b->eddyv(i,j-1)/sig);
+
+        b->M.p[n] += cE*dE + cW*dW + cN*dN + cS*dS;
+        b->M.n[n] -= cE*dE;
+        b->M.s[n] -= cW*dW;
+        b->M.w[n] -= cN*dN;
+        b->M.e[n] -= cS*dS;
+    ++n;
+    }
+}
+
+// cell-centred velocity gradients by the chain rule with the cell centres (sflow_curv::grad5); walls (free-slip in
+// SFLOW), open boundaries and dry neighbours zero-gradient (mirror), as the Cartesian production of k
+void sflow_turb_io::curv_velgrad(lexer *p, fdm2D *b, int ii, int jj, double &ux, double &uy, double &vx, double &vy)
+{
+    auto fluid = [&](int a, int d) { const int q=(a-p->imin)*p->jmax+(d-p->jmin); return p->flagslice4[q]>0 && p->wet[q]==1; };
+
+    auto g = [&](slice &f, double &fx, double &fy)
+    {
+        const double fc = f(ii,jj);
+        const double fE = fluid(ii+1,jj) ? f(ii+1,jj) : fc, fW = fluid(ii-1,jj) ? f(ii-1,jj) : fc;
+        const double fN = fluid(ii,jj+1) ? f(ii,jj+1) : fc, fS = fluid(ii,jj-1) ? f(ii,jj-1) : fc;
+        sflow_curv::grad5(p,ii,jj,fE,fW,fN,fS,fx,fy);
+    };
+
+    g(b->U,ux,uy);
+    g(b->V,vx,vy);
 }

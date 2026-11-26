@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"sflow_curv.h"
 #include<vector>
 #include<iomanip>
 #include<cstdlib>
@@ -44,7 +45,7 @@ void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
 {
     patch_setup(p,pgc);
     
-    // faces: the wall faces (21, 22) of gcbsl4 inside a patch geometry, each face in one patch
+    // faces: the wall faces (21, 22, side faces 3) of gcbsl4 inside a patch geometry, each face in one patch
     vector<vector<int>> list(obj_count);
     
     for(n=0;n<p->gcbsl4_count;++n)
@@ -54,7 +55,9 @@ void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
     int cs = p->gcbsl4[n][3];
     int bc = p->gcbsl4[n][4];
     
-        if(cs<1 || cs>4 || (bc!=21 && bc!=22))
+        // the closed side faces: walls 21/22 and the free-slip sides 3 (C 1x 3 of DIVEMesh, as the curvilinear grids
+        // write them)
+        if(cs<1 || cs>4 || (bc!=21 && bc!=22 && bc!=3))
         continue;
     
     int qq = patch_find(p,i,j,0,cs,true);
@@ -73,7 +76,7 @@ void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
     
     // staggered slices, generated independently of gcbsl4
     for(n=0;n<p->gcbsl1_count;++n)
-    if(p->gcbsl1[n][4]==21 || p->gcbsl1[n][4]==22)
+    if(p->gcbsl1[n][4]==21 || p->gcbsl1[n][4]==22 || p->gcbsl1[n][4]==3)
     {
     int flag = staggered_flag(p->gcbsl1[n][0],p->gcbsl1[n][1],p->gcbsl1[n][3]);
     
@@ -82,7 +85,7 @@ void patchBC_2D::patchBC_ini(lexer *p, ghostcell *pgc)
     }
     
     for(n=0;n<p->gcbsl2_count;++n)
-    if(p->gcbsl2[n][4]==21 || p->gcbsl2[n][4]==22)
+    if(p->gcbsl2[n][4]==21 || p->gcbsl2[n][4]==22 || p->gcbsl2[n][4]==3)
     {
     int flag = staggered_flag(p->gcbsl2[n][0],p->gcbsl2[n][1],p->gcbsl2[n][3]);
     
@@ -153,6 +156,15 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &
         // face width, water depth of the cell, normal velocity at the boundary face
         double dl = (cs==1 || cs==4) ? p->DYN[JP] : p->DXN[IP];
         double un = (cs==1 || cs==4) ? 0.5*(b->U(i,j)+b->U(ii,jj)) : 0.5*(b->V(i,j)+b->V(ii,jj));
+
+        // curvilinear grid (G 50): the face length and the velocity along the face normal
+        if(p->geo_curv==1)
+        {
+        double nx,ny;
+        face_normal(p,cs,nx,ny,dl);
+        un = 0.5*((b->U(i,j)+b->U(ii,jj))*nx + (b->V(i,j)+b->V(ii,jj))*ny);
+        }
+
         un *= patch_obj::inward(cs);   // positive into the domain
         
         A  += dl*b->hp(i,j);
@@ -208,6 +220,9 @@ void patchBC_2D::patchBC_ioflow2D(lexer *p, ghostcell *pgc, slice &U, slice &V, 
         j  = pt->gcb[n][1];
         int cs = pt->gcb[n][3];
         
+        if(p->geo_curv==1)
+        curv_velocity(p,pt,cs,Un,val[0],val[1]);
+        else
         pt->velocity(cs,Un,val[0],val[1],val[2]);
         
             if(pt->Q_flag==1 && p->wet[IJ]==0)
@@ -332,4 +347,62 @@ void patchBC_2D::patchBC_pressure(lexer*, fdm*, ghostcell*, field&)
 
 void patchBC_2D::patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&)
 {
+}
+
+// curvilinear grid (G 50): the unit normal towards +i (cs 1, 4) or +j (cs 2, 3) and the length of the side face cs of
+// cell (i,j)
+void patchBC_2D::face_normal(lexer *p, int cs, double &nx, double &ny, double &len)
+{
+    if(cs==1)
+    sflow_curv::normal(p,1,i-1,j,nx,ny,len);
+
+    if(cs==4)
+    sflow_curv::normal(p,1,i,j,nx,ny,len);
+
+    if(cs==3)
+    sflow_curv::normal(p,2,i,j-1,nx,ny,len);
+
+    if(cs==2)
+    sflow_curv::normal(p,2,i,j,nx,ny,len);
+}
+
+// curvilinear grid: the inlet velocity (U,V) of cell (i,j), side cs, as patch_obj::velocity with the face normal e of
+// the grid in place of the axis: the component along e into the domain is Un, the direction
+//   B 415: the components as given (Cartesian)
+//   B 416: e turned by the angle alpha counter-clockwise (as patch_obj::velocity on the x and y faces)
+//   B 417: the direction vector (Cartesian)
+//   none:  e
+void patchBC_2D::curv_velocity(lexer *p, patch_obj *pt, int cs, double Un, double &uval, double &vval)
+{
+    if(pt->velcomp_flag==1)
+    {
+    uval = pt->U;
+    vval = pt->V;
+    return;
+    }
+
+    double ex,ey,len;
+    face_normal(p,cs,ex,ey,len);
+
+    double dx=ex, dy=ey;
+
+    if(pt->angle_flag==1)
+    {
+    dx = cos(pt->alpha)*ex - sin(pt->alpha)*ey;
+    dy = sin(pt->alpha)*ex + cos(pt->alpha)*ey;
+    }
+
+    if(pt->dir_flag==1)
+    {
+    dx = pt->dirx;
+    dy = pt->diry;
+    }
+
+    const double de = dx*ex + dy*ey;
+    const double dn = MAX(fabs(de),0.1);
+    const double dsgn = de>=0.0 ? 1.0 : -1.0;
+    const double sn = patch_obj::inward(cs);
+
+    uval = sn*dsgn*Un*dx/dn;
+    vval = sn*dsgn*Un*dy/dn;
 }

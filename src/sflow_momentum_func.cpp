@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_curv.h"
+#include"sediment_curv.h"
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
 #include"slide2D.h"
@@ -310,8 +311,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     b->wave->u_source(p,b);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WLs,UHs,VHs);
-    if(p->S98>0.0 && p->S95>0 && p->S10>0)
-    spiral_source(p,b,WLs,0);
+    if(p->S98>0.0)
+    spiral_source(p,b,pgc,WLs,0);
 	irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WLs,alpha);
     p->utime+=pgc->timer()-starttime;
@@ -330,8 +331,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     b->wave->v_source(p,b);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->G,1,WLs,UHs,VHs);
-    if(p->S98>0.0 && p->S95>0 && p->S10>0)
-    spiral_source(p,b,WLs,1);
+    if(p->S98>0.0)
+    spiral_source(p,b,pgc,WLs,1);
 	jrhs(p,b);
     }
 	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);
@@ -1253,33 +1254,53 @@ void sflow_momentum_func::clearrhs(lexer *p, fdm2D *b)
 // near the bed inwards, a flux of streamwise momentum towards the outer bank.  In streamline coordinates (s along the
 // depth-averaged velocity, n to the left) the depth-integrated dispersion M_sn = M_ns = -beta h |U| I, M_ss = M_nn = 0,
 // with the intensity I of the spiral flow (positive in bends to the left; sediment S 95: the equilibrium h |U| K_c, or
-// the lagged one of S 95 2) and beta = S98 (5 a - 15.6 a^2 + 37.5 a^3), a = sqrt(g)/(kappa C) <= 0.5, C from the
+// the lagged one of S 95 2; fixed bed, S 10 0 or S 95 0: the equilibrium h |U| K_c of spiral_intensity) and beta = S98 (5 a - 15.6 a^2 + 37.5 a^3), a = sqrt(g)/(kappa C) <= 0.5, C from the
 // Manning roughness of the bed (A 218 1).  Cartesian: M_xx = 2 beta h I u v/|U|, M_yy = -M_xx, M_xy = -beta h I
 // (u^2 - v^2)/|U|; the source of the momentum h u_i is -div M_i (finite volumes over the cell faces, closed at walls
 // and dry cells).  comp 0: F (x), 1: G (y)
-void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, slice &WL, int comp)
+void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL, int comp)
 {
+    // fixed bed: the intensity from the velocities of the stage (the x-component computes it, the y-component uses it)
+    if(comp==0 && !(p->S10>0 && p->S95>0))
+    spiral_intensity(p,b,pgc,WL);
+
     const double g = fabs(p->W22), kappa = 0.4;
     auto qq = [&](int a, int c) { return (a-p->imin)*p->jmax + (c-p->jmin); };
     auto open = [&](int a, int c) { const int q = qq(a,c); return p->flagslice4[q]>0 && p->wet[q]==1; };
 
-    // the dispersion tensor of cell (a,c): xx, xy, yy
-    auto tensor = [&](int a, int c, double &mxx, double &mxy, double &myy)
+    // the dispersion tensor of the cells and their first ghost layer (xx, xy, yy), once per stage: the x-component
+    // computes it, the y-component uses it
+    if(comp==0)
     {
-        mxx = mxy = myy = 0.0;
-        const double u = b->U(a,c), v = b->V(a,c), h = WL(a,c);
-        const double U = sqrt(u*u + v*v);
-        if(U<1.0e-6 || h<1.0e-6)
-        return;
-        const double n = pow(b->ks(a,c),1.0/6.0)/20.0;
-        const double C = pow(h,1.0/6.0)/MAX(n,1.0e-10);
-        const double al = MIN(sqrt(g)/(kappa*C), 0.5);
-        const double beta = p->S98*(5.0*al - 15.6*al*al + 37.5*al*al*al);
-        const double I = b->spiral(a,c);
-        mxx = 2.0*beta*h*I*u*v/U;
-        myy = -mxx;
-        mxy = -beta*h*I*(u*u - v*v)/U;
-    };
+        const size_t nq = (size_t)p->imax*p->jmax;
+        if(spm.size()!=3*nq)
+        spm.assign(3*nq,0.0);
+
+        for(int a=-1; a<p->knox+1; ++a)
+        for(int c=-1; c<p->knoy+1; ++c)
+        {
+            const int q = qq(a,c);
+            double mxx=0.0, mxy=0.0, myy=0.0;
+            const double u = b->U(a,c), v = b->V(a,c), h = WL(a,c);
+            const double U = sqrt(u*u + v*v);
+
+            if(U>=1.0e-6 && h>=1.0e-6)
+            {
+            const double n = pow(b->ks(a,c),1.0/6.0)/20.0;
+            const double C = pow(h,1.0/6.0)/MAX(n,1.0e-10);
+            const double al = MIN(sqrt(g)/(kappa*C), 0.5);
+            const double beta = p->S98*(5.0*al - 15.6*al*al + 37.5*al*al*al);
+            const double I = b->spiral(a,c);
+            mxx = 2.0*beta*h*I*u*v/U;
+            myy = -mxx;
+            mxy = -beta*h*I*(u*u - v*v)/U;
+            }
+
+            spm[3*q] = mxx;
+            spm[3*q+1] = mxy;
+            spm[3*q+2] = myy;
+        }
+    }
 
     // the flux of momentum component comp through the face between (a,c) and its +dir neighbour, per unit length
     auto fflux = [&](int dir, int a, int c, double nx, double ny) -> double
@@ -1287,10 +1308,8 @@ void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, slice &WL, int comp)
         const int a2 = a + (dir==1?1:0), c2 = c + (dir==2?1:0);
         if(!open(a,c) || !open(a2,c2))
         return 0.0;
-        double x1,y1,z1,x2,y2,z2;
-        tensor(a,c,x1,y1,z1);
-        tensor(a2,c2,x2,y2,z2);
-        const double mxx = 0.5*(x1+x2), mxy = 0.5*(y1+y2), myy = 0.5*(z1+z2);
+        const int q1 = qq(a,c), q2 = qq(a2,c2);
+        const double mxx = 0.5*(spm[3*q1] + spm[3*q2]), mxy = 0.5*(spm[3*q1+1] + spm[3*q2+1]), myy = 0.5*(spm[3*q1+2] + spm[3*q2+2]);
         return (comp==0) ? mxx*nx + mxy*ny : mxy*nx + myy*ny;
     };
 
@@ -1323,3 +1342,165 @@ void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, slice &WL, int comp)
     }
 }
 
+
+// S 98 without the sediment module (S 10 0 or S 95 0, fixed bed): the intensity of the spiral flow with adaptation, as
+// S 95 2 of the sediment (sediment_exner_lag.cpp; Kalkwijk & Booij 1986, the form of Delft3D):
+//     I + L_a s.grad(I) = I_e,   I_e = h |U| K_c,   L_a = S97 (m - 1) h / (2 kappa^2),   m = kappa C/sqrt(g)
+// K_c = u x (u.grad u)/|u|^3 the signed curvature of the streamlines of the depth-averaged velocity (positive turning
+// left), C = h^(1/6)/n of the Manning roughness, at most 100.  First-order upwind along s = u/|u|, Gauss-Seidel with
+// alternating sweep directions from the intensity of the last stage, the ghost cells exchanged after every sweep, to
+// convergence (at most S 49 sweeps).  The equilibrium I_e alone (curvature from the velocity gradients, its divergence
+// in the momentum: third derivatives of the velocity) gives grid-scale wiggles; the relaxation along the flow is the
+// smoothing of the bend.  Refined patches (spiral_lag 0): I = I_e in the cells and their first ghost layer.
+void sflow_momentum_func::spiral_intensity(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
+{
+    const double g = fabs(p->W22), kappa = 0.4;
+    auto qq = [&](int a, int d) { return (a-p->imin)*p->jmax+(d-p->jmin); };
+    auto fluid = [&](int a, int d) { const int q=qq(a,d); return p->flagslice4[q]>0 && p->wet[q]==1; };
+
+    auto cgrad = [&](slice &f, int a, int d, double &gx, double &gy)
+    {
+        const double fc = f(a,d);
+        const double fE = fluid(a+1,d) ? f(a+1,d) : fc, fW = fluid(a-1,d) ? f(a-1,d) : fc;
+        const double fN = fluid(a,d+1) ? f(a,d+1) : fc, fS = fluid(a,d-1) ? f(a,d-1) : fc;
+
+        if(p->geo_curv==1)
+        sflow_curv::grad5(p,a,d,fE,fW,fN,fS,gx,gy);
+
+        else
+        {
+        gx = (fE - fW)/(p->DXP[a+marge] + p->DXP[a-1+marge]);
+        gy = (p->j_dir==1) ? (fN - fS)/(p->DYP[d+marge] + p->DYP[d-1+marge]) : 0.0;
+        }
+    };
+
+    const size_t nq = (size_t)p->imax*p->jmax;
+    if(spie.size()!=nq)
+    spie.assign(nq,0.0);
+
+    // the equilibrium intensity in the cells and their first ghost layer
+    for(int a=-1; a<p->knox+1; ++a)
+    for(int d=-1; d<p->knoy+1; ++d)
+    {
+        const int q = qq(a,d);
+        spie[q] = 0.0;
+
+        if(!fluid(a,d) || p->j_dir==0)
+        continue;
+
+        const double u = b->U(a,d), v = b->V(a,d);
+        const double U = sqrt(u*u + v*v);
+        const double h = MAX(WL(a,d),0.0);
+
+        if(U<1.0e-4)
+        continue;
+
+        double ux, uy, vx, vy;
+        cgrad(b->U,a,d,ux,uy);
+        cgrad(b->V,a,d,vx,vy);
+
+        const double curv = (u*u*vx + u*v*vy - u*v*ux - v*v*uy)/(U*U*U);
+
+        spie[q] = h*U*curv;
+    }
+
+    if(!spiral_lag || p->S97<=0.0)
+    {
+        for(int a=-1; a<p->knox+1; ++a)
+        for(int d=-1; d<p->knoy+1; ++d)
+        b->spiral(a,d) = spie[qq(a,d)];
+        return;
+    }
+
+    // the upwind coefficients L_a s per index direction (curvilinear: the contravariant components of s)
+    if(spcx.size()!=nq)
+    {
+    spcx.assign(nq,0.0);
+    spcy.assign(nq,0.0);
+    }
+
+    double imax_e = 0.0;
+
+    SLICELOOP4
+    {
+        const int q = qq(i,j);
+        spcx[q] = spcy[q] = 0.0;
+
+        if(!fluid(i,j))
+        {
+        b->spiral(i,j) = 0.0;
+        continue;
+        }
+
+        imax_e = MAX(imax_e,fabs(spie[q]));
+
+        const double u = b->U(i,j), v = b->V(i,j);
+        const double U = sqrt(u*u + v*v);
+        const double h = MAX(WL(i,j),0.0);
+
+        if(U<1.0e-4)
+        continue;
+
+        const double n = pow(b->ks(i,j),1.0/6.0)/20.0;
+        const double C = MIN(pow(MAX(h,1.0e-6),1.0/6.0)/MAX(n,1.0e-10), 100.0);
+        const double m = kappa*C/sqrt(g);
+        const double La = MAX(0.0, p->S97*(m - 1.0)*h/(2.0*kappa*kappa));
+        const double sx = u/U, sy = v/U;
+
+        if(p->geo_curv==1)
+        {
+        spcx[q] = La*sediment_curv::contra(p,1,i,j,sx,sy);
+        spcy[q] = La*sediment_curv::contra(p,2,i,j,sx,sy);
+        }
+
+        else
+        {
+        spcx[q] = (sx>0.0) ? La*sx/p->DXP[IM1] : La*sx/p->DXP[IP];
+        spcy[q] = (p->j_dir==1) ? ((sy>0.0) ? La*sy/p->DYP[JM1] : La*sy/p->DYP[JP]) : 0.0;
+        }
+    }
+
+    imax_e = pgc->globalmax(imax_e);
+    const double tol = 1.0e-6*MAX(imax_e,1.0e-12);
+    const int itmax = MAX(p->S49,1);
+    int it = 0;
+
+    for(it=0; it<itmax; ++it)
+    {
+        double dmax = 0.0;
+        const bool fwd = (it%2==0);
+
+        for(int ii=0; ii<p->knox; ++ii)
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+            i = fwd ? ii : p->knox-1-ii;
+            j = fwd ? jj : p->knoy-1-jj;
+            const int q = qq(i,j);
+
+            if(!fluid(i,j))
+            continue;
+
+            const double cx = spcx[q], cy = spcy[q];
+            double num = spie[q], den = 1.0;
+
+            // the upwind neighbour: a wet fluid cell (or of the next rank); else the cell's own value
+            if(cx>0.0 && fluid(i-1,j)) { num += cx*b->spiral(i-1,j); den += cx; }
+            if(cx<0.0 && fluid(i+1,j)) { num -= cx*b->spiral(i+1,j); den -= cx; }
+            if(cy>0.0 && fluid(i,j-1)) { num += cy*b->spiral(i,j-1); den += cy; }
+            if(cy<0.0 && fluid(i,j+1)) { num -= cy*b->spiral(i,j+1); den -= cy; }
+
+            const double fnew = num/den;
+            dmax = MAX(dmax,fabs(fnew - b->spiral(i,j)));
+            b->spiral(i,j) = fnew;
+        }
+
+        pgc->gcsl_start4(p,b->spiral,1);
+
+        dmax = pgc->globalmax(dmax);
+        if(dmax<=tol)
+        break;
+    }
+
+    if(p->mpirank==0 && p->count%p->P12==0 && p->S10==0)
+    cout<<"spiral flow (S 98, fixed bed)  I_e max: "<<setprecision(4)<<imax_e<<"  sweeps: "<<it+1<<endl;
+}

@@ -608,6 +608,7 @@ private:
     patchBC_interface *pBC;
     sixdof *p6dof;
     ioflow *pflow_void;
+    patchBC_interface *pBC_void = nullptr;
     ioflow *pflow_of(sflow_amr_patch*);     // the in- and outflow of a grid: its open faces (G 54) or none
 
     double m0, printtime_amr;

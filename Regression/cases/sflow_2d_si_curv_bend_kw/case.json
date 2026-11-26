@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_curv_bend_ke",
+ "np": 2,
+ "steps": 150,
+ "ctrl_set": {
+  "A 260": "2"
+ },
+ "description": "sflow_2d_si_curv_bend_ke with k-omega (A 260 2) on the curvilinear grid (patch 261124/0001, k-omega untested there before).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "semi_implicit",
+  "mpi",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_turb_kw_IM1 on geo_curv 1"
+ ]
+}

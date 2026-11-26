@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_curv_bend_mpi2",
+ "np": 2,
+ "steps": 100,
+ "ctrl_add": [
+  "S 98 0.5"
+ ],
+ "description": "sflow_2d_curv_bend_mpi2 (explicit A 210 3) with S 98 0.5 on a fixed bed: the spiral-flow dispersion without the sediment module (patch 261125/0004).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "mpi",
+  "spiral"
+ ],
+ "covers": [
+  "sflow_momentum_func::spiral_intensity (explicit step)"
+ ]
+}

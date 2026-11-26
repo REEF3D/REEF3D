@@ -59,6 +59,21 @@ double sflow_timestep_SI::wave_cap(lexer *p, double dx, double h)
     return lambda/(c*nt);
 }
 
+// the factor of the advective limit, dt = 2 N 47 / (flowfac max(|u|/dx + |v|/dy)):
+//   A 235 not given: 2.5 for A 210 11 (flow Courant number 0.8 N 47), 2 with the non-hydrostatic pressure (A 220 2/3: WH
+//   advected with AB2), 1 otherwise (2 N 47)
+//   A 235 > 0: the flow Courant number A 235 itself, halved with the non-hydrostatic pressure of the RK predictors
+//   (A 210 12/13 with A 220 2/3: the AB2 limit of WH)
+double sflow_timestep_SI::flowfac(lexer *p)
+{
+    const double nh = (p->A220>=2 && p->A210!=1) ? 2.0 : 1.0;
+
+    if(p->A235>0.0)
+    return 2.0*p->N47*nh/p->A235;
+
+    return (p->A226==1 && p->A210==1) ? 2.5 : nh;
+}
+
 double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &hmax)
 {
     // 1/max(|u|/dx + |v|/dy), the explicit diffusion limit (A 212 1) scaled as in
@@ -72,7 +87,7 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     // A 210 11 (inside A210 = 1): 2.5, the flow Courant number at most 0.8 N 47 (0.4 with N 47 0.5): the one-step
     // BCG predictor misses bores from about 0.5 on (Stoker dam break, theta 1/2: max. rel. L1 0.15 % at u dt/dx 0.4,
     // 12 % at 0.5, 6 - 11 % at 1.0)
-    const double nhfac = (p->A226==1 && p->A210==1) ? 2.5 : ((p->A220>=2) ? 2.0 : 1.0);
+    const double nhfac = flowfac(p);
 
     hmax = 0.0;
 
@@ -206,6 +221,15 @@ void sflow_timestep_SI::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     if(p->A228>0.0)
     p->dt = p->A228;
+
+    if(p->mpirank==0)
+    {
+    const double nh = (p->A220>=2 && p->A210!=1) ? 0.5 : 1.0;
+    if(p->A235>0.0)
+    cout<<"SFLOW A 210 11/12/13: flow Courant number "<<p->A235*nh<<" (A 235"<<(nh<1.0 ? ", halved for the non-hydrostatic WH" : "")<<")"<<endl;
+    else
+    cout<<"SFLOW A 210 11/12/13: flow Courant number "<<2.0*p->N47/flowfac(p)<<" (from N 47; A 235 sets it directly)"<<endl;
+    }
 
     if(p->A228<=0.0 && p->mpirank==0)
     {
