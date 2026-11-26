@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_si_amr_patch_inlet",
+ "np": 2,
+ "steps": 300,
+ "description": "sflow_2d_si_amr_patch_inlet on two ranks: the patches of the mesh refinement run with an in- and outflow without patch boundary conditions (sflow_amr::pBC_void); with the patchBC of level 0 the patches applied its faces to their own fields and called its global sums (deadlock on two ranks, patch 261125/0003).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "patchbc",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr pflow_void with patchBC_void"
+ ]
+}

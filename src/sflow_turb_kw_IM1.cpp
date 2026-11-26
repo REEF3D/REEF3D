@@ -59,8 +59,17 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_diffusio
     //omega
         starttime=pgc->timer();
     	clearrhs(p,b);
+        if(p->geo_curv==1)
+        {
+        curv_convection(p,b);
+        curv_diffusion(p,b,kw_sigma_w);
+        }
+        
+        else
+        {
         pconvec->start(p,b,eps,4,b->P,b->Q);
         pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
+        }
     	omega_source(p,b);
     	timesource(p,b,wn);
         wall_bc(p,b,eps);
@@ -74,8 +83,17 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_diffusio
     //kin
         starttime=pgc->timer();
     	clearrhs(p,b);
+        if(p->geo_curv==1)
+        {
+        curv_convection(p,b);
+        curv_diffusion(p,b,kw_sigma_k);
+        }
+        
+        else
+        {
         pconvec->start(p,b,kin,4,b->P,b->Q);
         pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
+        }
     	kin_source(p,b);
     	timesource(p,b,kn);
         wall_bc(p,b,kin);
@@ -170,6 +188,23 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     double dudx,dvdy,dudy,dvdx;
     double uc,up,um,vc,vp,vm;
+    
+    // curvilinear grid (G 50): the cell-centred gradients of U and V (sflow_turb_io::curv_velgrad)
+    if(p->geo_curv==1)
+    {
+        SLICELOOP4
+        {
+        curv_velgrad(p,b,i,j,dudx,dudy,dvdx,dvdy);
+
+        Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
+
+        S(i,j) = sqrt(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
+
+        Qw(i,j) = sqrt(MAX(0.5*(dudy - dvdx)*(dvdx - dudy),0.0));
+        }
+
+        return;
+    }
     
     SLICELOOP4
     {

@@ -186,10 +186,10 @@ void sflow_momentum_SI::check(lexer *p)
     msg("subcycling of the mesh refinement (G 7 1) is");
 
 
-    // patch boundary conditions (B 411-422 on B 440-442): one grid (bc_setup); curvilinear grids refuse them in
-    // sflow_curv
-    if((p->B440>0 || p->B441>0 || p->B442>0) && (p->G1>0 || p->geo_mb>0))
-    msg("patch boundary conditions (B 411-422) with mesh refinement (G 1) and on multi-block grids are");
+    // patch boundary conditions (B 411-422 on B 440-442): on level 0 (bc_setup; curvilinear grids: the face normals),
+    // the mesh refinement keeps off their faces (reefamr::setup, as off the in- and outflow); multi-block grids not yet
+    if((p->B440>0 || p->B441>0 || p->B442>0) && p->geo_mb>0)
+    msg("patch boundary conditions (B 411-422) on multi-block grids are");
 
     // X 10 3: ship waves from the pressure of the moving body (sixdof_sflow, X 400), with the gravity term; X 10 2: the
     // direct forcing of the moving body on the cells after the step (cell_update), one grid, Cartesian
@@ -1415,6 +1415,9 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
     if(b->wave!=nullptr)
     b->wave->u_source(p,b);
+    // S 98: the dispersion of the main-flow momentum by the spiral flow (sflow_momentum_func::spiral_source)
+    if(p->S98>0.0)
+    spiral_source(p,b,pgc,WL0,0);
     irhs(p,b);
 
     SLICELOOP4
@@ -1431,6 +1434,8 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     pmet->source_sflow(p,pgc,b->G,1,WL0,UHs,VHs);
     if(b->wave!=nullptr)
     b->wave->v_source(p,b);
+    if(p->S98>0.0)
+    spiral_source(p,b,pgc,WL0,1);
     jrhs(p,b);
 
         SLICELOOP4

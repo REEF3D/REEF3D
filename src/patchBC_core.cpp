@@ -273,7 +273,29 @@ int patchBC_core::patch_find(lexer *p, int ii, int jj, int kk, int cs, bool twoD
     {
     double dn,rt;
     const double zm = twoD ? 0.0 : p->B442_zm[n];
-    
+
+        // curvilinear grid: the distance of the centre from the face line along its normal within one cell width,
+        // the distance along the face within the radius
+        if(twoD && p->geo_curv==1 && cs>=1 && cs<=4)
+        {
+        int a0=ii, b0=jj, a1=ii, b1=jj;
+
+        if(cs==1) {a1=ii;   b1=jj+1;}
+        if(cs==4) {a0=ii+1; a1=ii+1; b1=jj+1;}
+        if(cs==3) {a1=ii+1;}
+        if(cs==2) {b0=jj+1; a1=ii+1; b1=jj+1;}
+
+        double tx = p->XN2D[p->nij(a1,b1)] - p->XN2D[p->nij(a0,b0)];
+        double ty = p->YN2D[p->nij(a1,b1)] - p->YN2D[p->nij(a0,b0)];
+        const double tl = sqrt(tx*tx + ty*ty);
+        tx /= (tl>1.0e-20 ? tl : 1.0);
+        ty /= (tl>1.0e-20 ? tl : 1.0);
+
+        dn = fabs(-(xf-p->B442_xm[n])*ty + (yf-p->B442_ym[n])*tx) - p->geo_width(ii,jj);
+        rt = fabs((xf-p->B442_xm[n])*tx + (yf-p->B442_ym[n])*ty);
+        }
+
+        else
         if(cs==1 || cs==4)
         {
         dn = fabs(xf-p->B442_xm[n]) - p->DXN[ii+marge];
@@ -492,6 +514,22 @@ double patchBC_core::hydrograph_ipol(lexer *p, double **hg, int count)
 
 void patchBC_core::face_center(lexer *p, int ii, int jj, int kk, int cs, bool twoD, double &xf, double &yf, double &zf)
 {
+    // curvilinear grid (G 50, SFLOW): the mid point of the two nodes of the side face
+    if(twoD && p->geo_curv==1 && cs>=1 && cs<=4)
+    {
+    int a0=ii, b0=jj, a1=ii, b1=jj;
+
+    if(cs==1) {a0=ii;   b0=jj;   a1=ii;   b1=jj+1;}
+    if(cs==4) {a0=ii+1; b0=jj;   a1=ii+1; b1=jj+1;}
+    if(cs==3) {a0=ii;   b0=jj;   a1=ii+1; b1=jj;}
+    if(cs==2) {a0=ii;   b0=jj+1; a1=ii+1; b1=jj+1;}
+
+    xf = 0.5*(p->XN2D[p->nij(a0,b0)] + p->XN2D[p->nij(a1,b1)]);
+    yf = 0.5*(p->YN2D[p->nij(a0,b0)] + p->YN2D[p->nij(a1,b1)]);
+    zf = 0.0;
+    return;
+    }
+
     xf = p->XP[ii+marge];
     yf = p->YP[jj+marge];
     zf = twoD ? 0.0 : p->ZP[kk+marge];

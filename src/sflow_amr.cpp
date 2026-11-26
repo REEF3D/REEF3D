@@ -48,12 +48,14 @@ Author: Hans Bihs
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
 #include"sflow_ediff.h"
+#include"sflow_idiff.h"
 #include"sflow_amr_ship.h"
 #include"sflow_amr_linesolve.h"
 #include"6DOF_sflow.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
 #include"ioflow_void.h"
+#include"patchBC_void.h"
 #include"ioflow_amr_block.h"
 #include<cmath>
 #include<mpi.h>
@@ -229,7 +231,11 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
         cu[l][k]=0.0;
     }
 
-    pflow_void = new ioflow_v(p,pgc,pBC);
+    // the in- and outflow of the patches without open faces: no patch boundary conditions either (B 440-442 act on
+    // level 0, the refinement keeps off their faces; with the patchBC of level 0 the patches would apply its faces,
+    // indices of level 0, to their own fields and call its global sums)
+    pBC_void = new patchBC_void(p);
+    pflow_void = new ioflow_v(p,pgc,pBC_void);
 
     phll0->amr = this;
     phll0->amr_id = 0;
@@ -448,7 +454,16 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(p->A211>=4)
     c->precon = new sflow_reconstruct_weno(pp,pBC,1);
 
-    // diffusion: explicit on the patches (A 212 2 is implicit on level 0 only)
+    // diffusion: A 212 2 implicit on the patches as well (sflow_idiff with the solver of the patch, the cells around it
+    // as Dirichlet values), A 212 1 and the algebraic eddy viscosity (A 260 3/4, computed by each grid in its explicit
+    // diffusion) explicit
+    if(p->A212==2 && p->A260!=3 && p->A260!=4)
+    {
+    sflow_idiff *id = new sflow_idiff(pp);
+    id->own_solver = turb_solver(pp,pgc);
+    c->pdiff = id;
+    }
+    else
     if(p->A212>=1)
     {
     sflow_ediff *ed = new sflow_ediff(pp);
@@ -515,6 +530,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
+    c->pmom->spiral_lag = false;     // S 98 on a fixed bed: the equilibrium intensity on the patches
     c->pmom->bous_defer = (bous==1);
 
     // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
@@ -526,6 +542,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
         c->psim = new sflow_momentum_SI(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6,true);
         c->psim->amrgrid = true;
+        c->psim->spiral_lag = false;
     }
 
     for(int ip=0; ip<5; ++ip)
@@ -3067,8 +3084,9 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
-    // explicit horizontal diffusion (A 212 1) of the patches, as sflow_etimestep (G 7 1: per level)
-    if(p->A212==1)
+    // explicit horizontal diffusion of the patches (A 212 1; A 212 2 with the algebraic eddy viscosity A 260 3/4), as
+    // sflow_etimestep (G 7 1: per level)
+    if(p->A212==1 || (p->A212==2 && (p->A260==3 || p->A260==4)))
     {
         for(auto q : P)
         {

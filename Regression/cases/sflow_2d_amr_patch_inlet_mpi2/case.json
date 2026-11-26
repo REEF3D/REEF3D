@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_amr_patch_inlet_mpi2",
+ "np": 2,
+ "steps": 300,
+ "ctrl_set": {
+  "A 210": "3",
+  "A 228": null
+ },
+ "description": "sflow_2d_si_amr_patch_inlet_mpi2 with the explicit SFLOW (A 210 3): the patch inlet on level 0 with a refined box, the patches without the patch BCs of level 0 (sflow_amr::pBC_void; before, the explicit step applied the level-0 patch faces to the patch fields, patch 261125/0003).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "patchbc",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr pflow_void with patchBC_void, explicit step"
+ ]
+}

@@ -99,6 +99,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A232;
     dd++;
+    dctrl[dd] = A235;
+    dd++;
     ictrl[ii] = A251;
     ii++;
     dctrl[dd] = A251_val;

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_curv_bend_patch",
+ "np": 2,
+ "steps": 200,
+ "ctrl_set": {
+  "A 210": "3"
+ },
+ "description": "sflow_2d_si_curv_bend_patch with the explicit SFLOW (A 210 3): the patch faces in sflow_curv::flux_bc (patch 261125/0003).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "mpi",
+  "patchbc"
+ ],
+ "covers": [
+  "sflow_curv::flux_bc patch faces"
+ ]
+}

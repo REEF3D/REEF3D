@@ -58,6 +58,10 @@ private:
     // code of the patch face matching a staggered slice entry (same side, same tangential index,
     // normal index within one cell), 0 if none
     int staggered_flag(int ii, int jj, int cs);
+
+    // curvilinear grid (G 50): the normal of the side face cs of cell (i,j) towards +i / +j, the inlet velocity
+    void face_normal(lexer*, int cs, double &nx, double &ny, double &len);
+    void curv_velocity(lexer*, patch_obj*, int cs, double Un, double &uval, double &vval);
 };
 
 #endif

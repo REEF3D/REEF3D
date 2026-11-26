@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_patch_inlet",
+ "np": 1,
+ "steps": 300,
+ "ctrl_set": {
+  "A 228": null
+ },
+ "ctrl_add": [
+  "A 235 0.6"
+ ],
+ "description": "sflow_2d_si_patch_inlet with the flow Courant number of the semi-implicit step given directly (A 235 0.6, patch 261125/0005) instead of 0.8 N 47, without the cap A 228 (the gravity wave cap at Courant number 10 decides where the flow is slow).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_timestep_SI::flowfac with A 235"
+ ]
+}

@@ -648,13 +648,8 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             sigma += fabs(pb->V(ii,jj))/pp->DYN[jj+marge];
             }
 
-            // A 220 2/3: WH advected with AB2; A 210 11: 2.5 (sflow_timestep_SI)
-            if(p->A226==1 && p->A210==1)
-            sigma *= 2.5;
-
-            else
-            if(p->A220>=2)
-            sigma *= 2.0;
+            // the factor of the advective limit (A 210 11: 2.5, A 220 2/3: 2, A 235: the flow Courant number; sflow_timestep_SI)
+            sigma *= sflow_timestep_SI::flowfac(p);
 
             if(sigma>1.0e-20)
             cmin = MIN(cmin,1.0/sigma);
@@ -673,7 +668,8 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             capw = MIN(capw,sflow_timestep_SI::wave_cap(p,dxc,pb->WL(ii,jj)));
             }
 
-            if(p->A212==1)
+            // the explicit diffusion of the patches: A 212 1, and A 212 2 with the algebraic eddy viscosity (A 260 3/4)
+            if(p->A212==1 || (p->A212==2 && (p->A260==3 || p->A260==4)))
             {
             double visc = p->W2 + pb->eddyv(ii,jj);
 
