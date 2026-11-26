@@ -662,8 +662,10 @@ void nhflow_momentum_SI::check(lexer *p)
     // SEASTATE coupling (A 750 1): the wave force in the predictor (the same force in every layer, as the explicit
     // NHFLOW), the Stokes mass source (A 751 2) in the eta system; surfbeat (A 770 1) needs the host's step for the
     // wave groups and the long-wave boundary
-    if(p->A750>0 && p->A770==1)
-    msg("SEASTATE surfbeat (A 770 1) is");
+    // SEASTATE surfbeat (A 770 1): the long-wave boundary at the x- side as a Flather face of the step (bc_setup), one
+    // Cartesian grid
+    if(p->A750>0 && p->A770==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("SEASTATE surfbeat (A 770 1) on curvilinear, multi-block or refined grids is");
 
 
     if(stop==1)
@@ -1021,6 +1023,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
 
+    // SEASTATE surfbeat (A 770 1): the long-wave ghost cells at the x- side (bc_setup: Flather faces)
+    if(d->wave!=nullptr)
+    d->wave->ghostcells(p,d,d->UH,d->VH,d->WH);
+
     // patch boundary conditions: the hydrographs, the inlet velocity of a discharge, the ghost cells of the patch faces
     if(pBC!=nullptr && pBC->obj_count>0)
     {
@@ -1155,6 +1161,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     {
     double *fu = lfull(p,UHa,0), *fv = lfull(p,VHa,1), *fw = lfull(p,WHa,2);
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,fu,fv,fw,WL0);
+    if(d->wave!=nullptr)
+    d->wave->ghostcells(p,d,fu,fv,fw);
     patch_ghosts(p,d,nullptr,nullptr,nullptr,fu,fv,fw);
     lback(p,UHa,0); lback(p,VHa,1); lback(p,WHa,2);
     }
@@ -1163,6 +1171,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     {
     double *fu = lfull(p,UHb,0), *fv = lfull(p,VHb,1), *fw = lfull(p,WHb,2);
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,fu,fv,fw,WL0);
+    if(d->wave!=nullptr)
+    d->wave->ghostcells(p,d,fu,fv,fw);
     patch_ghosts(p,d,nullptr,nullptr,nullptr,fu,fv,fw);
     lback(p,UHb,0); lback(p,VHb,1); lback(p,WHb,2);
     }
@@ -1809,6 +1819,7 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const int inflow_open  = (p->B98>=3 || p->B60>=1) ? 1 : 0;
     const int outflow_open = (p->B99>=3 || p->B60>=1) ? 1 : 0;
     const int open_side[5] = {0,p->open_xm,p->open_yp,p->open_ym,p->open_xp};
+    const bool surfb = d->wave!=nullptr && d->wave->surfbeat();
 
     GCSL4LOOP
     {
@@ -1907,6 +1918,17 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
             WLb(f.gi,f.gj) = WL0(f.i,f.j);
             etaB(f.gi,f.gj) = eta0(f.i,f.j);
             }
+        }
+
+        // SEASTATE surfbeat (A 770 1): the absorbing-generating long-wave boundary at the x- side (Van Dongeren and
+        // Svendsen 1997; seastate_coupling::longwave_bc), u_g = q_b/h - sqrt(g/h) (eta_1 - zeta_b) in the ghost cells
+        // (si_begin): with them the Flather face is q_in = q_b + sqrt(g h) zeta_b - sqrt(g h) eta^{n+1}, implicit in
+        // eta^{n+1}; the level of the ghost cells is that of the first cell
+        if(surfb && f.cs==1 && p->wet[IJ]==1 && WL0(i,j)>p->A705)
+        {
+        f.type = bc_flather;
+        WLb(f.gi,f.gj) = WL0(f.i,f.j);
+        etaB(f.gi,f.gj) = eta0(f.i,f.j);
         }
 
         // wall: the face stays closed

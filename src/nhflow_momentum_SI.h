@@ -158,12 +158,13 @@ using namespace std;
 // VRANS (B 200; one Cartesian grid): the Darcy-Forchheimer drag and the inertia factor in the column operators, the
 // storage n_s in the eta system (nhflow_momentum_SI_vrans.cpp). Wall friction at every wall face (A 519 2; one
 // Cartesian grid): the log-law drag of the side walls in the column operators (nhflow_momentum_SI_wall.cpp).
+// SEASTATE surfbeat (A 770 1; one Cartesian grid): the long-wave boundary at the x- side as a Flather face (bc_setup).
 //
 // Not available (stops in check()): the non-hydrostatic pressure, wave breaking, VRANS, the side-wall friction
-// A 519 2, 6DOF and patch boundary conditions on curvilinear, multi-block or refined grids (fixed solids with direct
-// forcing: not on multi-block or refined grids); the non-hydrostatic pressure with the density (A 620) or the
-// semi-Lagrangian advection (A 549 1); the hull as the top of the water columns (X 13 2), X 15 9, membranes (X 330),
-// FEM coupling (Z 30), SEASTATE surfbeat (A 770 1), different B 520 methods on one edge; mesh refinement with
+// A 519 2, 6DOF, SEASTATE surfbeat (A 770 1) and patch boundary conditions on curvilinear, multi-block or refined
+// grids (fixed solids with direct forcing: not on multi-block or refined grids); the non-hydrostatic pressure with
+// the density (A 620) or the semi-Lagrangian advection (A 549 1); the hull as the top of the water columns (X 13 2),
+// X 15 9, membranes (X 330), FEM coupling (Z 30), different B 520 methods on one edge; mesh refinement with
 // subcycling (G 7 1), vertical refinement (G 6 1) or tracers. 6DOF X 15 8, 10, 11 run with the cell forcing of X 15 1,
 // the porous floating body (X 16) without its storage and inertia.
 // ---------------------------------------------------------------------------
