@@ -325,6 +325,8 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         wb[k] = WHp[PIJK];
         }
 
+        if(vr)
+        vr_cell_col(true);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         if(thv<1.0)
@@ -474,6 +476,10 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
         const double br = (s*hL - sl)*fL - (s*hR + sl)*fR + (s*hL + su)*uL - (s*hR - su)*uR;
 
         NQ[PIJK] = dt*br*c/s;
+
+        // VRANS: the inertia factor and the drag of the face layer
+        if(vr)
+        NQ[PIJK] *= (NQ==NQx ? vrSx : vrSy)[PIJK];
         }
     };
 
@@ -554,6 +560,10 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
     y[(size_t)B*n] = nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - w;
 
+    // VRANS: the storage n_s
+    if(vr)
+    y[(size_t)B*n] += (d->PORS(i,j) - 1.0)*(nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - WL0(i,j));
+
         if(!nAct[IJ])
         {
         for(k=0;k<K;++k)
@@ -605,7 +615,8 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         // [w]_k, Keller box, with w^{n+1}; 6DOF: in a cell of a body the body velocity (fb_wcell)
         const int fbc = fbon ? fb_wcell(p) : 0;
-        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - dt*(ph_up - PHI[PIJK])/h;
+        const double dtw = vr ? dt*vr_sw(p) : dt;    // VRANS: the inertia factor and the drag of w
+        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - dtw*(ph_up - PHI[PIJK])/h;
         const double wup = 2.0*wk - wlo;
         D += wup - wlo;
         wlo = wup;
@@ -693,7 +704,7 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const double sg = p->DZN[KP];
             const double sl = nh_lim(zif(iR,jR,k) - zif(iL,jL,k),dxp);
             const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dxp);
-            const double f = dt*c/sg;
+            const double f = vr ? dt*c/sg*(iR!=iL ? vrSx : vrSy)[PIJK] : dt*c/sg;
 
             pL0[ci()] = act(iL,jL) ? f*(sg*hL - sl) : 0.0;
             pR0[ci()] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
@@ -854,6 +865,8 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
 
     // mass row: eta + d - WL^n + dt sum_k dsig_k div(theta Q_k)
     at(0,0,0) += nPw[IJ];
+    if(vr)
+    at(0,0,0) += ((*psi->stor)(i,j) - 1.0)*nPw[IJ];    // VRANS: the storage n_s (d->PORS)
     for(int kk=0;kk<K;++kk)
     adddiv(0,dt*theta*p->DZN[kk+marge],kk);
 
@@ -917,9 +930,10 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
 
             if(fbc==0)
             {
-            wc[kk] += dt/h;
+            const double dtw = vr ? dt*vr_sw(p) : dt;    // VRANS (k = kk)
+            wc[kk] += dtw/h;
             if(kk<K-1)
-            wc[kk+1] -= dt/h;
+            wc[kk+1] -= dtw/h;
             }
 
                 for(int m=0;m<K;++m)
@@ -1250,7 +1264,7 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(nAct[IJ])
             {
             const double ph_up = (k<K-1) ? PHI[PIJKp1] : 0.0;
-            d->WH[IJK] -= dt*(ph_up - PHI[PIJK])/p->DZN[KP];
+            d->WH[IJK] -= (vr ? dt*vr_sw(p) : dt)*(ph_up - PHI[PIJK])/p->DZN[KP];
             }
 
             // the breaking parameter of Popinet 2020: |w| <= b sqrt(g H)

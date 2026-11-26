@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE surfbeat (A 770 1) coupled with the semi-implicit NHFLOW (A 510 11, hydrostatic, dt 0.1 s): the case of seastate_nhflow_surfbeat (wave groups on the GLOBEX profile, radiation stress with roller, 450 x 1 x 2 cells, 40 s). The absorbing-generating long-wave boundary at the x- side as a Flather face of the step: with the long-wave ghost velocity u_g = q_b/h - sqrt(g/h) (eta_1 - zeta_b) the column discharge is q_in = q_b + sqrt(g h) zeta_b - sqrt(g h) eta^{n+1}, implicit in eta^{n+1}. At the explicit time step the gauges are within 5 % of the explicit RK2 until the reflection from the shoreline returns (validation 10).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 2000,
+ "time": 40.0,
+ "tags": [
+  "2d",
+  "nhflow",
+  "seastate",
+  "semi_implicit"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::bc_setup: surfbeat Flather faces at the x- side",
+  "nhflow_momentum_SI::si_begin: seastate_nhflow::ghostcells",
+  "seastate_coupling::longwave_bc with the semi-implicit step"
+ ],
+ "architect": "Hans Bihs"
+}

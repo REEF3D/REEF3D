@@ -594,6 +594,44 @@ int main()
         check(B.last().cx>0.15 && B.last().cx<0.25, "B1 the start at rest in 0.2 m/s without X 202: current at 4 s "+std::to_string(B.last().cx)+" m/s");
     }
 
+    // 3p. (patch 0041) the drag law of the glide, X 209 (dU/dt = -C U|U|/L): the coefficient that takes u0 to u1 in dt
+    // gives back u1 (C 0.2-1, dt 0.5-2 T); the distance of the glide to the slowest swimming speed is that of the
+    // integrated law, and the coasting distance of the brain that of the law turning linear below it, to rest; the
+    // exponential glide is as before (the coasting time from the slowing down, u0 tau)
+    {
+        double ei = 0.0, ed = 0.0;
+        for(double cd : {0.2, 0.46, 1.0})
+        for(double dt : {0.5, 2.0})
+        {
+            const double u0 = 0.55, u1 = sixdof_brain::glide_speed(u0, dt, cd, true, 1.0);
+            ei = std::max(ei, std::fabs(sixdof_brain::glide_learn(u0, u1, dt, true, 1.0, 1.0, 0.46)/cd - 1.0));
+            // the distance to 0.17 m/s, integrated
+            double u = u0, x = 0.0;
+            const double h = 1.0e-4;
+            while(u>0.17)
+            {
+                const double um = u - 0.5*h*cd*u*u;
+                x += h*um;
+                u -= h*cd*um*um;
+            }
+            ed = std::max(ed, std::fabs(sixdof_brain::glide_dist(u0, 0.17, cd, true, 1.0) - x));
+            // to rest with dU/dt = -C U (U + 0.17)
+            u = u0; x = 0.0;
+            while(u>1.0e-7)
+            {
+                const double um = u - 0.5*h*cd*u*(u + 0.17);
+                x += h*um;
+                u -= h*cd*um*(um + 0.17);
+            }
+            ed = std::max(ed, std::fabs(sixdof_brain::glide_reach(u0, 0.17, cd, 1.0) - x));
+        }
+        const double ue = sixdof_brain::glide_speed(0.55, 1.5, 7.0, false, 1.0);
+        const bool e0 = sixdof_brain::glide_dist(0.55, 0.0, 7.0, false, 1.0)==0.55*7.0 && ue==0.55*std::exp(-1.5/7.0) &&
+                        sixdof_brain::glide_learn(0.55, ue, 1.5, false, 1.0, 1.0, 0.0)==std::min(30.0, std::max(0.5, 1.5/std::log(0.55/ue)));
+        check(ei<1.0e-12 && ed<1.0e-3 && e0, "X 209: the drag coefficient from a glide gives back its speed (largest error "+std::to_string(ei)
+              +"), the glide distances are those of the laws ("+std::to_string(ed)+" m); the exponential glide as before");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;

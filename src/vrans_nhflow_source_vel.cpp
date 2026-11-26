@@ -141,6 +141,26 @@ void vrans_nhflow_f::implicit_drag(lexer *p, fdm_nhf *d, double *UH, double fac,
 	}
 }
 
+void vrans_nhflow_f::si_coeff(lexer *p, fdm_nhf *d, int ii, int jj, int kk, double &A, double &B)
+{
+    i=ii;
+    j=jj;
+    k=kk;
+    
+    A = B = 0.0;
+    
+    if(p->B200==0)
+    return;
+    
+    porous_coeff(p,d);
+    
+    if(H<1.0e-12)
+    return;
+    
+    A = Aporval;
+    B = Bporval;
+}
+
 double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 {
 	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(visc/pow(part,2.0));

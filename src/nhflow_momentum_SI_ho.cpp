@@ -66,6 +66,10 @@ void nhflow_momentum_SI::ho_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
     hoC(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1 && p->deep[q]==1 && !df_col(p,ii,jj)) ? 1.0 : 0.0;
+
+    // VRANS: no fourth-order stencil over a column with a porous cell
+    if(vr && vrPc[q])
+    hoC(ii,jj) = 0.0;
     }
 
     // and the cells of subcritical flow, Froude number of the layers below 0.8 (t^n): at the critical point of a dam break

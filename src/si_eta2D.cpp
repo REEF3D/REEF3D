@@ -211,6 +211,14 @@ void si_eta2D::wd_rows(lexer *p, slice &rhsW, slice &depth, slice &bdiag)
     rhs(i,j) = rhsW(i,j) - pw(i,j)*depth(i,j);
     rW(i,j) = rhsW(i,j);
     }
+
+    // storage coefficient n_s (VRANS)
+    if(stor!=nullptr)
+    SLICELOOP4
+    {
+    react(i,j) = pw(i,j)*(*stor)(i,j) + bdiag(i,j);
+    rhs(i,j) = rhsW(i,j) - pw(i,j)*(*stor)(i,j)*depth(i,j);
+    }
 }
 
 int si_eta2D::wd_update(lexer *p, slice &ax, slice &ay, slice &bdiag, slice &eta, slice &depth, bool islands)

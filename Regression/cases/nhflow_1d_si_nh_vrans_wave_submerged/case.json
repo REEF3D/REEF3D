@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step with VRANS: regular waves (H 0.04 m, T 1.6 s, d 0.4 m) over a submerged porous bar (x 7-8 m, 0.25 m high, n 0.45, d50 3 cm, alpha 500, beta 2), 400 x 6 cells, dt 0.02 s, A 510 11, 600 steps. Porous and open layers in one column: the drag and the inertia factor per layer in the column operators, the pressure terms of the porous layers scaled, no fourth-order stencil over the porous columns, omega with the porosity of the swept volume (B 221 2).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "vrans",
+  "waves"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_vrans.cpp (all parts) with porous and open layers in a column",
+  "nhflow_momentum_SI::ho_begin: no fourth-order stencil over porous columns",
+  "vr_omega (B 221 2)",
+  "vr_cell_faces"
+ ],
+ "architect": "Hans Bihs"
+}

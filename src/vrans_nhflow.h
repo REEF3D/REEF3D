@@ -49,6 +49,10 @@ public:
     // UH /= 1 + fac dt CPORNH (A + B |U|), comp 0,1,2 = UH,VH,WH, fac = RK stage weight
     virtual void implicit_drag(lexer*, fdm_nhf*, double*, double, int)=0;
     
+    // Darcy-Forchheimer coefficients A [1/s] and B [1/m] of the static structures in cell (i,j,k), zero outside
+    // (the semi-implicit NHFLOW has the drag in its column operator, nhflow_momentum_SI_vrans.cpp)
+    virtual void si_coeff(lexer*, fdm_nhf*, int, int, int, double&, double&)=0;
+    
     // porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1
     // arguments: KIN, EPS (epsilon or omega); omega_source also gets beta of the k-omega model
     virtual void ke_source(lexer*, fdm_nhf*, double*, double*)=0;

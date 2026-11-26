@@ -105,6 +105,10 @@ public:
     int iter;
     double time;
 
+    // storage coefficient of the volume equation (VRANS of the semi-implicit NHFLOW: the porosity at the free
+    // surface), n_s WL(eta) + bdiag eta - div( a_f grad_f eta ) = rhsW; nullptr: 1
+    slice *stor = nullptr;
+
 private:
     void assemble(lexer*, slice&, slice&, slice&, slice&, double);
     void run(lexer*, ghostcell*, solver2D*, slice&);

@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 440,
+ "ctrl_add": [
+  "X 202 0 0.8 0.65",
+  "X 204 0 10.0",
+  "X 209 0 0.46"
+ ],
+ "description": "cfd_2d_6dof_fish_brain_x204 with the drag law of the glide for the brain (X 209 id C_d): the glide dU/dt = -C_d U|U|/L, its coefficient learnt from the glides, the coasting distance to rest with the drag turning linear below the slowest swimming speed; X 204 then only the decay of the water that passed the body at the start. The fish does not glide in the 440 steps: the brain log equals that of _x204 (the case covers the reading of X 209 and the start; the law is checked in unit/brain_test.cpp 3p and in Fish Swimming validation 31). Fish Swimming patch 0041.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "deform",
+  "singlephase",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_brain (the drag law of the glide)",
+  "sixdof_obj::brain_setup (X 209)",
+  "control: X 209 read, sent, received"
+ ]
+}

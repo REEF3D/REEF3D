@@ -220,6 +220,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system (nhflow_momentum_SI_nh.cpp)
     nh_ini(p);
 
+    // VRANS (B 200): porous structures (nhflow_momentum_SI_vrans.cpp)
+    vr_ini(p);
+
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
     wcl.assign(p->knoz,0.0);
@@ -547,8 +550,19 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A519==2)
     msg("wall friction at every wall face (A 519 2) is");
 
+    // VRANS (B 200, nhflow_momentum_SI_vrans.cpp): one Cartesian grid, the drag implicit in the column operator
+    if(p->B200>0 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("VRANS (B 200) on curvilinear, multi-block or refined grids is");
+
+    if(p->B200>0 && elm_mode(p)>0)
+    msg("VRANS (B 200) with the semi-Lagrangian advection (A 549 1) is");
+
+    if(p->B200>0 && p->X16>0)
+    msg("VRANS (B 200) together with a porous floating body (X 16) is");
+
+    // the drag is in the column operator: no explicit drag source (vrans_nhflow_f::u_source, B 204 0)
     if(p->B200>0)
-    msg("VRANS (B 200) is");
+    p->B204 = 1;
 
     // 6DOF (nhflow_momentum_SI_6dof.cpp): the floating body (X 10 1), the prescribed motion (X 10 2) and the wavemaker
     // (X 10 4) with the direct forcing of the cells (X 15 0-5), the body moved once per step; the ship pressure (X 10 3)
@@ -1036,6 +1050,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // sigma grid of t^n (metrics of the predictor) and the kinematic boundary values
     sigma_update(p,d,pgc,d->WL);
 
+    // VRANS: the porosity on the sigma grid of t^n, the drag of the cells
+    if(vr)
+    vr_begin(p,d,pgc);
+
     // A 547: the algebraic eddy viscosity of t^n (without a turbulence model)
     if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     eddy_algebraic(p,d);
@@ -1143,6 +1161,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
     // the face depths of the gravity term and of the mass flux
     mlflux_faces(p,d,pgc);
+
+    // VRANS: the inertia factor and the drag of the faces
+    if(vr)
+    vr_faces(p,d,pgc);
 }
 
 void nhflow_momentum_SI::si_end(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
@@ -1632,6 +1654,10 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
     }
 
     i=ii; j=jj; k=kk;
+
+    // VRANS: the rows times the inertia factor, the drag on the diagonal
+    if(vcC!=nullptr)
+    vr_col(p,cu,cl,cd);
 }
 
 void nhflow_momentum_SI::col_vadv_central(lexer *p, int q, double a, double ot, double ob)
@@ -2251,6 +2277,10 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
         WHo[PIJK] = 0.0;
         }
     }
+
+    // VRANS: the explicit terms times the inertia factor
+    if(vr)
+    vr_predictor(p,d,UHs,VHs,WHs,UHo,VHo,WHo,a);
 }
 
 void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_reconstruct *precon)
@@ -2314,6 +2344,10 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
         for(k=0;k<p->knoz;++k)
         d->Fy[IJK] = Ty[PIJK]>=0.0 ? Ty[PIJK]*Le[IJK] : Ty[PIJK]*Lw[IJK];
         }
+
+        // VRANS: the fluxes over the face porosity squared
+        if(vr)
+        vr_adv(p,d);
 
         exchangeF(p,pgc,d->Fx);
         exchangeF(p,pgc,d->Fy);
@@ -2967,6 +3001,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // column: Q~ = A^-1 (I - dt L_v) Q^, r = A^-1 1
         col_nu(p,d,i,j,i+1,j,wnu.data());
+        if(vr)
+        vr_face_col(1);
         col_coef(p,d,Hx(i,j),i,j,i+1,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         double fl,fr;
@@ -3008,6 +3044,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
+
+        if(vr)
+        vr_ones(p,wb.data());
 
         // 6DOF: a layer blocked by a body takes the discharge of the body motion in the solve (fb_blocked)
         if(fbon)
@@ -3073,6 +3112,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ho_gradient(p,d,2,gy0(i,j),cy0(i,j));
 
         col_nu(p,d,i,j,i,j+1,wnu.data());
+        if(vr)
+        vr_face_col(2);
         col_coef(p,d,Hy(i,j),i,j,i,j+1,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         double fl,fr;
@@ -3112,6 +3153,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
+
+        if(vr)
+        vr_ones(p,wb.data());
 
         // 6DOF: a layer blocked by a body takes the discharge of the body motion in the solve (fb_blocked)
         if(fbon)
@@ -3198,6 +3242,8 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
         // column of the boundary face with the interior predictor and viscosity
         col_nu(p,d,i,j,i,j,wnu.data());
+        if(vr)
+        vr_cell_col(false);
         col_coef(p,d,Hf(f.fi,f.fj),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         for(k=0;k<p->knoz;++k)
@@ -3222,6 +3268,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
+
+        if(vr)
+        vr_ones(p,wb.data());
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmf(f.fi,f.fj),wb.data(),wr.data());
 
@@ -3329,6 +3378,10 @@ void nhflow_momentum_SI::si_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
         SLICELOOP4
         rhsW(i,j) += dt*wsrc(i,j);
     }
+
+    // VRANS: the storage n_s
+    if(vr)
+    vr_rhs(p,d);
 
     // initial guess eta^n
     SLICELOOP4
@@ -3522,6 +3575,10 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
 
     if(mass_source)
     w += p->dt*wsrc(i,j);
+
+    // VRANS: the storage n_s
+    if(vr)
+    w = WL0(i,j) + (w - WL0(i,j))/d->PORS(i,j);
 
     d->WL(i,j) = MAX(w, 0.0);
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
@@ -3814,10 +3871,15 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // column: UH = A^-1 (I - dt L_v) UH* - dt g [H G] r,  r = A^-1 1
         col_nu(p,d,i,j,i,j,wnu.data());
+        if(vr)
+        vr_cell_col(false);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         for(k=0;k<p->knoz;++k)
         wb[k] = 1.0;
+
+        if(vr)
+        vr_ones(p,wb.data());
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wr.data());
 
@@ -3833,6 +3895,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(nhc)
         nh_cell_faces(p,d,wnx.data(),wny.data());
+
+        // VRANS: in a porous column the face terms as they are (with the drag of the faces)
+        if(nhc && vr)
+        vr_cell_faces(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wnx.data(),wny.data());
 
         for(k=0;k<p->knoz;++k)
         wb[k] = UHD[PIJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0) + (nhc ? wnx[k] : 0.0);
@@ -3907,6 +3973,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         wb[k] = WHp[PIJK];
         }
 
+        if(vr)
+        vr_cell_col(true);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         if(thv<1.0)
@@ -4377,6 +4445,10 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     lget(p,Ty,d->FEy);
 
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+
+    // VRANS: omega with the porosity of the volume the moving layer interfaces sweep
+    if(vr)
+    vr_omega(p,d,pgc);
 
     // turbulence (A 560 > 0): metrics at the new water level for the k, eps/omega step
     if(p->A560>0)

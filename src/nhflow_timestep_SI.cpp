@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_timestep_SI.h"
 #include<iomanip>
+#include"vrans_definitions.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"slide2D.h"
@@ -68,6 +69,15 @@ double nhflow_timestep_SI::limit(lexer *p, fdm_nhf *d, ghostcell *pgc, double &d
 
     // the Courant number of the flow and the internal speed (curvilinear grid: the speed over the widths of the cell
     // across its faces); A 549 1 (semi-Lagrangian advection): the flow up to A549_c
+    // VRANS: the advective speed of the Darcy velocity in a porous cell, C u/n^2
+    if(p->B200>0 && d->POR[IJK]<1.0)
+    {
+    const double n = d->POR[IJK];
+    const double f = CPORNHval(n)/(n*n);
+    cmin = MIN(cmin,nhflow_momentum_SI::adv_cmin(p,f*d->U[IJK],f*d->V[IJK],ci,i,j,cfl));
+    }
+
+    else
     cmin = MIN(cmin,nhflow_momentum_SI::adv_cmin(p,d->U[IJK],d->V[IJK],ci,i,j,cfl));
 
     hmax = MAX(hmax,d->WL(i,j));

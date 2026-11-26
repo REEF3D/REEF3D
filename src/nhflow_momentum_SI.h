@@ -155,9 +155,16 @@ using namespace std;
 // 6DOF bodies (X 10 1, 2, 4; one Cartesian grid): the direct forcing of the bodies as that of the fixed solids, the
 // body moved once per step (fb_*, nhflow_momentum_SI_6dof.cpp).
 //
-// Not available (stops in check()): VRANS, the ship pressure X 10 3, X 13, X 15 6-11, porous bodies X 16, nets,
-// side-wall friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
-// the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
+// VRANS (B 200; one Cartesian grid): the Darcy-Forchheimer drag and the inertia factor in the column operators, the
+// storage n_s in the eta system (nhflow_momentum_SI_vrans.cpp).
+//
+// Not available (stops in check()): the non-hydrostatic pressure, wave breaking, VRANS, 6DOF and patch boundary
+// conditions on curvilinear, multi-block or refined grids (fixed solids with direct forcing: not on multi-block or
+// refined grids); the non-hydrostatic pressure with the density (A 620) or the semi-Lagrangian advection (A 549 1);
+// side-wall friction A 519 2, the hull as the top of the water columns (X 13 2), X 15 9, membranes (X 330), FEM
+// coupling (Z 30), SEASTATE surfbeat (A 770 1), different B 520 methods on one edge; mesh refinement with
+// subcycling (G 7 1), vertical refinement (G 6 1) or tracers. 6DOF X 15 8, 10, 11 run with the cell forcing of X 15 1,
+// the porous floating body (X 16) without its storage and inertia.
 // ---------------------------------------------------------------------------
 
 class nhflow_breaking;
@@ -565,6 +572,37 @@ private:
     // the porous floating body (X 16): the Darcy-Forchheimer resistance on the predictor (df_predictor)
     void fb_porous(lexer*, fdm_nhf*, ghostcell*);
     std::vector<double> fbPX, fbPY, fbPZ;
+
+    // VRANS (B 200 1: porous structures; nhflow_momentum_SI_vrans.cpp), one Cartesian grid. U, UH and the layer face
+    // discharges are Darcy velocities, as in the explicit NHFLOW (vrans_definitions.h):
+    //  - the Darcy-Forchheimer drag C (A + B |u|) implicit on the diagonal of the column operators of the faces and of
+    //    the cells (vcD), |u| of t^n; every other row of the column operator and the explicit terms of the predictor
+    //    times the inertia factor C = CPORNH (vcC), the gravity term with r = A^-1 C instead of A^-1 1
+    //  - the face terms of the non-hydrostatic pressure and its term of w times C/(1 + dt C (A + B |u|)) (vrSx, vrSy,
+    //    vr_sw), in the coupled system and in the update
+    //  - the storage of the continuity n_s deta/dt + div(Q) = 0 (d->PORS) in the eta system, the mass rows of the
+    //    coupled system and eta_update
+    //  - the advective fluxes over the face porosity squared (vr_adv)
+    bool vr = false;
+    const double *vcC = nullptr, *vcD = nullptr;   // the column of the next col_coef: C and dt C (A + B |u|) per layer
+    std::vector<double> vrA, vrB;                  // the coefficients of the cells (layout of IJK, with the neighbouring ranks)
+    std::vector<double> vrCc, vrDh, vrDw;          // cells (private layout): C, the drag of UH and VH, of WH
+    std::vector<double> vrFCx, vrFDx, vrFCy, vrFDy;    // faces (private layout): C, the drag
+    std::vector<double> vrSx, vrSy;                // faces: C/(1 + drag)
+    std::vector<char> vrPc;                        // columns with a porous cell (no fourth-order stencil)
+    void vr_ini(lexer*);
+    void vr_begin(lexer*, fdm_nhf*, ghostcell*);
+    void vr_faces(lexer*, fdm_nhf*, ghostcell*);
+    void vr_col(lexer*, double*, double*, double*);
+    void vr_face_col(int dir) { const double *c = dir==1 ? vrFCx.data() : vrFCy.data(), *e = dir==1 ? vrFDx.data() : vrFDy.data(); vcC = c + (lso + i*lsi + j*lsj); vcD = e + (lso + i*lsi + j*lsj); }
+    void vr_cell_col(bool w) { vcC = vrCc.data() + (lso + i*lsi + j*lsj); vcD = (w ? vrDw.data() : vrDh.data()) + (lso + i*lsi + j*lsj); }
+    void vr_ones(lexer*, double*);
+    void vr_predictor(lexer*, fdm_nhf*, const double*, const double*, const double*, double*, double*, double*, double);
+    void vr_adv(lexer*, fdm_nhf*);
+    void vr_rhs(lexer*, fdm_nhf*);
+    void vr_cell_faces(lexer*, const double*, const double*, const double*, double, double*, double*);
+    double vr_sw(lexer*);
+    void vr_omega(lexer*, fdm_nhf*, ghostcell*);
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

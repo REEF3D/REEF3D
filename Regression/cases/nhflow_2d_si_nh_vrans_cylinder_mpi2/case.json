@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step with VRANS in a 2D basin on 2 ranks: a sloshing wave (4 x 2 m, d 0.5 m, amplitude 2 cm) through a porous cylinder (r 0.5 m, n 0.5, d50 2 cm, alpha 500, beta 2, B 260 0.34) in the middle of the basin, 80 x 40 x 4 cells, dt 0.02 s, A 510 11. The coefficients of the cells of the neighbouring rank for the drag of the faces at the rank boundary, the y faces.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "vrans",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::vr_begin (exchange of the coefficients), vr_faces in y",
+  "VRANS with the multigrid of the coupled system on 2 ranks"
+ ],
+ "architect": "Hans Bihs"
+}
