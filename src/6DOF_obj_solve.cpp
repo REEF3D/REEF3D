@@ -38,6 +38,28 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     if(p->X198>0)
     momentum_loads(p,iter);
     
+    // the time of the loads of this stage, the state it starts from (p->simtime is the start of the
+    // step), for the stabilised coupling X 197 (cfd_added_mass).  SSP-RK2: t, t+dt; SSP-RK3: t, t+dt,
+    // t+dt/2; low-storage RK3: t, t+8/15 dt, t+2/3 dt; N 40 6: t, t+dt/2; N 40 5: t
+    {
+        double c = 0.0;
+        
+        if(p->N40==2 || p->N40==12 || p->N40==22)
+        c = (iter==0) ? 0.0 : 1.0;
+        
+        if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
+        c = (iter==0) ? 0.0 : (iter==1 ? 1.0 : 0.5);
+        
+        if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
+        c = (iter==0) ? 0.0 : (iter==1 ? 8.0/15.0 : 2.0/3.0);
+        
+        if(p->N40==6)
+        c = (iter==0) ? 0.0 : 0.5;
+        
+        am_tnow_ = p->simtime + c*p->dt;
+        am_iter_ = iter;
+    }
+    
     // load models (ship module) sample the CFD velocity
     sixdof_fluid_cfd fluid(p,a,pgc);
     pfluid = &fluid;

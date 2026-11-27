@@ -38,9 +38,7 @@ void sixdof_obj::amr_save()
     ext_v_amr_ = ext_v_;
     ext_w_amr_ = ext_w_;
     am_prev_amr_ = am_prev_;
-    am_prev2_amr_ = am_prev2_;
-    am_dt_amr_ = am_dt_;
-    am_n_amr_ = am_n_;
+    am_h_amr_ = am_h_;
     
     if(fish_!=nullptr)
     fish_t_amr_ = fish_->time();
@@ -77,9 +75,7 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     ext_v_ = ext_v_amr_;
     ext_w_ = ext_w_amr_;
     am_prev_ = am_prev_amr_;
-    am_prev2_ = am_prev2_amr_;
-    am_dt_ = am_dt_amr_;
-    am_n_ = am_n_amr_;
+    am_h_ = am_h_amr_;
     
     if(fish_!=nullptr)
     deform_time(fish_t_amr_);
