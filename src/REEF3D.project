@@ -921,6 +921,7 @@
           <File Name="coral/hydro/coral_hydro_load.h"/>
           <File Name="coral/hydro/coral_member_fluid_load.h"/>
           <File Name="coral/hydro/coral_member_morison.h"/>
+          <File Name="coral/hydro/coral_member_slam.h"/>
           <File Name="coral/hydro/coral_morison.h"/>
           <File Name="coral/hydro/coral_body_drag.h"/>
           <File Name="coral/hydro/coral_radiation.h"/>
@@ -2637,6 +2638,7 @@
           <File Name="coral/hydro/coral_hydro_load.cpp"/>
           <File Name="coral/hydro/coral_member_fluid_load.cpp"/>
           <File Name="coral/hydro/coral_member_morison.cpp"/>
+          <File Name="coral/hydro/coral_member_slam.cpp"/>
           <File Name="coral/hydro/coral_morison.cpp"/>
           <File Name="coral/hydro/coral_body_drag.cpp"/>
           <File Name="coral/hydro/coral_radiation.cpp"/>
