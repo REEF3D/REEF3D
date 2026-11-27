@@ -321,6 +321,10 @@ bool reefmg_core::setup(MPI_Comm cart,
     if(aggmode==1 && nprocs>1)
     setup_agglomeration(npx,npy);
 
+    //  the active columns and the device window are new
+    lev[0].colact.clear();
+    devfull=true;
+
     if(devkind>0)
     device_setup(maxlevel,perx,pery);
 
@@ -454,6 +458,9 @@ void reefmg_core::halo(sc_level &L)
 //  which is what keeps the free-surface Dirichlet term alive on every level.
 void reefmg_core::coarsen()
 {
+    //  the active columns of the fine level (the solve skips the others)
+    fine_activity();
+
     //  the device builds its own hierarchy of the whole domain
     if(devmode)
     {
@@ -483,6 +490,10 @@ void reefmg_core::coarsen_t()
         sc_mview<T> CV=mcoef<T>(C);
         const long NC=C.size();
 
+        //  the columns of F with an active cell (level 0: fine_activity)
+        if(l>0)
+        column_activity(F);
+
         std::fill(CV.p,CV.p+NC,T(0)); std::fill(CV.n,CV.n+NC,T(0));
         std::fill(CV.s,CV.s+NC,T(0)); std::fill(CV.w,CV.w+NC,T(0));
         std::fill(CV.e,CV.e+NC,T(0)); std::fill(CV.t,CV.t+NC,T(0));
@@ -491,6 +502,23 @@ void reefmg_core::coarsen_t()
 
         for(int I=0;I<C.nx;++I)
         for(int J=0;J<C.ny;++J)
+        {
+        //  no active fine column under it: identity rows (as na==0 below), without reading the children
+        {
+            int ihi=C.rx*I, jhi=C.ry*J;
+            for(int a=0;a<C.rx;++a) if(C.rx*I+a<F.nx) ihi=C.rx*I+a;
+            for(int b=0;b<C.ry;++b) if(C.ry*J+b<F.ny) jhi=C.ry*J+b;
+            char any=0;
+            for(int i=C.rx*I;i<=ihi;++i)
+            for(int j=C.ry*J;j<=jhi;++j)
+            any|=F.colact[(long)i*F.ny+j];
+            if(!any)
+            {
+                const long qc0=C.idx(I,J,0);
+                for(int k=0;k<C.nz;++k) CV.p[qc0+k]=T(1);
+                continue;
+            }
+        }
         for(int k=0;k<C.nz;++k)
         {
             const long qc=C.idx(I,J,k);
@@ -606,7 +634,59 @@ void reefmg_core::coarsen_t()
             CV.p[qc]=T(cp); CV.n[qc]=T(cn); CV.s[qc]=T(cs); CV.w[qc]=T(cw);
             CV.e[qc]=T(ce); CV.t[qc]=T(ct); CV.b[qc]=T(cb);
         }
+        }
     }
+}
+
+//  colact, acol and aoff of a level from its act
+void reefmg_core::column_activity(sc_level &L)
+{
+    const int nz=L.nz;
+    L.colact.assign((long)L.nx*L.ny,0);
+    L.acol.clear();
+    L.aoff.clear();
+
+    for(int i=0;i<L.nx;++i)
+    for(int j=0;j<L.ny;++j)
+    {
+        const long col=L.idx(i,j,0);
+        const char *a=&L.act[col];
+        char any=0;
+        for(int k=0;k<nz;++k) any|=a[k];
+        if(any)
+        {
+            L.colact[(long)i*L.ny+j]=1;
+            L.acol.push_back(i*L.ny+j);
+            L.aoff.push_back(col);
+        }
+    }
+}
+
+//  The fine level's active columns.  The loops of the solve - residual,
+//  products, the Krylov updates and reductions, restriction - run over these
+//  only: the entries of the other columns are zero in every vector and stay
+//  so, since nothing writes them, and they add exact zeros to every sum, so
+//  skipping them leaves the iterates bit-identical.  A column that was active
+//  in the last solve may carry values from it: when the set changes (wetting
+//  and drying), every vector the solve reads is cleared once.
+void reefmg_core::fine_activity()
+{
+    sc_level &F=lev[0];
+    const std::vector<int> old=F.acol;
+    const bool first=F.colact.empty();
+    column_activity(F);
+
+    if(!first && F.acol==old)
+    return;
+
+    for(std::vector<double> *v : {&kr,&krhat,&kp,&kv,&kt,&ky,&kz,&kd})
+    std::fill(v->begin(),v->end(),0.0);
+
+    for(sc_level &L : lev)
+    std::fill(L.r.begin(),L.r.end(),0.0);
+
+    //  device: the next right-hand side is written to the window in full
+    devfull=true;
 }
 
 //  The column matrices are fixed for the whole solve - every sweep of every
@@ -628,6 +708,8 @@ void reefmg_core::refactor_fine()
         return;
     }
 
+    fine_activity();
+
     if(pcbits==32) factor_lines_t<float >(0,1);
     else           factor_lines_t<double>(0,1);
 }
@@ -644,7 +726,7 @@ void reefmg_core::factor_lines_t(int l0, int l1)
         const sc_view<T> V=coef<T>(L);
         sc_mview<T> M=mcoef<T>(L);
 
-        L.colact.assign((long)L.nx*L.ny,0);
+        column_activity(L);
         L.zcol[0].clear();
         L.zcol[1].clear();
 
@@ -653,9 +735,7 @@ void reefmg_core::factor_lines_t(int l0, int l1)
         {
             const long col=L.idx(i,j,0);
 
-            char any=0;
-            for(int k=0;k<nz;++k) if(L.act[col+k]){any=1; break;}
-            L.colact[(long)i*L.ny+j]=any;
+            const char any=L.colact[(long)i*L.ny+j];
             if(any) L.zcol[(i+j)&1].push_back(col);
 
             //  (a zero pivot - only an identity column could have one, and
@@ -914,10 +994,8 @@ void reefmg_core::residual(sc_level &L)
         halo(L);
         fineop->fine_apply(L,&L.u[0],&L.r[0]);
 
-        for(int i=0;i<L.nx;++i)
-        for(int j=0;j<L.ny;++j)
+        for(const long col : L.aoff)
         {
-            const long col=L.idx(i,j,0);
             double *r=&L.r[col];
             const double *f=&L.f[col];
             for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
@@ -947,27 +1025,19 @@ void reefmg_core::residual_t(sc_level &L)
         const double *u=&L.u[0], *f=&L.f[0];
         double *r=&L.r[0];
 
-        for(int i=0;i<L.nx;++i)
+        for(const long q : L.aoff)
         {
-            const long q0=L.idx(i,0,0);
-
-            for(int j=0;j<L.ny;++j)
-            {
-                const long q=q0+j;
-                const double y=V.p[q]*u[q]+V.n[q]*u[q+sx]+V.s[q]*u[q-sx]+V.w[q]*u[q+1]+V.e[q]*u[q-1];
-                r[q]=f[q]-y;
-            }
+            const double y=V.p[q]*u[q]+V.n[q]*u[q+sx]+V.s[q]*u[q-sx]+V.w[q]*u[q+1]+V.e[q]*u[q-1];
+            r[q]=f[q]-y;
         }
         return;
     }
 
-    for(int i=0;i<L.nx;++i)
-    for(int j=0;j<L.ny;++j)
+    const long sx=(long)(L.ny+2)*L.nz, sy=L.nz;
+    for(const long col : L.aoff)
     {
-        const long col=L.idx(i,j,0);
         double *r=&L.r[col];
-        column_apply<C>(V,L.nz,&L.u[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
-                                          L.idx(i,j+1,0),L.idx(i,j-1,0),r);
+        column_apply<C>(V,L.nz,&L.u[0],col,col+sx,col-sx,col+sy,col-sy,r);
         const double *f=&L.f[col];
         for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
     }
@@ -989,14 +1059,14 @@ void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
     //  single layer: children addressed directly, same sums in the same order
     if(nz==1)
     {
-        for(int I=0;I<C.nx;++I)
+        for(const int c : C.acol)
         {
+            const int I=c/C.ny, J=c%C.ny;
             const int i0=C.rx*I, i1=(C.rx==2 && i0+1<F.nx)? i0+1 : -1;
             const double *r0=&F.r[F.idx(i0,0,0)];
             const double *r1=(i1>=0)? &F.r[F.idx(i1,0,0)] : 0;
             double *cf=&C.f[C.idx(I,0,0)];
 
-            for(int J=0;J<C.ny;++J)
             {
                 const int j0=C.ry*J, j1=(C.ry==2 && j0+1<F.ny)? j0+1 : -1;
 
@@ -1014,9 +1084,9 @@ void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
         return;
     }
 
-    for(int I=0;I<C.nx;++I)
-    for(int J=0;J<C.ny;++J)
+    for(const int c : C.acol)
     {
+        const int I=c/C.ny, J=c%C.ny;
         const double *ch[4];
         int nc=0;
         for(int a=0;a<C.rx;++a) for(int b=0;b<C.ry;++b)
@@ -1097,11 +1167,9 @@ void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
         return;
     }
 
-    for(int i=0;i<F.nx;++i)
-    for(int j=0;j<F.ny;++j)
+    for(const int c : F.acol)
     {
-        if(F.colact[(long)i*F.ny+j]==0) continue;
-
+        const int i=c/F.ny, j=c%F.ny;
         const int I=i/C.rx, J=j/C.ry;
         int Ia=I, Ja=J;
         double wx=1.0, wy=1.0;
@@ -1166,12 +1234,8 @@ double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
     const int nz=L.nz;
     double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
 
-    for(int i=0;i<L.nx;++i)
-    for(int j=0;j<L.ny;++j)
-    {
-        const long col=L.idx(i,j,0);
-        acc4(&a[col],&b[col],nz,s0,s1,s2,s3);
-    }
+    for(const long col : L.aoff)
+    acc4(&a[col],&b[col],nz,s0,s1,s2,s3);
 
     double s=(s0+s1)+(s2+s3), g=0.0;
     MPI_Allreduce(&s,&g,1,MPI_DOUBLE,MPI_SUM,comm);
@@ -1194,14 +1258,10 @@ void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
     }
 
     const sc_view<double> V64=coef<double>(L);
+    const long sx=(long)(L.ny+2)*L.nz, sy=L.nz;
 
-    for(int i=0;i<L.nx;++i)
-    for(int j=0;j<L.ny;++j)
-    {
-        const long col=L.idx(i,j,0);
-        column_apply<double>(V64,L.nz,&x[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
-                                                L.idx(i,j+1,0),L.idx(i,j-1,0),&y[col]);
-    }
+    for(const long col : L.aoff)
+    column_apply<double>(V64,L.nz,&x[0],col,col+sx,col-sx,col+sy,col-sy,&y[col]);
 }
 
 //  Buffers are swapped rather than copied: rhs becomes the fine-level
@@ -1255,10 +1315,8 @@ void reefmg_core::cycle_step(int pre,int post)
     kp=F.r;
     precondition(kp,kz,pre,post);
 
-    for(int i=0;i<F.nx;++i)
-    for(int j=0;j<F.ny;++j)
+    for(const long col : F.aoff)
     {
-        const long col=F.idx(i,j,0);
         double *uc=&F.u[col];
         const double *zc=&kz[col];
         for(int k=0;k<F.nz;++k) uc[k]+=zc[k];
@@ -1338,7 +1396,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         else
         {
             const double beta=(rho1/rho)*(alpha/omega);
-            for(long q=0;q<N;++q) kp[q]=kr[q]+beta*(kp[q]-omega*kv[q]);
+            for(const long col : F.aoff)
+            for(int k=0;k<nz;++k) kp[col+k]=kr[col+k]+beta*(kp[col+k]-omega*kv[col+k]);
         }
         rho=rho1;
 
@@ -1359,10 +1418,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         double sn;
         {
             double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 double *sc=&kr[col];
                 const double *vc=&kv[col];
                 for(int k=0;k<nz;++k) sc[k]-=alpha*vc[k];
@@ -1377,10 +1434,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         //  preconditioner application of this iteration is not needed
         if(sn/bn<=tol)
         {
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 double *uc=&F.u[col];
                 const double *yc=&ky[col];
                 for(int k=0;k<nz;++k) uc[k]+=alpha*yc[k];
@@ -1396,10 +1451,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         //  (t,t) and (t,s): one pass, one reduction
         {
             double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 const double *tc=&kt[col], *sc=&kr[col];
                 acc4(tc,tc,nz,a0,a1,a2,a3);
                 acc4(tc,sc,nz,b0,b1,b2,b3);
@@ -1413,10 +1466,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         //  (rhat,r) in the same pass, one reduction
         {
             double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 double *uc=&F.u[col], *rc=&kr[col];
                 const double *yc=&ky[col], *zc=&kz[col], *tc=&kt[col];
                 const double *hc=&krhat[col];
@@ -1540,10 +1591,8 @@ int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
         if(k>0)
         {
             double loc[M]={0.0,0.0,0.0}, g[M]={0.0,0.0,0.0};
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 const double *cq=&c[col];
                 for(int m=0;m<k;++m)
                 {
@@ -1557,10 +1606,8 @@ int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
             double beta[M]={0.0,0.0,0.0};
             for(int m=0;m<k;++m) beta[m]=(cc[m]>0.0)? g[m]/cc[m] : 0.0;
 
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 double *cq=&c[col], *zq=&z[col];
                 for(int m=0;m<k;++m)
                 {
@@ -1575,10 +1622,8 @@ int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
         double g2[2]={0.0,0.0};
         {
             double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 acc4(&c[col],&c[col],nz,a0,a1,a2,a3);
                 acc4(&kr[col],&c[col],nz,b0,b1,b2,b3);
             }
@@ -1592,10 +1637,8 @@ int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
         //  u += alpha z, r -= alpha c, |r|^2 in the same pass
         {
             double a0=0.0,a1=0.0,a2=0.0,a3=0.0;
-            for(int i=0;i<F.nx;++i)
-            for(int j=0;j<F.ny;++j)
+            for(const long col : F.aoff)
             {
-                const long col=F.idx(i,j,0);
                 double *uc=&F.u[col], *rc=&kr[col];
                 const double *zc=&z[col], *cq=&c[col];
                 for(int kk=0;kk<nz;++kk)
@@ -2250,6 +2293,8 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
                                       int pre,int post)
 {
     const double t0=wtime();
+    if(lev[0].colact.size()!=(size_t)lev[0].nx*lev[0].ny)
+    fine_activity();
     const sc_level &L=lev[0];
     const int nz=L.nz;
     const rmg_layout lay(devgx,devgy,nz,devhalf(),devkry);
@@ -2257,21 +2302,36 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     const long N=lay.sk*nz;
     int off[JB];
 
+    //  the active columns only: the right-hand side of the others is zero,
+    //  in the window as well once it has been written after a change of the
+    //  active columns (devfull)
     float *gf=window_array(RMG_F);
     const double *r=&rhs[0];
+    const char *ca=&L.colact[0];
     for(int i=0;i<L.nx;++i)
     for(int j0=0;j0<L.ny;j0+=JB)
     {
         const int j1=std::min(L.ny,j0+JB);
+        int na=j1-j0;
+        if(!devfull)
+        {
+            na=0;
+            for(int j=j0;j<j1;++j) na+=ca[(long)i*L.ny+j];
+            if(na==0) continue;
+        }
         const double *rc=r+L.idx(i,0,0);
         row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
         for(int k=0;k<nz;++k)
         {
             float *g=gf+k*sk+(devox+i+1)*si;
             const double *h=rc+k;
+            if(na==j1-j0)
             for(int j=j0;j<j1;++j) g[off[j-j0]]=float(h[(long)j*nz]);
+            else
+            for(int j=j0;j<j1;++j) if(ca[(long)i*L.ny+j]) g[off[j-j0]]=float(h[(long)j*nz]);
         }
     }
+    devfull=false;
     const double t1=wtime();
 
     MPI_Barrier(comm);
@@ -2301,19 +2361,26 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     MPI_Barrier(comm);
     const double t4=wtime();
 
+    //  the correction of the active columns (the others stay zero in x)
     const float *gu=window_array(RMG_U);
     double *xo=&x[0];
     for(int i=0;i<L.nx;++i)
     for(int j0=0;j0<L.ny;j0+=JB)
     {
         const int j1=std::min(L.ny,j0+JB);
+        int na=0;
+        for(int j=j0;j<j1;++j) na+=ca[(long)i*L.ny+j];
+        if(na==0) continue;
         double *xc=xo+L.idx(i,0,0);
         row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
         for(int k=0;k<nz;++k)
         {
             const float *g=gu+k*sk+(devox+i+1)*si;
             double *h=xc+k;
+            if(na==j1-j0)
             for(int j=j0;j<j1;++j) h[(long)j*nz]=g[off[j-j0]];
+            else
+            for(int j=j0;j<j1;++j) if(ca[(long)i*L.ny+j]) h[(long)j*nz]=g[off[j-j0]];
         }
     }
     const double t5=wtime();
@@ -2352,10 +2419,8 @@ void reefmg_core::device_vcycle0(int pre,int post)
     if(kd.size()!=F.u.size()) kd.assign(F.u.size(),0.0);
     precondition(F.r,kd,pre,post);
 
-    for(int i=0;i<F.nx;++i)
-    for(int j=0;j<F.ny;++j)
+    for(const long col : F.aoff)
     {
-        const long col=F.idx(i,j,0);
         for(int k=0;k<F.nz;++k) F.u[col+k]+=kd[col+k];
     }
 }
