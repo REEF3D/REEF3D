@@ -574,11 +574,31 @@ bool lagoon_store::read_solid_vtp(const std::string &file, std::vector<double> &
     return true;
 }
 
-int lagoon_store::write_solids(const std::string &paraview) const
+bool lagoon_store::has_solid_commands(const std::string &control)
+{
+    std::ifstream in(control.c_str());
+    if(!in)
+        return true;
+    std::string line;
+    while(std::getline(in, line))
+    {
+        std::istringstream words(line.substr(0, line.find("//")));
+        std::string word;
+        if(words>>word && word=="S")
+            return true;
+    }
+    return false;
+}
+
+int lagoon_store::write_solids(const std::string &paraview, const std::string &control) const
 {
     const std::string file = paraview + "/REEF3D_Solid.vtp";
     struct stat solid;
     if(stat(file.c_str(), &solid)!=0)
+        return 0;
+    // another case's, left in the folder: this case has no solids (as LAGOON decides,
+    // divemesh.find_solids)
+    if(!has_solid_commands(control))
         return 0;
     // left over from another case's DIVEMesh run (as LAGOON decides, divemesh.left_over)
     for(const char *mark : {"/DIVEMesh_Partition.vtp", "/DIVEMesh_grid-preview.vts"})
