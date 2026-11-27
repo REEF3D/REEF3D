@@ -1,0 +1,22 @@
+{
+ "description": "As nhflow_3d_si_nh_curv_slosh_skew on a grid with curved lines (the interior nodes displaced by up to one cell, the walls straight), turned by 30 deg, on 2 ranks: the centres and the cell gradients of the cells of the neighbouring rank.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_nhcurv.cpp on 2 ranks",
+  "nh_curv_phi_corr: exchange of the fields of the cell gradients"
+ ],
+ "architect": "Hans Bihs"
+}

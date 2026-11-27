@@ -1,0 +1,22 @@
+{
+ "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure on a curvilinear grid (G 50 2; needs patch v50): sloshing kh 1.57 (basin 2 x 0.5 m, d 0.5 m, second mode, amplitude 1 cm) on a grid of 80 x 8 x 4 cells turned by 30 deg, A 510 11, dt 0.01 s, 100 steps. The face terms of phi along the face normals, the divergence with the face lengths over the cell area, [u . grad z] with the velocities along the index directions, the cell terms as Cartesian vectors. The period is 0.09 % short of the linear one (the explicit RK2 0.4 %), the wave keeps its height; the same basin not turned or turned by 17 or 90 deg gives the sums of eta^2, U^2 + V^2 and W^2 per step to 2e-11.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_nhcurv.cpp: nh_curv_metric, nh_curv_vel, nh_cell_faces_curv",
+  "nhflow_momentum_SI::nh_faces, nh_dfaces, nh_assemble_col on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}
