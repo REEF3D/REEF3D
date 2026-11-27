@@ -346,7 +346,8 @@ Architect: Hans Bihs
 //        (0.6 rad/s) and zeta (0.7) with the rotor's and generator's inertia, theta_K from the fit of dP/dtheta,
 //        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
 //        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
-//        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
+//        reaches the rated power at the rated speed, not before; a tip-speed limited rotor whose K at lambda_opt would
+//        reach it earlier, as the IEA 15 and 22 MW, takes a given K below P_rated/Omega_rated^3), given values override; write: the steady operating curve and the
 //        tuning; floating: the platform's part of the speed out of the pitch loop's error (parallel compensation of
 //        the negative damping of platform pitch, the hub's velocity along the shaft through a first-order drivetrain
 //        model; with tune from CORAL's BEM at U_float, 1.25 U_rated by default, else float_A and float_B given;

@@ -1887,10 +1887,14 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 rotor_def rd;
                 rd.B = sp.B; rd.R_hub = sp.R_hub; rd.R_tip = sp.stations.back().r; rd.stations = sp.stations; rd.airfoils = sp.airfoils;
                 const rotor_tuning tu = tune_rotor(rd, rho_air, Pr, Or, 25.0, sp.aero.bem);
-                if(tu.K*Or*Or*Or >= Pr)
+                // a tip-speed limited rotor (the k omega^2 curve at lambda_opt reaches the rated power below the rated speed)
+                // needs its own K below Pr/Omega_rated^3 (region 2 then runs above lambda_opt), given with K
+                if(tu.K*Or*Or*Or >= Pr && !it.has("K"))
                     it.fail("the k omega^2 curve reaches the rated power below the rated speed (K Omega_rated^3 = "
-                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated or raise P_rated "
-                            "(the NREL 5 MW: 0.82 of the rated power at the rated speed)");
+                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated, raise P_rated or give K "
+                            "(N m s^2 on the generator side; the NREL 5 MW: K Omega_rated^3 = 0.82 of the rated power)");
+                if(it.has("K") && it.need("K")*N*N*N*Or*Or*Or >= Pr)
+                    it.fail("K: K Omega_rated^3 must stay below P_rated (region 2.5 between them)");
                 if(it.has("write") && !tu.write(path(it.word("write")))) it.fail("cannot write " + it.word("write"));
                 const double wref = N*Or;
                 cs.w_ref = wref;
