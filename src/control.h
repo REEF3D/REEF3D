@@ -507,6 +507,7 @@ public:
     double P86_Tw,P86_Tp,P86_cb,P86_dt;                     // P 86: statistics window, Tp, backfilling factor, output interval
     double P87_amax,P87_beta,P87_k;                         // P 87: sediment balance amplification, decay, rate coefficient
     int P89;                                                // P 89: equilibrium scour of P 83, P 84: 0 Sumer & Fredsoe 2001, 1 Hoballah Jalloul et al. 2026
+    double P90_Sc,P90_u0;                                   // P 90: current-dominated limit of S_eq/D, 1.3 at Ucw = u0 rising to Sc at Ucw = 1
     double *P88_x,*P88_y;
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;

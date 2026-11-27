@@ -131,11 +131,11 @@ private:
     double wsum;
     double g,rho,nu;
     double p_aamp,p_kt,p_gE,p_nr,p_rhos;   // P 197 scour protection factors, stone density
+    double p_sc,p_u0;                      // P 90 current-dominated limit of S_eq/D
     bool warned_T;
 
     // P 198 gauges
     int ngauge = 0;
-    int gflush = 0;
     double nextgauge = 0.0;
     std::vector<int> gi,gj,gflag;
     std::vector<double> gval;

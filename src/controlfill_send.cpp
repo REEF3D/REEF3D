@@ -2183,6 +2183,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P89;
     ii++;
+    dctrl[dd] = P90_Sc;
+    dd++;
+    dctrl[dd] = P90_u0;
+    dd++;
     dctrl[dd] = P86_Tw;
     dd++;
     dctrl[dd] = P86_Tp;

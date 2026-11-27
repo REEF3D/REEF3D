@@ -91,6 +91,7 @@ private:
 
     const int type;
     int eq;     // P 89
+    double sc90,u090;   // P 90
     double g,s,d50,poro,thcr,cotphi,ks,q0;
     double Tw,Tp_in,cb,dtout;
     double amax,beta,kB;

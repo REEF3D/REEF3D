@@ -2176,6 +2176,10 @@ void control::ctrlrecv()
     ii++;
     P89 = ictrl[ii];
     ii++;
+    P90_Sc = dctrl[dd];
+    dd++;
+    P90_u0 = dctrl[dd];
+    dd++;
     P86_Tw = dctrl[dd];
     dd++;
     P86_Tp = dctrl[dd];

@@ -1099,6 +1099,8 @@ void control::ini_default()
     P87_beta=0.0;     // double sediment balance scour: decay of the amplification with S/D, 0: ln(amax)/1.3
     P87_k=1.65;       // double sediment balance scour: rate coefficient
     P89=0;            // int scour gauges: equilibrium scour, 0 Sumer & Fredsoe (2001), 1 Hoballah Jalloul et al. (2026)
+    P90_Sc=1.3;       // double scour: current limit of S_eq/D at Ucw = 1 (P 83, P 84 with P 89 0, P 187, P 198); 1.3 Sumer & Fredsoe
+    P90_u0=0.5;       // double scour: Ucw from which the current limit rises linearly from 1.3 to P90_Sc
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces

@@ -51,6 +51,9 @@ scour_core::scour_core(lexer *p, ghostcell *pgc, const char *solver_, slice *dep
     p_nr   = p->P197_nr;
     p_rhos = p->P197_rho;
 
+    p_sc = p->P90_Sc;
+    p_u0 = MIN(MAX(p->P90_u0,0.0),0.99);
+
     wsum = 0.0;
     warned_T = false;
 
@@ -377,17 +380,18 @@ void scour_core::cell(lexer *p, int ii, int jj, double T, double *q)
     const double kc  = um*T/D;
     const double ucw = (uc+um)>1.0e-10 ? uc/(uc+um) : 0.0;
 
-    // Sumer & Fredsoe (2002), live bed
+    // Sumer & Fredsoe (2002), live bed; P 90: limit 1.3 rising linearly from Ucw = u0 to Sc at Ucw = 1
+    const double Sc = 1.3 + (p_sc-1.3)*MIN(MAX((ucw-p_u0)/(1.0-p_u0),0.0),1.0);
     double sd = 0.0;
 
     if(ucw>=0.99 && uc>1.0e-10)
-    sd = 1.3;
+    sd = Sc;
     else if(um>1.0e-10)
     {
     const double A = 0.03 + 0.75*pow(ucw,2.6);
     const double B = 6.0*exp(-4.7*ucw);
 
-    sd = kc>B ? 1.3*(1.0 - exp(-A*(kc-B))) : 0.0;
+    sd = kc>B ? Sc*(1.0 - exp(-A*(kc-B))) : 0.0;
     }
 
     // bed sediment: maximum Shields parameter of waves and current, mobility
@@ -640,13 +644,7 @@ void scour_core::gauges(lexer *p, ghostcell *pgc)
         for(int q=0; q<NQ; ++q)
         o<<"\t "<<gval[size_t(n)*NQ+q];
         o<<"\n";
-
-        if(++gflush>=100*ngauge)
-        {
-        for(ofstream *f : gout)
-        f->flush();
-        gflush=0;
-        }
+        o.flush();   // every row: the gauges can be followed during the run
     }
 }
 
@@ -773,6 +771,7 @@ void scour_core::pgauges(lexer *p, ghostcell *pgc)
         for(int m=0; m<NP; ++m)
         o<<"\t "<<pval[size_t(n)*NP+m];
         o<<"\n";
+        o.flush();   // every row: the gauges can be followed during the run
     }
 }
 
