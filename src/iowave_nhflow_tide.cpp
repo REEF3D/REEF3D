@@ -349,7 +349,11 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             const double h0 = d->depth(i,j);
             const double hi = d->WL(i,j);
             
-            if(p->wet[IJ]==0 || hi<=1.0e-6 || h0<=1.0e-6)
+            // a clamped discharge edge takes the depth of the interior: also columns with the bed above the
+            // reference level (h0 <= 0, the inflow of a river with a bed slope, banks). They were left out here
+            // but counted in the area of B 525, so that the edge delivered only a part of the discharge
+            // (trapezoidal channel, bed slope 0.001 over 1 km: 30.6 of 42.8 m3/s) or none at all
+            if(p->wet[IJ]==0 || hi<=1.0e-6 || (h0<=1.0e-6 && z->method!=bc_method::clamp_q))
             continue;
             
             // background at the boundary face
