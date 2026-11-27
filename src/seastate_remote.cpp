@@ -152,15 +152,18 @@ void seastate_remote_wave::run(lexer *p, ghostcell *pgc)
 
     std::vector<double> g(xs);
     g.insert(g.end(),ys.begin(),ys.end());
-    std::vector<double> h(size_t(theirs[0])+size_t(theirs[1]));
+    // a curvilinear or multi-block host sends no lattice (-1 cells in x)
+    const size_t nhx = theirs[0]<0.0 ? 0 : size_t(theirs[0]), nhy = theirs[0]<0.0 ? 0 : size_t(theirs[1]);
+    std::vector<double> h(nhx+nhy);
     MPI_Sendrecv(g.data(),int(g.size()),MPI_DOUBLE,0,4954,h.data(),int(h.size()),MPI_DOUBLE,0,4953,seastate_remote::ic,MPI_STATUS_IGNORE);
-    rx.assign(h.begin(),h.begin()+size_t(theirs[0]));
-    ry.assign(h.begin()+size_t(theirs[0]),h.end());
+    rx.assign(h.begin(),h.begin()+nhx);
+    ry.assign(h.begin()+nhx,h.end());
     }
 
     MPI_Bcast(theirs,9,MPI_DOUBLE,0,pgc->mpi_comm);
-    rx.resize(size_t(theirs[0]));
-    ry.resize(size_t(theirs[1]));
+    hscat = theirs[0]<0.0;
+    rx.resize(hscat ? 0 : size_t(theirs[0]));
+    ry.resize(hscat ? 0 : size_t(theirs[1]));
     MPI_Bcast(rx.data(),int(rx.size()),MPI_DOUBLE,0,pgc->mpi_comm);
     MPI_Bcast(ry.data(),int(ry.size()),MPI_DOUBLE,0,pgc->mpi_comm);
 
@@ -208,9 +211,15 @@ void seastate_remote_wave::run(lexer *p, ghostcell *pgc)
     pwave->printer()->print2D(p,e,pgc);
 
     const size_t Nh = rx.size()*ry.size();
+    if(hscat)
+    rbuf.assign(2+size_t(hg_nsc)*xs.size()*ys.size(),0.0);
+    else
     rbuf.assign(2+4*Nh,0.0);
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && hscat)
+    cout<<"SEASTATE remote waves (A 750 2): curvilinear or multi-block host (it maps its cells to the wave cells), this grid "<<xs.size()<<" x "<<ys.size()
+        <<"; wave steps of "<<p->A706<<" s between the exchanges, until the host stops"<<endl<<"starting mainloop.SEASTATE (remote)"<<endl;
+    else if(p->mpirank==0)
     cout<<"SEASTATE remote waves (A 750 2): host grid "<<rx.size()<<" x "<<ry.size()<<" cells, this grid "<<xs.size()<<" x "<<ys.size()
         <<"; wave steps of "<<p->A706<<" s between the exchanges, until the host stops"<<endl<<"starting mainloop.SEASTATE (remote)"<<endl;
 
@@ -232,6 +241,9 @@ void seastate_remote_wave::run(lexer *p, ghostcell *pgc)
 
         const double ts = pgc->timer();
 
+        if(hscat)
+        map_host_grids(p);
+        else
         map_host(p);
         environment(p,etaW,WLW,UW,VW);
 
@@ -354,6 +366,59 @@ void seastate_remote_wave::map_host(lexer *p)
         etaW(i,j) = se/nw;
         UW(i,j) = su/nw;
         VW(i,j) = sv/nw;
+        }
+    }
+}
+
+void seastate_remote_wave::map_host_grids(lexer *p)
+{
+    fdm_seastate *e = pwave->e;
+    const int ny = std::max(p->gknoy,1);
+    const size_t N = size_t(p->gknox)*size_t(ny);
+    const double *S[hg_nsc];
+    for(int n=0; n<hg_nsc; ++n)
+    S[n] = &rbuf[2+size_t(n)*N];
+
+    IMALOOP
+    JMALOOP
+    {
+    // outside the host grids (or no wave cell): the own still water
+    etaW(i,j) = 0.0;
+    WLW(i,j)  = std::max(p->wd - e->bed(i,j),0.0);
+    UW(i,j) = VW(i,j) = 0.0;
+
+    const int gi = i + p->origin_i, gj = j + p->origin_j;
+
+        if(e->wet0(i,j)==0 || gi<0 || gi>=p->gknox || gj<0 || gj>=ny)
+        continue;
+
+    const size_t q = size_t(gi)*ny + size_t(gj);
+
+        // host cells inside the wave cell: their area mean (eta, U, V over the wet ones)
+        if(S[0][q]>0.0)
+        {
+        WLW(i,j) = S[1][q]/S[0][q];
+
+            if(S[2][q]>0.0)
+            {
+            etaW(i,j) = S[3][q]/S[2][q];
+            UW(i,j) = S[4][q]/S[2][q];
+            VW(i,j) = S[5][q]/S[2][q];
+            }
+        continue;
+        }
+
+        // a coarser host: the host cell at the wave centre
+        if(S[6][q]>0.0)
+        {
+        WLW(i,j) = S[7][q]/S[6][q];
+
+            if(S[8][q]>0.0)
+            {
+            etaW(i,j) = S[9][q]/S[8][q];
+            UW(i,j) = S[10][q]/S[8][q];
+            VW(i,j) = S[11][q]/S[8][q];
+            }
         }
     }
 }

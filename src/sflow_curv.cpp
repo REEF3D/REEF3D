@@ -73,7 +73,9 @@ void sflow_curv::check(lexer *p)
     // normal (patchBC_2D::curv_velocity), the patch faces in flux_bc and in the semi-implicit bc_setup
     // 6DOF (P5c): prescribed bodies (X 10 2) and the ship pressure patch (X 10 3) with the waterline level set of
     // 6DOF_obj_ray2D_curv.cpp
-    refuse(p->A750>0, "the SEASTATE coupling (A 750)");
+    // REEF3D::SEASTATE: the remote waves (A 750 2) map at the physical cell centres (seastate_coupling_grids.cpp); the
+    // in-process waves would run on the logical box
+    refuse(p->A750==1, "the in-process SEASTATE coupling (A 750 1; the remote waves A 750 2 are)");
     refuse(p->I11==1, "the potential flow initialisation (I 11)");
 
     sediment_curv::check(p);

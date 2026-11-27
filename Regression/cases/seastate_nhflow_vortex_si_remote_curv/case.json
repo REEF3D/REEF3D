@@ -1,0 +1,35 @@
+{
+ "base": "seastate_nhflow_vortex_si_remote",
+ "ctrl_add": [
+  "G 50 1"
+ ],
+ "files": [
+  "blocks.dat"
+ ],
+ "description": "seastate_nhflow_vortex_si_remote on a curvilinear grid of one block (G 50 1, DIVEMesh R 20 1, blocks.dat) with the nodes of the Cartesian grid, the logical box of DIVEMesh 100 times smaller (B 1 100, B 10 4 km): the host maps between its cells and the wave grid at the physical cell centres (XC2D, YC2D), the waves get the sums per wave cell (seastate_remote_wave::map_host_grids). Against the Cartesian host (no same_as: the curvilinear discretisation differs by 4 cm of 0.59 m surge with and without waves): the wave set-up (with minus without waves) agrees within 0.8 mm of 52 mm.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex",
+  "curvilinear"
+ ],
+ "covers": [
+  "seastate_coupling::remote_ini_grids, remote_step_grids, fields_at at the physical centres",
+  "seastate_remote_wave::map_host_grids"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ },
+ "control_set": {
+  "B 1": "100.0",
+  "B 10": "0.0 4000.0 0.0 4000.0 0.0 50.0"
+ },
+ "control_add": [
+  "R 20 1"
+ ]
+}

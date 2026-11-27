@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
+#include"seastate_nhflow.h"
 #include"nhflow_amr.h"
 #include"nhflow_momentum_SI.h"
 #include"nhflow_amr_fill.h"
@@ -1092,6 +1093,14 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     }
 }
 
+void nhflow_amr::wave_grids(std::vector<std::pair<lexer*,fdm_nhf*>> &g)
+{
+    g.clear();
+
+    for(auto q : P)
+    g.push_back({q->pp,NP(q)->d});
+}
+
 void nhflow_amr::patch_delete(reefamr_patch *q)
 {
     nhflow_amr_patch *c = NP(q);
@@ -1102,6 +1111,9 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
 
     delete c->sed;
     delete c->pmom;
+    // A 750 2: the wave fields of the block (seastate_nhflow::attach)
+    delete c->d->wave;
+    c->d->wave = nullptr;
     delete c->pio;
     if(c->pio!=nullptr)
     {

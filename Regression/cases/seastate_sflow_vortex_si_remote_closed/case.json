@@ -1,0 +1,25 @@
+{
+ "description": "seastate_sflow_vortex_si_remote in a closed basin (walls instead of the Flather edges, which curvilinear SFLOW does not have): SFLOW SI host on 40 x 40 Cartesian cells, the remote waves of seastate_remote_waves_vortex; the reference of _curv.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 30,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ },
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "SEASTATE remote waves with SFLOW SI in a closed basin"
+ ]
+}

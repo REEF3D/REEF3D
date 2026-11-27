@@ -1,0 +1,36 @@
+{
+ "base": "seastate_sflow_vortex_si_remote_closed",
+ "ctrl_add": [
+  "G 50 1"
+ ],
+ "control_add": [
+  "R 20 1"
+ ],
+ "control_set": {
+  "B 1": "100.0",
+  "B 10": "0.0 4000.0 0.0 4000.0 0.0 100.0"
+ },
+ "files": [
+  "blocks.dat"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ },
+ "description": "seastate_sflow_vortex_si_remote_closed on a curvilinear grid of one block (G 50 1, DIVEMesh R 20 1) with the nodes of the Cartesian grid and a logical box 100 times smaller: SFLOW as host that maps at the physical cell centres (seastate_coupling_grids.cpp).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex",
+  "curvilinear"
+ ],
+ "covers": [
+  "seastate_sflow::ini, start with remote_ini_grids, remote_step_grids"
+ ],
+ "same_as": "seastate_sflow_vortex_si_remote_closed",
+ "same_as_rtol": 1e-06
+}

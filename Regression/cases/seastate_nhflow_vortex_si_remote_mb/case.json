@@ -1,0 +1,32 @@
+{
+ "base": "seastate_nhflow_vortex_si_remote",
+ "ctrl_add": [
+  "G 50 1"
+ ],
+ "files": [
+  "blocks.dat"
+ ],
+ "description": "seastate_nhflow_vortex_si_remote on a multi-block grid (G 50 1, DIVEMesh R 20 1): two blocks of 20 x 40 cells, the same nodes as the one block of _curv. Block 1 is a level-0 patch of nhflow_amr with a seastate_nhflow of its own (seastate_nhflow::attach): the wave force on both blocks, the environment of the waves from both. Against _curv (no same_as: level 0 is block 0 only): the gauges within 3e-6 m with waves, 3e-9 m without (the order of the sums per wave cell). Before: REEF3D refused A 750 on curvilinear and multi-block grids.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex",
+  "curvilinear",
+  "multiblock"
+ ],
+ "covers": [
+  "seastate_nhflow::attach, host_grids; nhflow_amr::wave_grids",
+  "the wave force in the SI predictor of a block"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ },
+ "control_add": [
+  "R 20 1"
+ ]
+}

@@ -57,7 +57,9 @@ void nhflow_curv::check(lexer *p)
     refuse(p->A580>0 || p->A599>0 || p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0
            || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0, "immersed solids (A 580-599)");
     refuse(p->A570>0, "wind forcing (A 570)");
-    refuse(p->A750>0, "the SEASTATE coupling (A 750)");
+    // REEF3D::SEASTATE: the remote waves (A 750 2) map at the physical cell centres (seastate_coupling_grids.cpp); the
+    // in-process waves would run on the logical box
+    refuse(p->A750==1, "the in-process SEASTATE coupling (A 750 1; the remote waves A 750 2 are)");
     refuse(p->A519==2, "the side-wall friction A 519 2");
     refuse(p->B98==2 && p->B96_1>0.0 && p->B108==0, "the generation zone of B 96 (an x range of the box): give it by B 108 in physical coordinates");
     refuse((p->B99==1 || p->B99==2) && p->B96_2>0.0 && p->B107==0, "the beach zone of B 96 (an x range of the box): give it by B 107 in physical coordinates");

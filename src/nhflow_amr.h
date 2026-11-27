@@ -296,6 +296,10 @@ public:
     void dt_cell_size(int, double&, double&) override;
     void dt_si_cmin(double, double&, double&) override;
 
+    // REEF3D::SEASTATE remote waves (A 750 2) on a multi-block grid: the grids of the blocks 1.. on this rank (their
+    // lexer and fdm; seastate_nhflow::attach gives each its own wave fields)
+    void wave_grids(std::vector<std::pair<lexer*,fdm_nhf*>>&);
+
     // long-run statistics (P 160): the blocks 1.. of a multi-block grid as grids of nhflow_longrun
     void longrun_grids(nhflow_longrun*);
     // their sums in the checkpoints (P 48, I 45), with the patches under the tag "nhflow_longrun"
