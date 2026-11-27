@@ -673,8 +673,12 @@ void driver::logic_cfd()
     // There the closed projection gave the added mass of the fine grid (a square oscillating in a
     // closed box: 54.3 kg/m at dx 0.02, 53.2 at dx 0.01); with the stages of N 40 3 and N 40 6 it is
     // 20 and 10 % too high, they keep the open projection
-    // Not with the subcycled mesh refinement (G 1 with G 7 1): there the heave of a box differed
-    // from the run with one time step for all levels (9 mm after 0.6 s), not understood yet
+    // One body, no mesh refinement: what the closed projection has been run with over long times.
+    // Not with the mesh refinement (G 1): with G 7 1 the heave of a box differed from the run with one
+    // time step for all levels (9 mm after 0.6 s); with G 7 0, G 12 and G 40 1 on 12 ranks a lock with
+    // a ship, four gate leaves and two valves stopped at 7.1 s, in the step of a regrid, with 14 m/s
+    // near the downstream gates, where the open projection had run to 62 s.  Neither is understood
+    // yet.  Not with several bodies (X 20 > 1) until then: X 49 1 in the control file switches it on
     // X 14 11: the forcing of X 14 1 with the added mass of the hull on the grid in the coupling (one Poisson solve
     // per free degree of freedom with the matrix of the closed projection, 6DOF_obj_cfd_addedmass.cpp) instead of
     // the artificial one of X 197. One body, the one-step scheme, the loads on the triangles, the closed
@@ -688,7 +692,7 @@ void driver::logic_cfd()
     }
     
     if(p->X49<0)
-    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && !(p->G1>0 && p->G7!=0)) ? 1 : 0;
+    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && p->G1==0 && p->X20<=1) ? 1 : 0;
 
     if(p->X46<0)
     p->X46 = (p->X49>0) ? 1 : 0;
