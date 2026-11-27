@@ -348,6 +348,7 @@ private:
     char *dev0;              // its start on this rank
     bool dev0copy;           // rank 0: the device keeps its own fine level, copied
     bool devfull=true;       // device_precondition: write the whole block of the right-hand side once (fine_activity)
+    bool devclear=false;     // device_upload: clear the fine level on the device (fine_activity)
     int devgx,devgy;         // global fine extent
     int devox,devoy;         // offset of this rank's block in it
     int devnlev;             // levels of the device hierarchy

@@ -685,8 +685,9 @@ void reefmg_core::fine_activity()
     for(sc_level &L : lev)
     std::fill(L.r.begin(),L.r.end(),0.0);
 
-    //  device: the next right-hand side is written to the window in full
+    //  device: the next right-hand side is written to the window in full, its fine level cleared
     devfull=true;
+    devclear=true;
 }
 
 //  The column matrices are fixed for the whole solve - every sweep of every
@@ -2258,16 +2259,32 @@ void reefmg_core::device_upload()
     }
     const double t1=wtime();
 
-    MPI_Barrier(comm);
+    //  (the barrier) the active columns changed on a rank: the fine level's solution and the Krylov
+    //  vectors on the device are cleared - a cell that was wet in the last solve keeps its
+    //  value there, which the residual of the restriction would read as that of an identity row
+    int clear=0;
+    {
+        int mine=devclear? 1 : 0;
+        MPI_Allreduce(&mine,&clear,1,MPI_INT,MPI_MAX,comm);
+    }
+    devclear=false;
     const double t2=wtime();
 
     if(myrank==0)
     {
+        const long N=lay.sk*nz;
         if(dev0copy)
         {
-            const long N=lay.sk*nz;
             for(int m=0;m<7;++m) std::memcpy(dev->arr(0,RMG_P+m),window_array(RMG_P+m),N*sizeof(float));
             std::memcpy(dev->arr(0,RMG_ACT),window_array(RMG_ACT),N);
+        }
+        if(clear)
+        {
+            std::vector<int> za={RMG_U};     // (RMG_R is not stored)
+            if(devkry)
+            for(int a=RMG_KR;a<=RMG_KT;++a) za.push_back(a);
+            for(int a : za) std::memset(dev->arr(0,a),0,N*sizeof(float));
+            if(dev0copy) std::memset(window_array(RMG_U),0,N*sizeof(float));
         }
         dev->coarsen(device_levels());
     }
