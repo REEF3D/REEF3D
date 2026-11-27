@@ -2402,6 +2402,7 @@
           <File Name="nhflow_momentum_SI_hdiff.cpp"/>
           <File Name="nhflow_momentum_SI_ho.cpp"/>
           <File Name="nhflow_momentum_SI_nh.cpp"/>
+          <File Name="nhflow_momentum_SI_nhcurv.cpp"/>
           <File Name="nhflow_momentum_SI_vrans.cpp"/>
           <File Name="nhflow_momentum_SI_wall.cpp"/>
           <File Name="nhflow_si_nhmg.cpp"/>

@@ -126,6 +126,17 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     nWLo.assign((size_t)p->imax*p->jmax,-1.0);
     nAct.assign((size_t)p->imax*p->jmax,0);
     nPw.assign((size_t)p->imax*p->jmax,1.0);
+
+    // one curvilinear grid (nhflow_momentum_SI_nhcurv.cpp)
+    nhcv = (p->geo_curv==1);
+    nhco = nhcv && p->A539==1;
+
+    if(nhcv)
+    {
+    nCL1.assign((size_t)p->imax*p->jmax,0.0);
+    nCL2.assign((size_t)p->imax*p->jmax,0.0);
+    nCT.assign((size_t)4*p->imax*p->jmax,0.0);
+    }
 }
 
 void nhflow_momentum_SI::nh_free()
@@ -401,7 +412,14 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     const bool oe = !ok(i+1,j) && (ws&2), ow = !ok(i-1,j) && (ws&1);
     const int ie = (ok(i+1,j) || oe) ? i+1 : i, iw = (ok(i-1,j) || ow) ? i-1 : i;
-    const double dx = p->XP[ie+marge] - p->XP[iw+marge];
+    // curvilinear grid: the centre distances along the index directions, the velocity transform (once per cell)
+    if(nhcv && m==0)
+    {
+    const bool on_ = !ok(i,j+1) && (ws&8), os_ = !ok(i,j-1) && (ws&4);
+    nh_curv_metric(p,ie,iw,oe,ow,(ok(i,j+1) || on_) ? j+1 : j,(ok(i,j-1) || os_) ? j-1 : j,on_,os_);
+    }
+
+    const double dx = nhcv ? nCL1[(i-p->imin)*p->jmax + (j-p->jmin)] : p->XP[ie+marge] - p->XP[iw+marge];
     const double ze = oe ? zob(ie,j,m) : zif(ie,j,m), zw = ow ? zob(iw,j,m) : zif(iw,j,m);
     NSX[PIJK] = dx>0.0 ? nh_lim(ze - zw,dx)/dx : 0.0;
     NSFx[PIJK] = (dx>0.0 && fabs(ze - zw)<nh_max_slope*dx) ? 1.0 : 0.0;
@@ -420,7 +438,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
         const bool on = !ok(i,j+1) && (ws&8), os = !ok(i,j-1) && (ws&4);
         const int jn = (ok(i,j+1) || on) ? j+1 : j, js = (ok(i,j-1) || os) ? j-1 : j;
-        const double dy = p->YP[jn+marge] - p->YP[js+marge];
+        const double dy = nhcv ? nCL2[(i-p->imin)*p->jmax + (j-p->jmin)] : p->YP[jn+marge] - p->YP[js+marge];
         const double zn = on ? zob(i,jn,m) : zif(i,jn,m), zs = os ? zob(i,js,m) : zif(i,js,m);
         NSY[PIJK] = dy>0.0 ? nh_lim(zn - zs,dy)/dy : 0.0;
         NSFy[PIJK] = (dy>0.0 && fabs(zn - zs)<nh_max_slope*dy) ? 1.0 : 0.0;
@@ -434,6 +452,10 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
             }
         }
     }
+
+    // curvilinear grid: the velocities of [u . grad z] along the index directions
+    if(nhcv)
+    nh_curv_vel(p);
 }
 
 void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
@@ -484,11 +506,11 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
     };
 
     SLICELOOP1
-    face(i,j,i+1,j,p->DXP[IP],Hx(i,j),NQx);
+    face(i,j,i+1,j,nhcv ? fdn(p,1,i,j) : p->DXP[IP],Hx(i,j),NQx);
 
     if(p->j_dir==1)
     SLICELOOP2
-    face(i,j,i,j+1,p->DYP[JP],Hy(i,j),NQy);
+    face(i,j,i,j+1,nhcv ? fdn(p,2,i,j) : p->DYP[JP],Hy(i,j),NQy);
 
     // open boundary faces: no pressure term
     for(const bc_face &f : bcf)
@@ -536,7 +558,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     pexchF(p,pgc,NQy);
     }
 
-    if(ho)
+    if(ho || nhco)
     ho_phi_add(p);
 
     face_update(p,d,pgc);
@@ -586,7 +608,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
-        const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
+        const double *UU = (tl2 || nhcv) ? nUZx.data() : UHD, *VV = (tl2 || nhcv) ? nUZy.data() : VHD;
         double wlo = UU[PIJK]*iH0*SX(0) + (yd ? VV[PIJK]*iH0*SY(0) : 0.0);
 
         // the slide layer (W 150): the bed moves, w_b = dz_b/dt + u_0 . grad(z_b)
@@ -728,12 +750,12 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP1
     if(Hx(i,j)>0.0)
-    face(i,j,i+1,j,fdn(p,1,i,j),p->DXP[IP],Hx(i,j),kx(i,j),Rx,dQxL.data(),dQxR.data(),pQxL0.data(),pQxR0.data(),pQxL1.data(),pQxR1.data());
+    face(i,j,i+1,j,fdn(p,1,i,j),nhcv ? fdn(p,1,i,j) : p->DXP[IP],Hx(i,j),kx(i,j),Rx,dQxL.data(),dQxR.data(),pQxL0.data(),pQxR0.data(),pQxL1.data(),pQxR1.data());
 
     if(p->j_dir==1)
     SLICELOOP2
     if(Hy(i,j)>0.0)
-    face(i,j,i,j+1,fdn(p,2,i,j),p->DYP[JP],Hy(i,j),ky(i,j),Ry,dQyL.data(),dQyR.data(),pQyL0.data(),pQyR0.data(),pQyL1.data(),pQyR1.data());
+    face(i,j,i,j+1,fdn(p,2,i,j),nhcv ? fdn(p,2,i,j) : p->DYP[JP],Hy(i,j),ky(i,j),Ry,dQyL.data(),dQyR.data(),pQyL0.data(),pQyR0.data(),pQyL1.data(),pQyR1.data());
 
     // open boundary faces: no pressure term, the discharge as face_update
     for(const bc_face &f : bcf)
@@ -851,15 +873,18 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
     // a row with the divergence of the layer discharges k: east and west, north and south faces
     auto adddiv = [&](int tr, double w, int kk)
     {
-        const double ax = w/p->DXN[IP];
+        // (curvilinear grid: the face lengths over the cell area, as div)
+        const double ax = nhcv ? w*flen(p,1,i,j)/carea(p,i,j) : w/p->DXN[IP];
+        const double axw = nhcv ? w*flen(p,1,i-1,j)/carea(p,i,j) : ax;
         addf(tr, ax,i,  j,0,1,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
-        addf(tr,-ax,i-1,j,2,0,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
+        addf(tr,-axw,i-1,j,2,0,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
 
             if(yd)
             {
-            const double ay = w/p->DYN[JP];
+            const double ay = nhcv ? w*flen(p,2,i,j)/carea(p,i,j) : w/p->DYN[JP];
+            const double ays = nhcv ? w*flen(p,2,i,j-1)/carea(p,i,j) : ay;
             addf(tr, ay,i,j,  0,3,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
-            addf(tr,-ay,i,j-1,4,0,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
+            addf(tr,-ays,i,j-1,4,0,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
             }
     };
 
@@ -893,7 +918,7 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
 
                 // -[u . grad z]_k: the change of eta of the cells of the interface slopes (implicit geometry of t^{n+1})
                 {
-                const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
+                const double *UU = (tl2 || nhcv) ? nUZx.data() : UHD, *VV = (tl2 || nhcv) ? nUZy.data() : VHD;
                 const double iH = 1.0/H1;
                 const size_t qc = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
                 k=kk;
@@ -970,6 +995,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // fourth order: the explicit part of the phi face terms of this step
     if(ho)
     ho_phi_corr(p,d,pgc);
+
+    // curvilinear grid with A 539 1: the non-orthogonal part of the phi face terms
+    if(nhco)
+    nh_curv_phi_corr(p,d,pgc);
 
     int N=0;
     SLICELOOP4
@@ -1217,6 +1246,13 @@ void nhflow_momentum_SI::nh_cell_faces(lexer *p, fdm_nhf *d, double *cx, double 
     // cell_update; fourth order: (-1, 9, 9, -1)/16 of four faces
     const int K = p->knoz;
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
+
+    // curvilinear grid: the Cartesian vector from the face terms along the normals
+    if(nhcv)
+    {
+    nh_cell_faces_curv(p,d,cx,cy);
+    return;
+    }
 
     const bool h4x = ho && ho_cell(p,d,1,i,j);
     const bool h4y = ho && ho_cell(p,d,2,i,j);

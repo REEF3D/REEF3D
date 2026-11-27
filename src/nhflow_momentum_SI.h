@@ -96,7 +96,7 @@ using namespace std;
 // nhflow_momentum_func (sigma metrics, omega, velocities, bed friction) and the 2D eta system of
 // the semi-implicit SFLOW (si_eta2D) are used. The description below is the hydrostatic step;
 // with A 520 > 0 the non-hydrostatic pressure joins eta in one coupled eta-phi system
-// (nhflow_momentum_SI_nh.cpp, Cartesian, one grid).
+// (nhflow_momentum_SI_nh.cpp; one grid, Cartesian or curvilinear).
 //
 // Prognostic: WL, UH, VH, WH per sigma layer (cell centres) and the layer face discharges
 // Qx, Qy (per unit sigma and unit face width, as d->FEx/FEy), which carry the mass flux.
@@ -160,13 +160,16 @@ using namespace std;
 // Cartesian grid): the log-law drag of the side walls in the column operators (nhflow_momentum_SI_wall.cpp).
 // SEASTATE surfbeat (A 770 1; one Cartesian grid): the long-wave boundary at the x- side as a Flather face (bc_setup).
 //
-// Not available (stops in check()): the non-hydrostatic pressure, wave breaking, VRANS, the side-wall friction
-// A 519 2, 6DOF, SEASTATE surfbeat (A 770 1) and patch boundary conditions on curvilinear, multi-block or refined
-// grids (fixed solids with direct forcing: not on multi-block or refined grids); the non-hydrostatic pressure with
-// the density (A 620) or the semi-Lagrangian advection (A 549 1); the hull as the top of the water columns (X 13 2),
-// X 15 9, membranes (X 330), FEM coupling (Z 30), different B 520 methods on one edge; mesh refinement with
-// subcycling (G 7 1), vertical refinement (G 6 1) or tracers. 6DOF X 15 8, 10, 11 run with the cell forcing of X 15 1,
-// the porous floating body (X 16) without its storage and inertia.
+// The non-hydrostatic pressure on one curvilinear grid (G 50 2): nhflow_momentum_SI_nhcurv.cpp, second order, with
+// A 539 1 the non-orthogonal part of the face gradients of eta (from the estimate pass) and of phi (a second solve).
+//
+// Not available (stops in check()): the non-hydrostatic pressure on multi-block or refined grids; wave breaking,
+// VRANS, the side-wall friction A 519 2, 6DOF, SEASTATE surfbeat (A 770 1) and patch boundary conditions on
+// curvilinear, multi-block or refined grids (fixed solids with direct forcing: not on multi-block or refined grids);
+// the non-hydrostatic pressure with the density (A 620) or the semi-Lagrangian advection (A 549 1); the hull as the
+// top of the water columns (X 13 2), X 15 9, membranes (X 330), FEM coupling (Z 30), different B 520 methods on one
+// edge; mesh refinement with subcycling (G 7 1), vertical refinement (G 6 1) or tracers. 6DOF X 15 8, 10, 11 run with
+// the cell forcing of X 15 1, the porous floating body (X 16) without its storage and inertia.
 // ---------------------------------------------------------------------------
 
 class nhflow_breaking;
@@ -395,7 +398,6 @@ private:
     // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
     // layer face discharges of phi (NQx, NQy, per unit sigma), w* of the cells (WHS), the interface slopes of the
     // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
-    bool cvE = false;    // A 539 1 on one curvilinear grid: the non-orthogonal part of grad eta^{n+1} from the estimate pass
     bool nh = false;
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
     // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
@@ -470,6 +472,18 @@ private:
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);
     void nh_cell_faces(lexer*, fdm_nhf*, double*, double*);
+
+    // the non-hydrostatic pressure on one curvilinear grid (G 50 2; nhflow_momentum_SI_nhcurv.cpp): the centre
+    // distances of the neighbours along the two index directions (nCL1, nCL2) and the transform of UH, VH to the
+    // velocities along them (nCT, 4 per cell), for [u . grad z] of the constraint
+    bool cvE = false;    // A 539 1 on one curvilinear grid: the non-orthogonal part of grad eta^{n+1} from the estimate pass
+    int nhco_it = 0, nhco_n = 1;    // the solves of the step with the non-orthogonal part of phi: 1 + nhco_n
+    bool nhcv = false, nhco = false;    // nhco: with the non-orthogonal part of the phi face terms (A 539 1)
+    std::vector<double> nCL1, nCL2, nCT;
+    void nh_curv_metric(lexer*, int, int, bool, bool, int, int, bool, bool);
+    void nh_curv_vel(lexer*);
+    void nh_cell_faces_curv(lexer*, fdm_nhf*, double*, double*);
+    void nh_curv_phi_corr(lexer*, fdm_nhf*, ghostcell*);
 
     // a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
     // cell momentum with its zero face term (cell_update, nh_cell); wSide: the sides of the cells with an open boundary

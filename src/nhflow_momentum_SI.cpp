@@ -226,6 +226,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // wall friction at every wall face (A 519 2; nhflow_momentum_SI_wall.cpp)
     wf_ini(p);
 
+
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
     wcl.assign(p->knoz,0.0);
@@ -506,8 +507,17 @@ void nhflow_momentum_SI::check(lexer *p)
     // Cartesian, one grid
     if(p->A520!=0)
     {
-        if(p->geo_curv==1 || p->geo_mb>0 || p->G1>0)
-        msg("the non-hydrostatic pressure (A 520 > 0) on curvilinear, multi-block or refined grids is");
+        // (one curvilinear grid, G 50 2: nhflow_momentum_SI_nhcurv.cpp)
+        if(p->geo_mb>0 || p->G1>0)
+        msg("the non-hydrostatic pressure (A 520 > 0) on multi-block or refined grids is");
+
+        static bool cvnote = false;
+
+        if(p->geo_curv==1 && p->A539!=1 && p->mpirank==0 && !cvnote)
+        cout<<"NHFLOW A 510 11/12/13 with A 520 "<<p->A520<<" on a curvilinear grid: without the non-orthogonal part of the "
+            <<"face gradients (A 539 0), exact on orthogonal grids only; A 539 1 on a non-orthogonal grid"<<endl;
+
+        cvnote = true;
 
         if(elm_mode(p)>0)
         msg("the non-hydrostatic pressure (A 520 > 0) with the semi-Lagrangian advection (A 549 1) is");
@@ -847,6 +857,20 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         if(nh && !estimate)
         {
         nh_solve(p,d,pgc);
+
+        // curvilinear grid with A 539 1: the non-orthogonal part of the phi face terms with phi of the solve
+        if(nhco)
+        {
+        int it0 = nh_iter;
+        for(nhco_it=1; nhco_it<=nhco_n; ++nhco_it)
+        {
+        nh_solve(p,d,pgc);
+        it0 += nh_iter;
+        }
+        nhco_it = 0;
+        nh_iter = it0;
+        }
+
         psi_iter = nh_iter;
         psi_time = nh_time;
         wd_iter = nh_wdit;
