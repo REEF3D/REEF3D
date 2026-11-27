@@ -61,6 +61,27 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
         if(x34_time_>-1.0e19 && p->simtime-x34_time_>1.0e-14)
         x34_acc_ = (u_fb - x34_uprev_)/(p->simtime-x34_time_);
 
+        // deforming body (X 195): the acceleration of the deformation at the triangles
+        if(fish_!=nullptr)
+        {
+            const bool have = (int(x34_vdef_.size())==tricount && x34_time_>-1.0e19 && p->simtime-x34_time_>1.0e-14);
+            
+            x34_adef_.assign(tricount,Eigen::Vector3d::Zero());
+            
+            if(!have)
+            x34_vdef_.assign(tricount,Eigen::Vector3d::Zero());
+            
+            for(int n=0; n<tricount; ++n)
+            {
+                const Eigen::Vector3d vd = deform_vel((tri_x[n][0]+tri_x[n][1]+tri_x[n][2])/3.0,(tri_y[n][0]+tri_y[n][1]+tri_y[n][2])/3.0,(tri_z[n][0]+tri_z[n][1]+tri_z[n][2])/3.0);
+                
+                if(have)
+                x34_adef_[n] = (vd - x34_vdef_[n])/(p->simtime-x34_time_);
+                
+                x34_vdef_[n] = vd;
+            }
+        }
+
         x34_uprev_ = u_fb;
         x34_time_ = p->simtime;
     }
@@ -182,6 +203,13 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
                     ax -= x34_acc_(0) + x34_acc_(4)*rz - x34_acc_(5)*ry + wy*vz - wz*vy;
                     ay -= x34_acc_(1) + x34_acc_(5)*rx - x34_acc_(3)*rz + wz*vx - wx*vz;
                     az -= x34_acc_(2) + x34_acc_(3)*ry - x34_acc_(4)*rx + wx*vy - wy*vx;
+
+                    if(fish_!=nullptr && int(x34_adef_.size())==tricount)
+                    {
+                        ax -= x34_adef_[n](0);
+                        ay -= x34_adef_[n](1);
+                        az -= x34_adef_[n](2);
+                    }
                 }
 
                 p_int -= rho_m*(ddx*ax + ddy*ay + ddz*az);

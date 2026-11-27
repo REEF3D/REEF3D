@@ -493,6 +493,9 @@ protected:
     Eigen::Matrix<double,6,1> x34_acc_ = Eigen::Matrix<double,6,1>::Zero();
     Eigen::Matrix<double,6,1> x34_uprev_ = Eigen::Matrix<double,6,1>::Zero();
     double x34_time_ = -1.0e20;
+    // deforming body (X 195): the deformation velocity at the triangles at the last time step and their
+    // acceleration over it, the part of the acceleration of the hull that x34_acc_ does not hold
+    std::vector<Eigen::Vector3d> x34_vdef_, x34_adef_;
     void deform_setup(lexer*, ghostcell*);
     void deform_time(double);
     Eigen::Vector3d deform_vel(double, double, double) const;
