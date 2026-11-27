@@ -243,6 +243,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             {
                 run.out_dt = it.get("dt", 0.0);
                 if(it.has("file")) run.out_file = it.word("file");
+                const int io = it.find("only");
+                if(io >= 0)
+                {
+                    for(int i=io+1; i<(int)it.t.size() && it.t[i]!="dt" && it.t[i]!="file"; ++i)
+                        run.out_only.push_back(it.t[i]);
+                    if(run.out_only.empty()) it.fail("only needs at least one column prefix");
+                }
             }
         }
         else if(k=="static")

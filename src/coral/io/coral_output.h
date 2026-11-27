@@ -21,7 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 // REEF3D::CORAL: time-series output. One line per output time: t, per body the CoG position, the
 // Euler angles (roll, pitch, yaw in degrees), the CoG velocity and the angular velocity (global), then
-// the output channels of all loads. The header line names the columns.
+// the output channels of all loads (or those that output ... only selects). The header line names the columns.
 
 #ifndef CORAL_OUTPUT_H_
 #define CORAL_OUTPUT_H_
@@ -37,7 +37,8 @@ namespace coral
     class time_series
     {
     public:
-        void open(const std::string &file, const model&, bool append=false);   // append: continue the file (restart)
+        // append: continue the file (restart); only: the columns whose names start with one of these (t always; empty: all)
+        void open(const std::string &file, const model&, bool append=false, const std::vector<std::string> &only={});
         void write(const model&, double t);
         void close() {out_.close();}
         void flush() {out_.flush();}
@@ -46,6 +47,7 @@ namespace coral
     private:
         std::ofstream out_;
         std::vector<std::string> cols_;
+        std::vector<char> keep_;        // per column of all channels
     };
 }
 

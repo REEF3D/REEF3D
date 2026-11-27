@@ -128,7 +128,7 @@ void coupling::ini(double t0, const std::string &dir)
     if(out_on_)
     {
         out_ = std::make_unique<time_series>();
-        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m, restart_);
+        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m, restart_, c_.run.out_only);
         if(!restart_)
         out_->write(c_.m, t_);
     }

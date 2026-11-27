@@ -28,7 +28,7 @@ Architect: Hans Bihs
 //   gravity <gx> <gy> <gz>                        default 0 0 -9.81 (gravity on all bodies)
 //   rho <rho>                                     water density for Morison and mooring (1025)
 //   time dt <h> end <t> [start <t0>] [rho_inf <r>] [tol <tol>] [full_newton]
-//   output dt <h> [file <name>]
+//   output dt <h> [file <name>] [only <prefix> ...]   (only: the columns whose names start with one of the prefixes)
 //   body <name> mass <m> [inertia <Ixx Iyy Izz> [<Ixy Ixz Iyz>]] [cog <x y z>] [rpy <r p y>]
 //        [velocity <vx vy vz>] [omega <wx wy wz>] [offset <dx dy dz>]
 //        (inertia about the CoG, body axes; the joints and loads are set up in the configuration given by
@@ -371,6 +371,7 @@ namespace coral
         double dt = 0.01;
         double out_dt = 0.0;          // 0: every step
         std::string out_file = "coral_results.dat";
+        std::vector<std::string> out_only;    // output ... only: column name prefixes (empty: all)
         double vtp_dt = -1.0;         // < 0: no VTP output of the structure
         bool static_ini = false;      // static equilibrium before the time integration
         int modes = 0;                // number of modes of the linear analysis (0: none)
