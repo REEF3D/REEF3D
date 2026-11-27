@@ -259,6 +259,11 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass
     tp2 = !tl2 && elm_mode(p)==0;
 
+    // one curvilinear grid with A 539 1: the non-orthogonal part of the face gradient of eta^{n+1} from eta of the
+    // estimate pass (si_assemble; that of eta^n for both time levels damped a sloshing wave on a grid sheared by 22 deg
+    // by 77 % in 34 periods, hydrostatic, dt T/90; 4 % with the estimate)
+    cvE = p->geo_curv==1 && p->A539==1 && p->geo_mb==0 && p->G1==0 && !block && tp2;
+
     // A 510 11 without tl2 (curvilinear, multi-block and refined grids): Crank-Nicolson vertical advection with
     // omega at t^{n+1/2} (nh_begin), as with tl2
     if(onestep)
@@ -867,7 +872,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         df_faces(p,d,pgc,false);
         }
 
-        if(estimate && ho)
+        if(estimate && (ho || cvE))
         ho_estimate(p,pgc);
     }
 
@@ -3026,6 +3031,10 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         cx0(i,j) = fcorr(p,d->eta,1,i,j);
         gx0(i,j) = (d->eta(i+1,j) - d->eta(i,j))/dn + cx0(i,j);
 
+        // the non-orthogonal part of the gradient of eta^{n+1}: from eta of the estimate pass
+        if(cvE && si_pass>0)
+        cx0(i,j) = fcorr(p,hoE,1,i,j);
+
         if(ho)
         ho_gradient(p,d,1,gx0(i,j),cx0(i,j));
 
@@ -3137,6 +3146,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double dn = fdn(p,2,i,j);
         cy0(i,j) = fcorr(p,d->eta,2,i,j);
         gy0(i,j) = (d->eta(i,j+1) - d->eta(i,j))/dn + cy0(i,j);
+
+        if(cvE && si_pass>0)
+        cy0(i,j) = fcorr(p,hoE,2,i,j);
 
         if(ho)
         ho_gradient(p,d,2,gy0(i,j),cy0(i,j));

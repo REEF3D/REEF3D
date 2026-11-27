@@ -395,6 +395,7 @@ private:
     // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
     // layer face discharges of phi (NQx, NQy, per unit sigma), w* of the cells (WHS), the interface slopes of the
     // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
+    bool cvE = false;    // A 539 1 on one curvilinear grid: the non-orthogonal part of grad eta^{n+1} from the estimate pass
     bool nh = false;
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
     // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
