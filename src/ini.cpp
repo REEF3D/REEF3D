@@ -1680,7 +1680,7 @@ void control::ini_default()
     X31=4;        // int
     X32=1;        // int 
     X33=1;        // int 
-    X34=0;        // int CFD loads (X 60 1): the pressure of the probe point (X 42 cells off the hull) taken to the hull with the pressure gradient of the fluid at the wall: 1 hydrostatic, 2 with the acceleration of the hull over the last time step (free and prescribed motion); 1 is for bodies at rest or in steady motion
+    X34=0;        // int CFD loads (X 60 1): the pressure of the probe point (X 42 cells off the hull) taken to the hull with the pressure gradient of the fluid at the wall: 1 hydrostatic, 2 with the acceleration of the hull over the last time step (free and prescribed motion); 1 is for bodies at rest or in steady motion; 3 as 2 with two probe points (X 42 and twice X 42 cells off the hull, 1 and 2 cells where X 42 is not set, at most 1.25 and 2.5) and a parabola through them with the gradient of the wall, the first point alone where the free surface lies between the two
     X38=0;       // int type of viscous force calculation CFD
     X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation
@@ -1690,7 +1690,7 @@ void control::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=-1;     // int direct forcing, tangential mode (X 14 > 0, B 21 1): the share of a face continuous across the surface (forcing_share.h): 1 the 6DOF bodies, 2 the bodies and the solids and the bed (not tested yet); 0 the switch from the normal component outside to all of it inside at the level set 0. Not set: as X 49
-    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10)
+    X48=-1;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10); not set: 3 with 6DOF bodies, else 2
     X49=-1;     // int CFD projection (D 30 1): the share of a face that the direct forcing took to its target velocity is not corrected by the pressure (forcing_share.h), no flow through the body: 1 the 6DOF bodies, 2 the bodies and the solids and the bed (not tested yet); 0 off. Not set: 1 for bodies (X 10) with the one-step scheme N 40 5 and the loads X 60 1, without X 198 and without the subcycled mesh refinement (G 7 1); else 0. With X 49: X 46 1, the loads from probe points off the hull (X 42 1.5, X 34 2) and the stabilised coupling X 197 1 where these are not set
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation

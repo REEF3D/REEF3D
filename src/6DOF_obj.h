@@ -94,9 +94,6 @@ public:
     bool ext_on_amr_ = false;
     Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
     Eigen::Matrix<double,6,1> am_prev_amr_ = Eigen::Matrix<double,6,1>::Zero();     // am_prev_ of the predicted copy (G 7 1)
-    Eigen::Matrix<double,6,1> am_prev2_amr_ = Eigen::Matrix<double,6,1>::Zero();
-    double am_dt_amr_ = 0.0;
-    int am_n_amr_ = 0;
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
@@ -411,11 +408,22 @@ protected:
     // acceleration of the last stage; 0 off (set by cfd_amr)
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
-    // N 40 5: the acceleration before that, the time step of the last one and the number of steps
-    // taken, for the linear extrapolation of the acceleration in time (cfd_added_mass)
-    Eigen::Matrix<double,6,1> am_prev2_ = Eigen::Matrix<double,6,1>::Zero();
-    double am_dt_ = 0.0;
-    int am_n_ = 0;
+    // the time of the loads am_prev_ was solved with, the time of the loads and the number of the
+    // current stage, and for every stage of the step its accelerations of the last two time steps and
+    // their running mean: the rate of change of the acceleration in time (cfd_added_mass)
+    struct am_history
+    {
+        double t = 0.0;
+        int n = 0;
+        Eigen::Matrix<double,6,1> a[3][2];      // [stage][0 the last time step, 1 the one before]
+        double ts[3][2] = {{0.0,0.0},{0.0,0.0},{0.0,0.0}};
+        Eigen::Matrix<double,6,1> am[3];        // running mean of the accelerations of the stage
+        double dtl[3] = {0.0,0.0,0.0};          // the time step of the last one
+        int ns[3] = {0,0,0};
+    };
+    am_history am_h_, am_h_amr_;
+    double am_tnow_ = 0.0;
+    int am_iter_ = 0;
     void cfd_added_mass(lexer*);
     void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11, CFD X 14 11
     // CFD X 14 11: the added mass of the hull on the grid (sixdof_obj_cfd::added_mass_cfd), inertial frame,
@@ -485,6 +493,9 @@ protected:
     Eigen::Matrix<double,6,1> x34_acc_ = Eigen::Matrix<double,6,1>::Zero();
     Eigen::Matrix<double,6,1> x34_uprev_ = Eigen::Matrix<double,6,1>::Zero();
     double x34_time_ = -1.0e20;
+    // deforming body (X 195): the deformation velocity at the triangles at the last time step and their
+    // acceleration over it, the part of the acceleration of the hull that x34_acc_ does not hold
+    std::vector<Eigen::Vector3d> x34_vdef_, x34_adef_;
     void deform_setup(lexer*, ghostcell*);
     void deform_time(double);
     Eigen::Vector3d deform_vel(double, double, double) const;

@@ -162,19 +162,52 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
     // The acceleration the added mass takes on the right-hand side.  With the acceleration of the last
-    // step alone the two sides differ by A (a - a_prev) = A dt da/dt: for a body oscillating at omega a
-    // force A dt omega^2 times its velocity, in the direction of the velocity.  The motion gains energy,
-    // the more the larger A (heave decay of a box, 100 steps per period: the swings of 28 mm grew to
-    // 156 mm in 5 s with X 197 4; a ship in a lock with X 197 1: the heave from 0.7 to 3 mm in 6 s, then
-    // the run stopped).  One-step scheme N 40 5: the acceleration extrapolated linearly in time from the
-    // last two steps; the two sides then differ by A dt^2 d2a/dt2, a change of the mass by A (omega dt)^2
-    // without a force along the velocity.  The alternating mode of the explicit coupling stays damped
-    // up to an added mass of the fluid of M + 4 A (M + 2 A before)
+    // stage alone the two sides differ by A (a - a_prev), A times the change of the acceleration over the
+    // time between the two stages: for a body oscillating at omega a force of the order A dt omega^2
+    // times its velocity, in the direction of the velocity.  The motion gains energy, the more the larger
+    // A (heave decay of a box, 100 steps per period: the swings of 28 mm grew to 156 mm in 5 s with
+    // X 197 4 and N 40 5, from 52 to 83 mm with X 197 8 and N 40 3; a ship in a lock with X 197 1: the
+    // heave from 0.7 to 3 mm in 6 s, then the run stopped).
+    // One-step scheme N 40 5: that change is added, the rate of change of the acceleration in time times
+    // the time from the loads of the last step to those of this one (am_tnow_,
+    // sixdof_obj_cfd::solve_eqmotion_cfd).  The rate must not undo what the acceleration of the last step
+    // does, keeping the exchange between body and fluid over a few steps from growing:
+    //   closed projection X 49: the rate from the last two steps (linear extrapolation).  Heave decay
+    //           of a box: the swings as without X 197 for X 197 0.5 to 8.
+    //   open projection:        the last step against the running mean over the steps (weight 1/12 per
+    //           step, age 11 steps).  The loads there oscillate over about nine steps; with the last two
+    //           steps they grew within 30 steps.  Takes a part of the gain away only (first swing 28.5 mm
+    //           with X 197 1 against 35, 46 with X 197 4; 27.7 without X 197).
+    // The schemes with several stages keep the acceleration of the last stage alone.  A rate from the
+    // same stage of the last four steps gave the swings of the box without X 197 for X 197 1 to 8 (N 40 3,
+    // N 40 6), but the loads of the swimming fish (X 195, N 40 3, X 197 8) became five times larger and
+    // its path another one; not taken.
     Eigen::Matrix<double,6,1> aext = am_prev_;
+    const int ks = MAX(0,MIN(2,am_iter_));
+    const double am_steps = 12.0;
+    const double tlag = am_tnow_ - am_h_.t;
 
-    // (the NHFLOW semi-implicit step, A 510 11/12/13: the same one-step body step, nhflow_momentum_SI::fb_step)
-    if((p->N40==5 || (p->A10==5 && p->A534==1)) && am_n_>=2 && am_dt_>0.0)
-    aext += MIN(p->dt/am_dt_,2.0)*(am_prev_ - am_prev2_);
+    // the NHFLOW semi-implicit step (A 510 11/12/13, A 534 1): one body step per time step at its start
+    // (nhflow_momentum_SI::fb_step), the acceleration extrapolated linearly from the last two steps (stage 0)
+    if(p->A10==5 && p->A534==1)
+    {
+        if(am_h_.ns[0]>=2 && am_h_.dtl[0]>0.0)
+        aext += MIN(p->dt/am_h_.dtl[0],2.0)*(am_h_.a[0][0] - am_h_.a[0][1]);
+    }
+
+    else if(am_h_.n>=1 && p->N40==5 && p->X49>0)
+    {
+        const double dts = am_h_.ts[ks][0] - am_h_.ts[ks][1];
+
+        if(am_h_.ns[ks]>=2 && fabs(dts)>1.0e-12*MAX(p->dt,1.0e-20))
+        aext += MAX(-1.0,MIN(2.0,tlag/dts))*(am_h_.a[ks][0] - am_h_.a[ks][1]);
+    }
+
+    else if(am_h_.n>=1 && p->N40==5)
+    {
+        if(am_h_.ns[ks]>=int(am_steps) && am_h_.dtl[ks]>0.0)
+        aext += MAX(-1.0,MIN(1.0,tlag/((am_steps-1.0)*am_h_.dtl[ks])))*(am_h_.a[ks][0] - am_h_.am[ks]);
+    }
 
     r += A*aext;
 
@@ -192,10 +225,19 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     }
 
     const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
-    am_prev2_ = am_prev_;
     am_prev_ = acc;
-    am_dt_ = p->dt;
-    ++am_n_;
+    am_h_.t = am_tnow_;
+    ++am_h_.n;
+    if(am_h_.ns[ks]==0)
+    am_h_.am[ks] = acc;
+    else
+    am_h_.am[ks] += (acc - am_h_.am[ks])/am_steps;
+    am_h_.a[ks][1] = am_h_.a[ks][0];
+    am_h_.ts[ks][1] = am_h_.ts[ks][0];
+    am_h_.a[ks][0] = acc;
+    am_h_.ts[ks][0] = am_tnow_;
+    am_h_.dtl[ks] = p->dt;
+    ++am_h_.ns[ks];
     finish_added_mass(acc,II,gyro,fixed);
 }
 
