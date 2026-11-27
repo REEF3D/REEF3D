@@ -2827,8 +2827,15 @@ void cfd_amr::pr_prec(int kr, int kz)
                         // smeared over its own band (psi of each level), the fine cell is water or air,
                         // and the coarse correction does not fit the fine rows (with 4 levels and a
                         // free surface in the patches the composite BiCGStab diverged, 250 iterations);
-                        // the level solve takes these cells from the residual alone
-                        if(p0->F30>0 && fabs(c->a->phi(i,j,k))<bw)
+                        // the level solve takes these cells from the residual alone.
+                        // Not with G 28: one width of the density on all levels, a coarse and a fine
+                        // cell at the same distance from the free surface have the same density, and
+                        // the coarse correction fits the fine rows in the band as well.  The band is
+                        // then psi_rho on every level, up to 8 fine cells to each side of the free
+                        // surface (G 28 3, three levels) that got no coarse correction (wave tank
+                        // with three levels, G 28 3: 5.0 -> 4.4 iterations; without G 28 the same
+                        // change costs iterations, 5.8 -> 6.6)
+                        if(p0->F30>0 && p0->psi_rho<=0.0 && fabs(c->a->phi(i,j,k))<bw)
                         continue;
                         if(!cm.empty() && cm[qq])
                         continue;
