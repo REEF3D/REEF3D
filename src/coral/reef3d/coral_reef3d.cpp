@@ -155,13 +155,13 @@ void coral_reef3d::sample_kinematics(double t)
     const int n = (int)pts.size();
     if(n == 0)
         return;
-    std::vector<double> xyz(3*n), loc, sum(6*n, 0.0);
+    std::vector<double> xyz(3*n), loc, sum(7*n, 0.0);
     for(int q=0; q<n; ++q)
         for(int d=0; d<3; ++d)
             xyz[3*q+d] = pts[q](d);
     sampler_->sample(xyz, loc);
-    MPI_Allreduce(loc.data(), sum.data(), 6*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
-    bcast(sum.data(), 6*n);
+    MPI_Allreduce(loc.data(), sum.data(), 7*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
+    bcast(sum.data(), 7*n);
     std::vector<coral::Vec3> u(n, coral::Vec3::Zero());
     std::vector<double> eta(n, 0.0), bed;
     std::vector<int> in(n, 0);
@@ -171,13 +171,13 @@ void coral_reef3d::sample_kinematics(double t)
     int nin = 0;
     for(int q=0; q<n; ++q)
     {
-        const double c = sum[6*q+4];
+        const double c = sum[7*q+4];
         if(c > 0.5)
         {
-            u[q] = coral::Vec3(sum[6*q], sum[6*q+1], sum[6*q+2])/c;
-            eta[q] = sum[6*q+3]/c;
-            in[q] = 1;
-            if(!bed.empty()) bed[q] = sum[6*q+5]/c;
+            u[q] = coral::Vec3(sum[7*q], sum[7*q+1], sum[7*q+2])/c;
+            eta[q] = sum[7*q+3]/c;
+            in[q] = sum[7*q+6]/c > 0.5 ? 2 : 1;      // 2: breaking flagged there
+            if(!bed.empty()) bed[q] = sum[7*q+5]/c;
             ++nin;
         }
     }

@@ -56,11 +56,14 @@ namespace coral
         void kinematics_at(const void *owner, int index, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
         // the bed under the point in the last sample (NaN outside the fluid domain or without bed samples)
         double bed_at(const void *owner, int index, const Vec3 &p) const override;
+        // breaking flagged at the point in the last sample (inside = 2)
+        bool breaking_at(const void *owner, int index) const override;
 
         // the points of all loads that take their kinematics from here, at their current positions (in
         // sampling order); a change in the number of points drops the earlier samples
         void collect(const model&, std::vector<Vec3> &points);
-        // the fluid at time t at the points of the last collect: velocity, surface elevation, inside (0/1)
+        // the fluid at time t at the points of the last collect: velocity, surface elevation, inside (0: outside the
+        // fluid domain, 1: inside, 2: inside and the fluid flags breaking there)
         void add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside,
                         const std::vector<double> &bed={});
 

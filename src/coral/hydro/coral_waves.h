@@ -66,6 +66,8 @@ namespace coral
         {kinematics(p, t, u, du, p_rho);}
         // z of the bed under point index of owner (a resolved fluid's bed); NaN: not known
         virtual double bed_at(const void*, int, const Vec3&) const {return std::numeric_limits<double>::quiet_NaN();}
+        // the resolved fluid flags breaking at point index of owner (REEF3D::FNPF's breaking model); false: not known
+        virtual bool breaking_at(const void*, int) const {return false;}
         // velocity gradient G(i,j) = du_i/dx_j and the slope of the free surface (d eta/dx, d eta/dy, 0) at any point,
         // for the higher-order slender-body loads (Rainey, Kristiansen-Faltinsen); a source without them (a sampled
         // fluid) returns false and the load differences its own stencil points

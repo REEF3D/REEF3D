@@ -152,6 +152,12 @@ double sampled_kinematics::bed_at(const void *owner, int index, const Vec3&) con
     return lev_.back().bed[q];
 }
 
+bool sampled_kinematics::breaking_at(const void *owner, int index) const
+{
+    const int q = find(owner, index);
+    return q >= 0 && lev_.back().in[q] == 2;
+}
+
 void sampled_kinematics::save_state(std::vector<double> &v) const
 {
     state_out o{v};

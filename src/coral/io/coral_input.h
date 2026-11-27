@@ -208,6 +208,18 @@ Architect: Hans Bihs
 //        Faltinsen's scattering force at z = 0; step: the stencil of a sampled fluid's gradients (D/2), plane:
 //        a 2D fluid; channels <name>_Fx .. _Mz and for rainey, kf _Fpx _Fpy _Fpz, the point force;
 //        coral/hydro/coral_member_morison.h)
+//   slam <name> member <m> [D <D>] [model <wo|goda|cw|custom>] [lambda <l>] [cs0 <c> tau <t> [constant]]
+//        [trigger <breaking|kinematic|time>] [B <Bc>] [period <T>] [depth <h>] [at <t1> [<t2> ...]] [eta <eta_b>]
+//        [velocity <V|crest>] [vfac <f>] [n <n>]
+//        (slamming of breaking waves on a frame or superelement member, besides its morison loads: the line force
+//        rho R V^2 Cs(V t/R) uniformly from (1 - lambda) eta_b to the crest eta_b (lambda 0.46), in the direction of
+//        the crest velocity; Cs of Wienke and Oumeraci (wo, default), Goda / von Karman (goda), Campbell and
+//        Weynberg / DNV (cw) or custom (cs0 decaying linearly to 0 at tau = V t/R, constant: cs0 throughout);
+//        trigger: the fluid's breaking flag at the member (default; REEF3D::FNPF A 350), the kinematic criterion
+//        |u_h|/c >= B (0.85) or the given times 'at' (eta: eta_b, else the elevation then); the impact starts after
+//        the crest passed the member, once per crest; V: vfac c (c: the celerity of period at depth, the sampled bed
+//        or the waves' depth; period is required) unless given, velocity crest: vfac |u_h| at the crest; channels <name>_Fx .. _Mz, _eta (at the member), _B (breaking flag or
+//        index), _n (impacts so far); coral/hydro/coral_member_slam.h)
 //   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
 //   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
 //   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
@@ -403,6 +415,7 @@ namespace coral
         fluid_load *fluid = nullptr;
         std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics
         bool fluid_bed = false;                             // bathymetry fluid: the mooring lines on the fluid's bed
+        bool sample_bed = false;                            // the fluid's bed under the points (slam: the depth of the celerity)
         struct fluid_member_spec {member_fluid_load *load = nullptr; int n = 0;};
         std::vector<fluid_member_spec> fluid_members;       // fluid_member
         Vec3 fluid_origin = Vec3::Zero();

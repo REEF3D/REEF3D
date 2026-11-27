@@ -83,7 +83,7 @@ namespace coral
         // in the fluid frame; inside 0/1)
         bool has_kinematics() const {return c_.fluid_kin != nullptr;}
         // the mooring lines take the bed of the resolved fluid (bathymetry fluid): the samples carry it
-        bool wants_bed() const {return c_.fluid_bed;}
+        bool wants_bed() const {return c_.fluid_bed || c_.sample_bed;}
         void kinematics_points(std::vector<Vec3> &pts) const;
         // bed: z of the bed under the points (fluid frame; empty: none)
         void kinematics(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &in,

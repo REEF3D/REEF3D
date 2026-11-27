@@ -40,11 +40,11 @@ namespace
         return j >= 0 && j < p->knoy;
     }
 
-    template<class F>
-    void sample_points(lexer *p, slice &WL, slice &bed, const std::vector<double> &xyz, std::vector<double> &out, F vel)
+    template<class F, class B>
+    void sample_points(lexer *p, slice &WL, slice &bed, const std::vector<double> &xyz, std::vector<double> &out, F vel, B brk)
     {
         const int n = (int)xyz.size()/3;
-        out.assign(6*n, 0.0);
+        out.assign(7*n, 0.0);
         for(int q=0; q<n; ++q)
         {
             const double x = xyz[3*q], y = xyz[3*q+1], z = xyz[3*q+2];
@@ -63,12 +63,13 @@ namespace
                     if(u == 0.0 && v == 0.0 && w == 0.0 && zc > zb + wl*(1.0 - f))
                         vel(x, y, zb + wl*(1.0 - f), u, v, w);
             }
-            out[6*q] = u;
-            out[6*q+1] = v;
-            out[6*q+2] = w;
-            out[6*q+3] = zs;
-            out[6*q+4] = 1.0;
-            out[6*q+5] = zb;
+            out[7*q] = u;
+            out[7*q+1] = v;
+            out[7*q+2] = w;
+            out[7*q+3] = zs;
+            out[7*q+4] = 1.0;
+            out[7*q+5] = zb;
+            out[7*q+6] = brk(x, y) ? 1.0 : 0.0;
         }
     }
 }
@@ -82,6 +83,11 @@ void coral_sampler_fnpf::sample(const std::vector<double> &xyz, std::vector<doub
         u = p->ccipol7V(c->U, c->WL, c->bed, x, y, z);
         v = p->ccipol7V(c->V, c->WL, c->bed, x, y, z);
         w = p->ccipol7V(c->W, c->WL, c->bed, x, y, z);
+    },
+    [&](double x, double y)
+    {
+        const int i = p->posc_i(x), j = p->j_dir == 0 ? 0 : p->posc_j(y);
+        return c->breaking(i,j) >= 1;
     });
 }
 
@@ -94,5 +100,6 @@ void coral_sampler_nhflow::sample(const std::vector<double> &xyz, std::vector<do
         u = p->ccipol4V(d->U, d->WL, d->bed, x, y, z);
         v = p->ccipol4V(d->V, d->WL, d->bed, x, y, z);
         w = p->ccipol4V(d->W, d->WL, d->bed, x, y, z);
-    });
+    },
+    [](double, double) {return false;});
 }
