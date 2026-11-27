@@ -146,6 +146,26 @@ double model::increment_norm(const VecX &d) const
     return r;
 }
 
+std::string model::dof_name(int i) const
+{
+    static const char *c[6] = {"x", "y", "z", "rx", "ry", "rz"};
+    if(i >= 0 && i < 6*nbody())
+        return bodies[i/6].name + " " + c[i%6];
+    const int k = i - 6*nbody();
+    if(k < 0 || k >= ncoord())
+        return "dof " + std::to_string(i);
+    // the block the coordinate belongs to: the last one that starts at or before k
+    std::string b = "coordinate";
+    int k0 = 0;
+    for(const auto &cb : coord_blocks)
+        if(cb.second <= k && cb.second >= k0)
+        {
+            b = cb.first;
+            k0 = cb.second;
+        }
+    return b + "[" + std::to_string(k - k0) + "]";
+}
+
 void model::zero_rates()
 {
     for(auto &b : bodies)

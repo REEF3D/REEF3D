@@ -58,6 +58,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_load.h"
 #include"coral/core/coral_state.h"
 #include<string>
+#include<ostream>
 #include<vector>
 
 namespace coral
@@ -89,6 +90,9 @@ namespace coral
 
         // the extrapolated fluid load without the added-mass part, and the added-mass part of the state
         VecX force(double t) const;
+        // the samples, the load the polynomial gives at t0 and t1, the added mass and the eigenvalues of the
+        // mass matrix with it per body (the message of a failed CORAL step)
+        void describe(std::ostream&, const model&, double t0, double t1) const;
         VecX added_mass_force(const model&) const;
         VecX acceleration(const model&) const;
         VecX velocity(const model&) const;

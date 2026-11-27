@@ -29,6 +29,13 @@ Architect: Hans Bihs
 // without the fluid: a different PTO, controller or structure on the same fluid input (one-way coupling;
 // for two-way bodies the replay only repeats the recorded run).
 //
+// A step that fails (Newton does not converge in it nor in sub-steps down to h/64, each level from the state of
+// its start) stops the run after a message in the log: Newton's attempts (increments, thresholds, the degree of
+// freedom of a non-finite residual), the state, every load by itself, the fluid samples with the added mass and
+// the eigenvalues of the mass matrix with it. A fluid sample that is not finite or jumps by more than 100 times
+// the body's weight (or its last committed load), and an added mass that leaves the mass matrix not positive
+// definite, give a warning at once.
+//
 // Positions passed in and out are in the frame of the fluid solver (CORAL's frame plus fluid_coupling
 // origin); loads, velocities and rotations are the same in both frames.
 
@@ -109,6 +116,11 @@ namespace coral
 
     private:
         void advance_to(double t1);
+        // a failed step from t (h, k of n): what Newton saw, the state, the loads and the fluid samples
+        void diagnose(double t, double h, int k, int n, double t1, const std::string &why_h, const std::string &why_sub);
+        // a fluid sample: non-finite, a jump of more than 100 times the scale, or a mass matrix with the added
+        // mass that is not positive definite -> a warning at once (at most 20)
+        void check_sample(double t, const VecX &f, const MatX &A, bool provisional);
         int fluid_index(int n) const;
         int member_index(int n) const;
         void jrec(int tag, const std::vector<double> &v);
@@ -130,6 +142,8 @@ namespace coral
         std::vector<VecX> F_ref_;
         std::ofstream jout_;
         bool restart_ = false;
+        VecX f_checked_;                // the last committed fluid sample (check_sample)
+        int sample_warnings_ = 0;
     };
 }
 
