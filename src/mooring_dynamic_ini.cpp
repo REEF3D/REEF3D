@@ -102,7 +102,7 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 
     // the first output (not on a restart from a checkpoint, I 45 1: printed already)
     if(p->I45!=1)
-    print(p);
+    print_line(p);
 }
 
 void mooring_dynamic::ini_parallel(lexer *p, ghostcell *pgc)

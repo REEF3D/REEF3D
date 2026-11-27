@@ -26,6 +26,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"6DOF_output_dir.h"
 #include"runlog.h"
+#include"lagoon_nets.h"
 
 void mooring_Spring::print(lexer *p)
 {
@@ -56,8 +57,16 @@ void mooring_Spring::print(lexer *p)
 		
         sprintf(name,"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
 
+		// P 18: the spring in the LAGOON store as well (lagoon_moorings); P 18 1: instead of the .vtk file
+		lagoon_line_points k;
+		k.xyz = {float(p->X311_xs[line]), float(p->X311_ys[line]), float(p->X311_zs[line]),
+		         float(p->X311_xe[line]), float(p->X311_ye[line]), float(p->X311_ze[line])};
+		k.bars = {0, 1};
+		k.tension = {float(T), float(T)};
+		const bool stored = lagoon_moorings::output(p, line, num, std::move(k));
 
-
+		if(!(stored && p->P18==1))
+		{
 		// Print results
 		ofstream result;
 		result.open(name, ios::binary);
@@ -88,7 +97,6 @@ void mooring_Spring::print(lexer *p)
 		snprintf(sname,sizeof(sname),"mooring%i",line);
 		if(p->plog)
 		p->plog->written(p,num,sname,"mooring",name,0);
-
-
+		}
 	}
 }

@@ -171,7 +171,8 @@ std::vector<lagoon_output*> &lagoon_output::all()
 
 void lagoon_output::finish_all(lexer *p, ghostcell *pgc)
 {
-    lagoon_nets::finish(p);  // the nets' last output (rank 0)
+    lagoon_nets::finish(p);  // the nets' and mooring lines' last output (rank 0)
+    lagoon_moorings::finish(p);
     lagoon_membranes::finish(p);  // the membranes' last output (rank 0)
     for(lagoon_output *writer : all())
         writer->finish(p, pgc);

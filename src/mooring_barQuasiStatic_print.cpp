@@ -26,6 +26,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"6DOF_output_dir.h"
 #include"runlog.h"
+#include"lagoon_nets.h"
 
 
 void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
@@ -68,7 +69,19 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 		
         sprintf(name,"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
 
+		// P 18: the line in the LAGOON store as well (lagoon_moorings); P 18 1: instead of the .vtk file
+		lagoon_line_points k;
+		for (int n = 0; n < sigma+2; ++n)
+		{
+			k.xyz.insert(k.xyz.end(), {float(x[n]), float(y[n]), float(z[n])});
+			k.tension.push_back(float(T[n]));
+		}
+		for (int n = 0; n < sigma+1; ++n)
+		k.bars.insert(k.bars.end(), {n, n+1});
+		const bool stored = lagoon_moorings::output(p, line, num, std::move(k));
 
+		if(!(stored && p->P18==1))
+		{
 		ofstream result;
 		result.open(name, ios::binary);
 		
@@ -101,6 +114,7 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 		snprintf(sname,sizeof(sname),"mooring%i",line);
 		if(p->plog)
 		p->plog->written(p,num,sname,"mooring",name,0);
+		}
 	}
 }
 
