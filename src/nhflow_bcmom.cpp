@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"slide2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"increment.h"
 
 nhflow_bcmom::nhflow_bcmom(lexer* p):roughness(p),kappa(0.4)
 {
@@ -54,14 +55,34 @@ static inline double nhflow_wall_drag(double vel, double ut, double dn, double k
     return ut*vel*WLval/(uplus*uplus*dn);
 }
 
-// the bed shear stress point-implicit in time: the explicit drag c |u| u WL with c = 1 / (u+^2 dn) divided by
-// 1 + dt c |u|.  In a thin layer at a wet/dry front (WL of a few cm, dn = DZN WL a few mm) dt c |u| reaches 2-10
-// and the explicit drag reverses the velocity within one step, an oscillation that only the Froude limiter
-// (A 531) stops, at 1-2 m/s in a 2-4 cm layer; the point-implicit drag brings the velocity at most to rest.  In
-// deep water dt c |u| is small and the drag is the explicit one to that order.
-static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks, double WLval, double dt)
+// The bed shear stress of the wall-function bed (A 518 1, A 519 1/2), implicit in time. The friction rate of the
+// bottom cell is gamma = |u| / (u+^2 dn), d(UH)/dt = -gamma UH, linearised in the velocity of the stage input.
+//
+//  - with the implicit diffusion (A 512 2, or A 512 0 with a turbulence model): on the diagonal of the bed cell
+//    of the diffusion system (nhflow_idiff), for the velocity of the stage X + dt F. The bed shear and the
+//    vertical diffusion balance each other in the bed cell and belong into one system: as a source in F next to
+//    a diffusion solved on its own, the steady state had the splitting error dt D(friction), of the order
+//    nu_t dt/dz^2 of the bed shear (uniform open-channel flow, k-epsilon, h 1 m, dt 1 s: the velocity of the bed
+//    cell 12 % above the log law with 10 layers and 29 % with 20, the normal depth 8 % and 17 % too small).
+//  - without it (A 512 0 and no turbulence model, A 512 1): after the stage update (bed_friction_update),
+//    UH_new (1 + fac dt gamma) = UH_stage, as the Darcy-Forchheimer drag (vrans_nhflow_f::implicit_drag). The
+//    former drag in F, c |u| u WL / (1 + dt c |u|), was the explicit drag divided by 1 + dt gamma: stable in a
+//    thin layer at a wet/dry front, but it left the steady bed shear too small by that factor.
+bool nhflow_bcmom::bed_implicit(lexer *p)
+{
+    return p->A519>=1 && p->A518!=2 && (p->A512==2 || (p->A512==0 && p->A560>0));
+}
+
+double nhflow_bcmom::bed_gamma(lexer *p, fdm_nhf *d, int i, int j, int k, double WLval)
 {
     const double kappa=0.4;
+    const int marge = increment::marge;   // for KP
+    const double dn = p->DZN[KP]*WLval;
+    double ks = d->ks(i,j);
+    
+    if(dn<1.0e-12)
+    return 0.0;
+    
     double z0 = 0.5*dn;
     
     if(ks<=0.0)
@@ -71,13 +92,29 @@ static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks
     z0=ks/30.0;
     
     const double uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
-    const double c = 1.0/(uplus*uplus*dn);
+    const double U = d->U[IJK];
+    const double V = d->V[IJK];
     
-    return c*ut*vel*WLval/(1.0 + MAX(dt,0.0)*c*ut);
+    return sqrt(U*U + V*V)/(uplus*uplus*dn);
+}
+
+// bed friction after the stage update, where the diffusion system does not carry it; fac: stage weight of the
+// explicit terms
+void nhflow_bcmom::bed_friction_update(lexer *p, fdm_nhf *d, double *UH, slice &WL, double fac, int comp)
+{
+    if(p->A519<1 || p->A518==2 || comp>1 || bed_implicit(p))
+    return;
+    
+    k=0;
+    
+    SLICELOOP4
+    if(p->DF[IJK]>0 && p->wet[IJ]==1)
+    UH[IJK] /= (1.0 + fac*MAX(p->dt,0.0)*bed_gamma(p,d,i,j,k,WL(i,j)));
 }
 
 // comp 0: U into F, 1: V into G, 2: W into H
-// A519 1: bed friction in the bottom cell layer on u and v (point-implicit in time, nhflow_bed_drag).
+// A519 1: bed friction in the bottom cell layer on u and v: implicit, not in F (bed_gamma: in the diffusion
+//         system or after the stage update).
 // A519 2: friction at every wall face (nhflow_wall.h, the same walls as the turbulence wall functions),
 //         on the velocity components tangential to the face; ks = B57 at side and top walls, the bed
 //         roughness d->ks at the bed. Faces add up (corner cells feel both walls).
@@ -89,20 +126,6 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
     int w[6],n;
     
     const bool bedfric = p->A518!=2;
-    
-    if(p->A519==1 && comp<2 && bedfric)
-    {
-    k=0;
-    
-    SLICELOOP4
-    if(p->DF[IJK]>0)
-    {
-    U=d->U[IJK];
-    V=d->V[IJK];
-    
-    F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), p->DZN[KP]*WL(i,j), d->ks(i,j), WL(i,j), p->dt);
-    }
-    }
     
     if(p->A519==2)
     LOOP
@@ -125,9 +148,9 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
         if(n>0 && comp!=1)
         F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + W*W), p->DYN[JP], p->B57, WL(i,j));
         
-        // bed: u, v
-        if(w[4] && comp!=2 && bedfric)
-        F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j), p->dt);
+        // bed: u, v. The bottom layer (k = 0) is implicit (bed_gamma); the bed of a cell above a solid here
+        if(w[4] && comp!=2 && bedfric && k>0)
+        F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j));
         
         // solid above: u, v
         if(w[5] && comp!=2)
