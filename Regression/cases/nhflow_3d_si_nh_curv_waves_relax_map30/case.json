@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_curv_waves_relax_map30",
+ "ctrl_set": {
+  "A 510": "11",
+  "A 535": "0.5",
+  "A 536": "0.02",
+  "N 47": "1.0"
+ },
+ "description": "nhflow_3d_curv_waves_relax_map30 (regular waves H 0.02 m, T 1 s, d 0.5 m in a flume of 200 x 4 x 10 cells on a mapped grid turned by 30 deg, relaxation zones B 107 / B 108) with the semi-implicit non-hydrostatic step (A 510 11, dt 0.02 s; needs patch v50). Second order in space on a curvilinear grid: at 15 cells per wavelength the waves arrive out of phase with the explicit step, at 30 cells the heights agree within 3 %.",
+ "steps": 200,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear",
+  "waves"
+ ],
+ "covers": [
+  "the coupled eta-phi system on a curvilinear grid with relaxation zones and open ends",
+  "nhflow_momentum_SI_nhcurv.cpp with a varying cell size"
+ ],
+ "architect": "Hans Bihs"
+}
