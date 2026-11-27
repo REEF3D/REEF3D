@@ -248,8 +248,9 @@ void sixdof_obj_cfd::added_mass_loads(lexer *p, fdm *a, ghostcell *pgc, field &P
 {
     double Fl[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
     
-    const double x42 = (p->X49>0 && p->X42<=0.0) ? 1.5 : p->X42;
+    // the probe points as in forces_stl (X 34 3: two, with the parabola)
     const int x34 = (p->X49>0 && p->X34==0) ? 2 : p->X34;
+    const double x42 = (x34==3) ? (p->X42<=0.0 ? 1.0 : MIN(p->X42,1.25)) : ((p->X49>0 && p->X42<=0.0) ? 1.5 : p->X42);
     
     for(int n=0; n<tricount; ++n)
     {
@@ -293,7 +294,7 @@ void sixdof_obj_cfd::added_mass_loads(lexer *p, fdm *a, ghostcell *pgc, field &P
         double p_int = p->ccipol4a(P,xc+ddx,yc+ddy,zc+ddz);
         
         // to the hull with the pressure gradient at the wall, dp/dn = -rho n.a
-        if(x34==2 && x42>0.0)
+        if(x34>=2 && x42>0.0)
         {
             const double rho_m = p->ccipol4a(a->ro,xc+0.5*ddx,yc+0.5*ddy,zc+0.5*ddz);
             const double rx = xc - c_(0), ry = yc - c_(1), rz = zc - c_(2);
@@ -306,6 +307,15 @@ void sixdof_obj_cfd::added_mass_loads(lexer *p, fdm *a, ghostcell *pgc, field &P
             if(qn==4) {ax =  rz; az = -rx;}
             if(qn==5) {ax = -ry; ay =  rx;}
             
+            bool two = (x34==3);
+            
+            if(two)
+            two = (p->ccipol4a(a->phi,xc+ddx,yc+ddy,zc+ddz)*p->ccipol4a(a->phi,xc+2.0*ddx,yc+2.0*ddy,zc+2.0*ddz) > 0.0);
+            
+            if(two)
+            p_int = (4.0*p_int - p->ccipol4a(P,xc+2.0*ddx,yc+2.0*ddy,zc+2.0*ddz))/3.0 + (2.0/3.0)*rho_m*(ddx*ax + ddy*ay + ddz*az);
+            
+            else
             p_int += rho_m*(ddx*ax + ddy*ay + ddz*az);
         }
         

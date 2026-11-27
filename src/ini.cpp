@@ -1680,7 +1680,7 @@ void control::ini_default()
     X31=4;        // int
     X32=1;        // int 
     X33=1;        // int 
-    X34=0;        // int CFD loads (X 60 1): the pressure of the probe point (X 42 cells off the hull) taken to the hull with the pressure gradient of the fluid at the wall: 1 hydrostatic, 2 with the acceleration of the hull over the last time step (free and prescribed motion); 1 is for bodies at rest or in steady motion
+    X34=0;        // int CFD loads (X 60 1): the pressure of the probe point (X 42 cells off the hull) taken to the hull with the pressure gradient of the fluid at the wall: 1 hydrostatic, 2 with the acceleration of the hull over the last time step (free and prescribed motion); 1 is for bodies at rest or in steady motion; 3 as 2 with two probe points (X 42 and twice X 42 cells off the hull, 1 and 2 cells where X 42 is not set, at most 1.25 and 2.5) and a parabola through them with the gradient of the wall, the first point alone where the free surface lies between the two
     X38=0;       // int type of viscous force calculation CFD
     X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation

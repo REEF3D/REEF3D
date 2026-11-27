@@ -56,7 +56,7 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 
     // X 34 2: the acceleration of the body over the last time step, from its velocities (free,
     // prescribed and external motion alike); once per time step, at its first stage
-    if((p->X34==2 || (p->X49>0 && p->X34==0)) && p->simtime>x34_time_)
+    if((p->X34==2 || p->X34==3 || (p->X49>0 && p->X34==0)) && p->simtime>x34_time_)
     {
         if(x34_time_>-1.0e19 && p->simtime-x34_time_>1.0e-14)
         x34_acc_ = (u_fb - x34_uprev_)/(p->simtime-x34_time_);
@@ -174,8 +174,10 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             // Add normal stress contributions
             // with X 49 (the pressure inside the body is not solved) the probe points lie off the hull
             // and their pressure is taken to the hull: X 42 1.5 and X 34 2 where they are not set
-            const double x42 = (q->X49>0 && q->X42<=0.0) ? 1.5 : q->X42;
+            // X 34 3: two probe points, X 42 and twice X 42 cells off the hull (1 and 2 cells where X 42 is not
+            // set; at most 1.25 and 2.5 cells, the reach of the ghost cells of a rank)
             const int x34 = (q->X49>0 && q->X34==0) ? 2 : q->X34;
+            const double x42 = (x34==3) ? (q->X42<=0.0 ? 1.0 : MIN(q->X42,1.25)) : ((q->X49>0 && q->X42<=0.0) ? 1.5 : q->X42);
 
             xlocp = xc + x42*nx*q->DXP[IP];
             ylocp = yc + x42*ny*q->DYP[JP];
@@ -187,13 +189,20 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             // normal with the pressure gradient of the fluid there, dp/dn = rho n.(g - a): 1 the fluid at
             // rest relative to the body (g alone), 2 with the acceleration of the hull over the last time step.  With X 49 the pressure inside the body is not
             // solved (the faces are closed) and the interpolation at the hull would reach into it
+            // X 34 3: as 2 with a second probe point at twice the distance and a parabola through the two with
+            // the gradient of the wall, p_wall = (4 p1 - p2)/3 - (2/3) d dp/dn.  With one point the gradient of
+            // the wall is taken over the whole distance, where the acceleration of the fluid falls off from the
+            // hull: the layer weighs too much (heave decay of a sphere, 12 cells per diameter: the period 4.5 %
+            // long with 1.5 cells, 3.3 % with 0.75; NHFLOW X 15 11 takes the two points for the same reason).
+            // Where the two points lie on different sides of the free surface the pressure has a kink between
+            // them: there the first point alone, as X 34 2
             if(x34>0 && x42>0.0)
             {
                 const double ddx = x42*nx*q->DXP[IP], ddy = x42*ny*q->DYP[JP], ddz = x42*nz*q->DZP[KP];
                 const double rho_m = q->ccipol4a(fa->ro,xc+0.5*ddx,yc+0.5*ddy,zc+0.5*ddz);
                 double ax = a->gi, ay = a->gj, az = a->gk;
 
-                if(x34==2)
+                if(x34>=2)
                 {
                     // the acceleration of the hull at the triangle: dU/dt + dw/dt x r + w x (w x r)
                     const double rx = xc - c_(0), ry = yc - c_(1), rz = zc - c_(2);
@@ -212,6 +221,19 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
                     }
                 }
 
+                bool two = (x34==3);
+                
+                if(two)
+                two = (q->ccipol4a(fa->phi,xlocp,ylocp,zlocp)*q->ccipol4a(fa->phi,xc+2.0*ddx,yc+2.0*ddy,zc+2.0*ddz) > 0.0);
+                
+                if(two)
+                {
+                    const double p2 = q->ccipol4a(fa->press,xc+2.0*ddx,yc+2.0*ddy,zc+2.0*ddz) - p->pressgage;
+                    
+                    p_int = (4.0*p_int - p2)/3.0 - (2.0/3.0)*rho_m*(ddx*ax + ddy*ay + ddz*az);
+                }
+                
+                else
                 p_int -= rho_m*(ddx*ax + ddy*ay + ddz*az);
             }
             
