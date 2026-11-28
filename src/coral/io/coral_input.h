@@ -333,15 +333,18 @@ Architect: Hans Bihs
 //        stiffness; channels <name>_pitch_cmd, _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
 //        structural table (structure is then required; EA = ea_per_mass m (2e7), GJ = gj_factor EI_flap (0.3), damping
 //        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
-//   controller <name> rotor <rotor> [tune P_rated <W> rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]
-//        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W>] [slip <%>] [T_max <N m>]
+//   controller <name> rotor <rotor> [tune (P_rated <W> | P_electrical <W>) rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]
+//        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W> | P_electrical <W>] [slip <%>] [T_max <N m>]
 //        [T_rate <N m/s>] [T_rgn3 <N m>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
 //        [theta_max <deg>] [theta_rate <deg/s>] [corner <Hz>] [dt <s>] [no_pitch] [no_torque]
 //        [floating [U_float <m/s>] [float_gain <g>] [float_A <1/s> float_B <rad/s^2 per m/s>]]
 //        (wind turbine controller of the NREL 5 MW baseline type on the filtered generator speed: variable-speed
 //        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power, or constant torque T_rgn3 as DISCON_OC3Hywind) and
 //        gain-scheduled PI collective pitch; speeds and
-//        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON); it sets
+//        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON);
+//        P_rated is the mechanical power at the generator shaft (DISCON's VS_RtPwr: 5.29661 MW for the 5 MW), the
+//        electrical output is the rotor's efficiency times it; P_electrical gives the generator's output instead
+//        (P_rated = P_electrical/efficiency: 15 MW at 95.756 % is P_rated 15.665 MW); it sets
 //        the rotor's generator torque and the pitch command of its pitch actuators (or the pitch of rigid blades without
 //        pitch bearings) once per step; tune: the gains for this rotor from CORAL's steady BEM at the rated power and the
 //        rated rotor speed (K from Cp_max and lambda_opt, the PI gains from dP/dtheta for a response at omega_n

@@ -1882,9 +1882,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             const rotor_spec &sp = rotor_specs_[rn];
             const double N = sp.dt.N, rpm = M_PI/30.0;
             turbine_controller_settings cs;
+            // the rated power: P_rated is the mechanical power at the generator shaft (DISCON's VS_RtPwr),
+            // P_electrical the generator's output, P_rated = P_electrical/efficiency of the rotor's drivetrain
+            if(it.has("P_rated") && it.has("P_electrical"))
+                it.fail("P_rated (mechanical) and P_electrical (P_rated = P_electrical/efficiency): give one of them");
+            const bool has_P = it.has("P_rated") || it.has("P_electrical");
+            const double P_in = it.has("P_electrical") ? it.need("P_electrical")/sp.dt.eta : it.get("P_rated", cs.P_rated);
             if(it.has("tune"))
             {
-                const double Pr = it.need("P_rated"), Or = it.need("rpm_rated")*rpm;
+                if(!has_P) it.fail("tune needs P_rated (mechanical) or P_electrical");
+                const double Pr = P_in, Or = it.need("rpm_rated")*rpm;
                 rotor_def rd;
                 rd.B = sp.B; rd.R_hub = sp.R_hub; rd.R_tip = sp.stations.back().r; rd.stations = sp.stations; rd.airfoils = sp.airfoils;
                 const rotor_tuning tu = tune_rotor(rd, rho_air, Pr, Or, 25.0, sp.aero.bem);
@@ -1895,7 +1902,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                             + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated, raise P_rated or give K "
                             "(N m s^2 on the generator side; the NREL 5 MW: K Omega_rated^3 = 0.82 of the rated power)");
                 if(it.has("K") && it.need("K")*N*N*N*Or*Or*Or >= Pr)
-                    it.fail("K: K Omega_rated^3 must stay below P_rated (region 2.5 between them)");
+                    it.fail("K: K Omega_rated^3 must stay below P_rated (the mechanical rated power, " + std::to_string(Pr)
+                            + " W; with P_electrical: P_electrical/efficiency; region 2.5 between them)");
                 if(it.has("write") && !tu.write(path(it.word("write")))) it.fail("cannot write " + it.word("write"));
                 const double wref = N*Or;
                 cs.w_ref = wref;
@@ -1928,7 +1936,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             cs.w_cutin = it.get("rpm_cutin", cs.w_cutin/rpm)*rpm;
             cs.w_rgn2 = it.get("rpm_rgn2", cs.w_rgn2/rpm)*rpm;
             cs.w_rated = it.get("rpm_rated_torque", cs.w_rated/rpm)*rpm;
-            if(!it.has("tune")) cs.P_rated = it.get("P_rated", cs.P_rated);
+            if(!it.has("tune")) cs.P_rated = P_in;
             cs.slip = it.get("slip", cs.slip);
             cs.T_max = it.get("T_max", cs.T_max);
             cs.T_rate = it.get("T_rate", cs.T_rate);
