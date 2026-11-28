@@ -25,6 +25,15 @@ Architect: Hans Bihs
 //   T = -k (theta - theta_cmd) - c (theta' - theta_cmd'),   theta = theta0 + q_joint
 // with k = J omega^2, c = 2 zeta J omega (J: the blade's inertia about the pitch axis, omega = 2 pi f the actuator's
 // natural frequency). The command: a constant, a collective table in time, or set per blade (controllers, 3.5).
+// Integral action (ki > 0): the torque -ki int (theta - theta_cmd) dt adds, as the position loop of a pitch drive:
+// a steady moment about the pitch axis (aerodynamic, the weight and the thrust on a prebent or swept blade) no longer
+// leaves the blade off its command by M/k (the blade's pitch inertia is small, so k is: 0.8 - 1.3 deg on the IEA 15 MW
+// at 2 Hz). ki = kappa omega k: the characteristic polynomial in s/omega is s^3 + 2 zeta s^2 + s + kappa, stable for
+// kappa < 2 zeta; kappa 0.2 with zeta 0.7 gives a real pole at -0.30 omega (the error decays with 1/(0.3 omega),
+// 0.27 s at 2 Hz) and a pair at 0.82 omega with damping 0.67. The integral is kept per blade from step to step
+// (trapezoidal, with the error of the state being evaluated inside the step). In the static mode (static
+// equilibrium, the stiffness of the linear analysis) the actuator holds the blade with 1e4 k, and the integral starts
+// with the torque it held, so the run starts in balance. ki = 0: the second-order actuator alone, as before.
 
 #ifndef CORAL_PITCH_ACTUATOR_H_
 #define CORAL_PITCH_ACTUATOR_H_
@@ -46,6 +55,11 @@ namespace coral
         coupling_kind coupling() const override {return coupling_kind::local;}
         void coupled_bodies(std::vector<int>&) const override;
         void eval(const model&, double t, VecX &f) const override;
+        void initialize(const model&, double t0) override;
+        void commit(const model&, double t, double dt) override;
+        void static_mode(const model&, double t, bool on) override;
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 
@@ -60,13 +74,20 @@ namespace coral
         int blades() const {return (int)j_.size();}
 
         double k, c;
+        double ki = 0.0;            // integral gain [N m/(rad s)]
 
     private:
+        double error(const model&, int blade, double t) const;
+        static constexpr double static_stiffness = 1.0e4;       // static mode: times k
         std::vector<const joint*> j_;
         double theta0_;
         std::vector<double> cmd_, tt_, tv_;
         bool table_ = false;
         std::string name_;
+        // integral action: the integral of the error up to tn_, the error there
+        std::vector<double> I_, e_;
+        double tn_ = 0.0;
+        bool static_ = false;
     };
 }
 

@@ -311,7 +311,7 @@ Architect: Hans Bihs
 //        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
 //        [dynamic_inflow [di_tau1 <s>] [di_k <k>]] [dynamic_stall oye | hgm [ds_T_f0 <T>] [ds_T_p <T>]]
 //        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
-//        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
+//        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>] [pitch_ki <kappa>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
 //        (wind turbine rotor: hub (body <name>_hub, <name>_gen with the shaft torsion) turning in the revolute joint
 //        <name>_shaft on the nacelle (default the ground) about the axis
 //        pointing downwind, clockwise looking downwind unless ccw; blade 1 up at azimuth 0; the stations of AeroDyn's
@@ -327,8 +327,10 @@ Architect: Hans Bihs
 //        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
 //        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; blades rigid on the hub unless: pitch_joints: each blade
 //        on a pitch bearing (body <name>_pitch<k>, revolute joint <name>_pitch<k> on the hub, positive towards feather)
-//        driven to the pitch command by a second-order actuator (default 2 Hz, damping 0.7; channels <name>_pitch_cmd,
-//        _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
+//        driven to the pitch command by a second-order actuator (default 2 Hz, damping 0.7) with integral action
+//        (pitch_ki: the integral gain kappa omega k, default 0.2, so the blade holds its command under the steady
+//        aerodynamic moment; 0: none, the blade then sits off its command by that moment over the actuator's
+//        stiffness; channels <name>_pitch_cmd, _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
 //        structural table (structure is then required; EA = ea_per_mass m (2e7), GJ = gj_factor EI_flap (0.3), damping
 //        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
 //   controller <name> rotor <rotor> [tune P_rated <W> rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]

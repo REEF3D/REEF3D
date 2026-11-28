@@ -26,7 +26,8 @@ Architect: Hans Bihs
 //   rigid, on the hub: the blades' distributed mass as point masses of the hub along their span; collective pitch
 //       of the aerodynamics (constant, a table, or set by a controller);
 //   rigid or flexible, on pitch bearings (pitch_joints): one body per blade root in a revolute joint on the hub, turned
-//       by a second-order actuator (coral_pitch_actuator.h, natural frequency and damping ratio), the pitch then in
+//       by a second-order actuator with integral action (coral_pitch_actuator.h, natural frequency, damping ratio
+//       and integral gain: the blade holds its command under a steady moment about the pitch axis), the pitch then in
 //       the geometry; the bearing carries the blade's pitch inertia sum m (0.04^2 + 0.2^2) c^2 (c the chord; with
 //       flexible blades the beams' torsional inertia adds as much, and the actuator is tuned to twice it);
 //   flexible (blade_elements n): n co-rotational beam elements per blade from the root (the hub or the pitch bearing)
@@ -80,6 +81,7 @@ namespace coral
         double J_gen = 0.0;                            // generator inertia on the high-speed shaft
         bool pitch_joints = false;
         double pitch_freq = 2.0, pitch_zeta = 0.7;     // pitch actuator [Hz], damping ratio
+        double pitch_ki = 0.2;      // integral action of the pitch actuator, ki = pitch_ki omega k (0: none)
         int blade_elements = 0;                        // > 0: flexible blades of this many beam elements
         double blade_beta = 0.0022;                    // stiffness-proportional damping of the blades [s]
         double ea_per_mass = 2.0e7, gj_factor = 0.3;

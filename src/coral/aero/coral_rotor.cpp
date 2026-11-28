@@ -265,6 +265,7 @@ rotor_handles build_rotor(model &m, std::shared_ptr<const wind_inflow> wind, con
         const double w = 2.0*M_PI*sp.pitch_freq;
         std::vector<const joint*> js(h.pitch_joints.begin(), h.pitch_joints.end());
         auto pa = std::make_unique<pitch_actuator>(js, jp*w*w, 2.0*sp.pitch_zeta*jp*w, sp.pitch, sp.name + "_pitch");
+        pa->ki = std::max(sp.pitch_ki, 0.0)*w*pa->k;
         if(!sp.pitch_t.empty()) pa->set_table(sp.pitch_t, sp.pitch_v);
         h.pitch = &static_cast<pitch_actuator&>(m.add_load(std::move(pa)));
     }

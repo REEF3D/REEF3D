@@ -1828,6 +1828,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             sp.pitch_joints = it.has("pitch_joints");
             sp.pitch_freq = it.get("pitch_freq", sp.pitch_freq);
             sp.pitch_zeta = it.get("pitch_zeta", sp.pitch_zeta);
+            sp.pitch_ki = it.get("pitch_ki", sp.pitch_ki);
             sp.blade_elements = (int)it.get("blade_elements", 0.0);
             sp.blade_beta = it.get("blade_beta", sp.blade_beta);
             sp.ea_per_mass = it.get("ea_per_mass", sp.ea_per_mass);

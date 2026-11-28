@@ -30,7 +30,8 @@ namespace coral
 {
 
 pitch_actuator::pitch_actuator(std::vector<const joint*> joints, double kk, double cc, double theta0, const std::string &name)
-    : k(kk), c(cc), j_(std::move(joints)), theta0_(theta0), cmd_(j_.size(), theta0), name_(name) {}
+    : k(kk), c(cc), j_(std::move(joints)), theta0_(theta0), cmd_(j_.size(), theta0), name_(name),
+      I_(j_.size(), 0.0), e_(j_.size(), 0.0) {}
 
 void pitch_actuator::coupled_bodies(std::vector<int> &b) const
 {
@@ -55,11 +56,77 @@ void pitch_actuator::command(int blade, double t, double &th, double &rt) const
 double pitch_actuator::angle(const model &m, int blade) const {return theta0_ + j_[blade]->rotation_coordinate(m);}
 double pitch_actuator::rate(const model &m, int blade) const {return j_[blade]->rotation_rate(m);}
 
+double pitch_actuator::error(const model &m, int blade, double t) const
+{
+    double th, rt;
+    command(blade, t, th, rt);
+    return angle(m, blade) - th;
+}
+
 double pitch_actuator::torque(const model &m, int blade, double t) const
 {
     double th, rt;
     command(blade, t, th, rt);
-    return -k*(angle(m, blade) - th) - c*(rate(m, blade) - rt);
+    const double e = angle(m, blade) - th;
+    if(ki > 0.0 && static_)
+        return -static_stiffness*k*e;
+    double T = -k*e - c*(rate(m, blade) - rt);
+    if(ki > 0.0)
+        T -= ki*(I_[blade] + 0.5*(e_[blade] + e)*std::max(t - tn_, 0.0));
+    return T;
+}
+
+void pitch_actuator::initialize(const model &m, double t0)
+{
+    tn_ = t0;
+    for(int q=0; q<(int)j_.size(); ++q)
+        e_[q] = error(m, q, t0);
+}
+
+void pitch_actuator::commit(const model &m, double t, double)
+{
+    if(!(ki > 0.0))
+        return;
+    for(int q=0; q<(int)j_.size(); ++q)
+    {
+        const double e = error(m, q, t);
+        I_[q] += 0.5*(e_[q] + e)*std::max(t - tn_, 0.0);
+        e_[q] = e;
+    }
+    tn_ = t;
+}
+
+// the end of the static mode: the integral takes over the torque the stiff actuator held
+void pitch_actuator::static_mode(const model &m, double t, bool on)
+{
+    if(ki > 0.0 && static_ && !on)
+        for(int q=0; q<(int)j_.size(); ++q)
+        {
+            const double e = error(m, q, t);
+            I_[q] = (static_stiffness - 1.0)*k*e/ki;
+            e_[q] = e;
+        }
+    static_ = on;
+    tn_ = t;
+}
+
+void pitch_actuator::save_state(std::vector<double> &v) const
+{
+    if(!(ki > 0.0))
+        return;
+    v.push_back(tn_);
+    for(size_t q=0; q<j_.size(); ++q) {v.push_back(I_[q]); v.push_back(e_[q]);}
+}
+
+bool pitch_actuator::load_state(const std::vector<double> &v, size_t &p)
+{
+    if(!(ki > 0.0))
+        return true;
+    if(p + 1 + 2*j_.size() > v.size())
+        return false;
+    tn_ = v[p++];
+    for(size_t q=0; q<j_.size(); ++q) {I_[q] = v[p++]; e_[q] = v[p++];}
+    return true;
 }
 
 void pitch_actuator::eval(const model &m, double t, VecX &f) const
