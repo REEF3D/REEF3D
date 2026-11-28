@@ -122,11 +122,21 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     
     // X 15 11: the pressure sampled in the water, one and two cells off the hull (X 42 cells, if given), and brought
     // to the hull with a parabola through the two samples with the normal pressure gradient of the wall,
-    // dp/dn = -rho a_b.n:  p_wall = (4 p1 - p2)/3 + (2/3) rho doff a_b.n. The last term is the load -G a_b, G the
-    // mass of 2/3 of the water layer between hull and first sample points in the normal direction (kept in Gdf_).
-    // The cells cut by the hull and the cells of the body hold no pressure of the water. With one sample and the
-    // gradient of the wall the heave added mass of a box grew with the sample distance (the acceleration of the
-    // water falls off from the hull): 1.10, 1.13, 1.17, 1.22 of the displaced mass for 0.5, 1, 1.5, 2 cells.
+    // dp/dn = -rho a_b.n. The cells cut by the hull and the cells of the body hold no pressure of the water. With one
+    // sample and the gradient of the wall the heave added mass of a box grew with the sample distance (the
+    // acceleration of the water falls off from the hull): 1.10, 1.13, 1.17, 1.22 of the displaced mass for 0.5, 1,
+    // 1.5, 2 cells.
+    // The parabola is taken at the depth of the centre of the cell that holds the hull point, s doff from the hull,
+    // s = |FB| of that cell / doff (at most 1/2): the discrete momentum balance of the water acts with the pressure of
+    // that cell on the closed part of its faces, not with the pressure at the hull. With p(x) = p_w + g x + c x^2,
+    // g = -rho a_b.n, through p(doff) = p1 and p(2 doff) = p2:
+    //    p(s doff) = (4 - s^2)/3 p1 - (1 - s^2)/3 p2 + (2/3 - s + s^2/3) rho doff a_b.n
+    // The last term is the load -G a_b, G the mass of the water layer of thickness (2/3 - s + s^2/3) doff (kept in
+    // Gdf_). At the hull (s = 0) the heave added mass of the 2D box of B 1 m, T 0.4 m in forced heave (dx 0.1 / 0.05 m,
+    // the faces of the box on the cell faces, s = 1/2) was 1.10 / 1.04 of the displaced mass (Frank 0.975), now 1.00 /
+    // 1.00; a semicircle R 0.5 m (KR 0.62, R/dx 5 / 10, limit 0.69): 0.743 / 0.716, now 0.696 / 0.693; the hemisphere
+    // decay (R/dx 5): a33/M 0.50, now 0.45 (Hulme 0.43); the KCS in forced heave (dx 2 m): A33/(rho V) 1.13, now 1.06
+    // (strip theory 0.96). Ship Hydrodynamics validation 54.
     // load_P: the loads of the pressure field load_P alone (added mass, 6DOF_obj_nhflow_addedmass.cpp)
     const bool frac = (p->X15==11);
     // the semi-implicit NHFLOW (A 510 11/12/13) samples the water level and the pressure at the sides of the hull from the
@@ -338,11 +348,24 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                                                                     mz[q] + nz*doff);
                 
                 // X 15 11 (and the semi-implicit step): second sample at twice the distance, p_wall = (4 p1 - p2)/3
-                // - (2/3) doff dp/dn
+                // - (2/3) doff dp/dn; X 15 11 at the depth s doff of the centre of the cell of the hull point (above)
+                double sq = 0.0;
+                
                 if(ws)
-                pval = (4.0*pval - pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + 2.0*nx*doff, 
+                {
+                const double p2 = pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + 2.0*nx*doff, 
                                                                     my[q] + 2.0*ny*doff, 
-                                                                    mz[q] + 2.0*nz*doff))/3.0;
+                                                                    mz[q] + 2.0*nz*doff);
+                
+                if(frac)
+                {
+                sq = MIN(cell_depth_nhflow(pl,dl,mx[q],my[q],mz[q])/MAX(doff,1.0e-12), 0.5);
+                pval = ((4.0 - sq*sq)*pval - (1.0 - sq*sq)*p2)/3.0;
+                }
+                
+                else
+                pval = (4.0*pval - p2)/3.0;
+                }
                 // hydrostatic pressure at the quadrature point
                 const double hsp = load_P!=nullptr ? 0.0 : MAX(0.0, (p->wd + eta_hull(mx[q],my[q],mz[q]) - mz[q])*p->W1*fabs(p->W22));
                 
@@ -353,7 +376,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                     
                     for(int qa=0; qa<6; ++qa)
                     for(int qb=0; qb<6; ++qb)
-                    Gl[qa][qb] += p->W1*(2.0/3.0)*doff*(A_sub/3.0)*N[qa]*N[qb];
+                    Gl[qa][qb] += p->W1*(2.0/3.0 - sq + sq*sq/3.0)*doff*(A_sub/3.0)*N[qa]*N[qb];
                 }
                 
                 const double w  = A_sub/3.0;
@@ -528,6 +551,17 @@ void sixdof_obj_nhflow::amr_point_nhflow(lexer *p, double x, double y, lexer *pl
 
 // X 15 11: distance of the pressure sample point from the hull at (x,y,z) with the outward normal n: X 42 cells
 // (1 if not given) in the direction of the normal, the cell of the point with its height in the water column
+// X 15 11: |FB| at the centre of the cell that holds the point (x,y,z), the distance of the hull to the pressure that acts
+// on the water of that cell
+double sixdof_obj_nhflow::cell_depth_nhflow(lexer *pl, fdm_nhf *dl, double x, double y, double z)
+{
+    const int ii = MAX(0, MIN(pl->knox-1, pl->posc_i(x)));
+    const int jj = (pl->j_dir==1) ? MAX(0, MIN(pl->knoy-1, pl->posc_j(y))) : 0;
+    const int kk = MAX(0, MIN(pl->knoz-1, pl->posc_sig(ii,jj,z)));
+    
+    return fabs(dl->FB[(ii-pl->imin)*pl->jmax*pl->kmax + (jj-pl->jmin)*pl->kmax + kk-pl->kmin]);
+}
+
 double sixdof_obj_nhflow::sample_dist_nhflow(lexer *pl, slice &WLl, double x, double y, double z, double nx, double ny, double nz)
 {
     const int marge = increment::marge;

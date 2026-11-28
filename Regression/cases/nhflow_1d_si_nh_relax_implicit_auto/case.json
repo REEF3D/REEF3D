@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_1d_si_nh_relax_implicit",
+ "ctrl_set": {"B 95": null},
+ "description": "nhflow_1d_si_nh_relax_implicit without B 95: the relaxation zones inside the step (A 505 1) take the reference step of their weights from the grid, 0.2 dx/sqrt(g h_max) (here 0.0044 s, close to the 0.004 s of nhflow_1d_si_nh_relax_implicit), so they relax per unit time as strongly as in the explicit step whatever the step (dt 0.05 s, gravity-wave Courant number 2.2).",
+ "tags": ["quick", "1d", "nhflow", "semi_implicit", "nonhydrostatic", "iowave"],
+ "covers": ["nhflow_momentum_SI::rz_auto (B 95 from the grid with A 505 1 and B 95 0)"],
+ "architect": "Hans Bihs"
+}

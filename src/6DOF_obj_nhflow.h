@@ -77,6 +77,7 @@ public:
     // X 15 11, loads: sample distance of the pressure, the water layer between hull and sample points (G), the
     // pressure field of the loads if not d->P
     double sample_dist_nhflow(lexer*, slice&, double, double, double, double, double, double);
+    double cell_depth_nhflow(lexer*, fdm_nhf*, double, double, double);
     Eigen::Matrix<double,6,6> Gdf_ = Eigen::Matrix<double,6,6>::Zero();
     double *load_P = nullptr;
     // X 15 11, coupling: the added mass of the hull on the grid from unit accelerations of the free degrees of
