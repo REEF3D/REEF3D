@@ -6,7 +6,9 @@
 #                     [--free s,s_f,...] [--table fit.csv]
 #
 # runs.json: {"body": {"L": 1.0, "f0": 1.0, "t_ramp": 1.0}, "box": [x0, x1, z0, z1], "margin": 0.8,
-#             "runs": [{"name": "f050", "dir": "<folder with the REEF3D_6DOF_* logs>", "current": [cx, cz]}, ...]}
+#             "runs": [{"name": "f050", "dir": "<folder with the REEF3D_6DOF_* logs>", "current": [cx, cz]}, ...],
+#             (a run may have its own "box"), "plane": "xz" (the 2D swimmer, default) | "xy" (a 3D body swimming in
+#             the horizontal plane, its heading the yaw, e_x = (cos h, sin h); the box and the current in x, y)}
 # Each run: its own gait (f, a, b of the fish log, every step) drives the model; per tail beat (the beats log of patch
 # 0038) the mean speed through the water along the axis and the turn rate of the resolved body are the data (beats with
 # the body within "margin" of the box are left out; the turn rate not before the end of the ramp of the gait), and the
@@ -22,7 +24,8 @@
 # beat P = c3 (f a)^3 + c1 (f a) U^2 is fitted apart (linear). The heading of REEF3D turns with -omega of body2d.
 #
 # The body file: the constants, their uncertainty, the data and the fit per run; --ctrl writes the lines of the
-# brain for REEF3D (X 200 s k, X 202 n_up n_down, X 203, X 204 tau_coast; with the drag law its equivalent) from it, and fish_agents.py reads it
+# brain for REEF3D (X 200 s k, X 202 n_up n_down, X 203, X 204 tau_coast; with the drag law X 209 C_d and X 204 its
+# exponential equivalent) from it, and fish_agents.py reads it
 # ("body_file").
 #
 # Architect: Hans Bihs
@@ -47,7 +50,7 @@ def table(p):
     return np.array([r for r in rows if len(r) == n])
 
 
-def load(run, box, margin):
+def load(run, box, margin, plane="xz"):
     """the gait every step and the data per beat of a resolved run"""
     d = run["dir"]
     F = np.loadtxt(os.path.join(d, "REEF3D_6DOF_fish_0.dat"), skiprows=1)
@@ -57,9 +60,12 @@ def load(run, box, margin):
     Bt = table(os.path.join(d, "REEF3D_6DOF_fish_beats_0.dat"))
     t, Us, Ul, h = F[:, 0], F[:, 1], F[:, 2], np.unwrap(np.radians(F[:, 3]))
     cx, cz = run.get("current", [0.0, 0.0])
-    # through the water, in the body frame (2D: e_x = (cos h, -sin h), e_l = (sin h, cos h) in x-z)
-    Uw = Us - (cx * np.cos(h) - cz * np.sin(h))
-    Vw = Ul - (cx * np.sin(h) + cz * np.cos(h))
+    # through the water, in the body frame (2D: e_x = (cos h, -sin h), e_l = (sin h, cos h) in x-z; "xy": e_x =
+    # (cos h, sin h), e_l = (-sin h, cos h) in x-y)
+    sg = -1.0 if plane == "xz" else 1.0
+    Uw = Us - (cx * np.cos(h) + sg * cz * np.sin(h))
+    Vw = Ul - (-sg * cx * np.sin(h) + cz * np.cos(h))
+    kz = 3 if plane == "xz" else 2
     cum = lambda y: np.concatenate([[0.0], np.cumsum(0.5 * (y[1:] + y[:-1]) * np.diff(t))])
     CU, CV = cum(Uw), cum(Vw)
     beats = []
@@ -67,7 +73,7 @@ def load(run, box, margin):
         t0, t1 = r[1], r[2]
         if t1 > t[-1] or t1 - t0 <= 0.0:
             continue
-        x0, x1 = np.interp([t0, t1], P[:, 0], P[:, 1]); z0, z1 = np.interp([t0, t1], P[:, 0], P[:, 3])
+        x0, x1 = np.interp([t0, t1], P[:, 0], P[:, 1]); z0, z1 = np.interp([t0, t1], P[:, 0], P[:, kz])
         inside = min(x0, x1) > box[0] + margin and max(x0, x1) < box[1] - margin and \
             min(z0, z1) > box[2] + margin and max(z0, z1) < box[3] - margin
         T = t1 - t0
@@ -146,7 +152,7 @@ def main():
     a = ap.parse_args()
     cfg = json.load(open(a.runs))
     base = dict(bd.DEFAULT, **cfg.get("body", {}))
-    runs = [load(r, cfg.get("box", [0, 8, 0, 6]), cfg.get("margin", 0.8)) for r in cfg["runs"]]
+    runs = [load(r, r.get("box", cfg.get("box", [0, 8, 0, 6])), cfg.get("margin", 0.8), cfg.get("plane", "xz")) for r in cfg["runs"]]
     free = [k for k in a.free.split(",") if k]
     if "C_d" in free and base.get("C_d", 0.0) <= 0.0:
         base["C_d"] = 0.4                  # the start of the drag law (off by default in body2d.py)
@@ -204,20 +210,28 @@ def main():
 
 
 def write_ctrl(p, path, body_id=0):
-    """the settings of the brain of REEF3D for this body (X 200 s0 k, X 202 n_u n_d, X 203 sd, X 204 tau_c); the brain
-    lets the speed glide exponentially, so with the drag law (C_d) tau_coast is its equivalent: the same half-time of
-    the glide from the speed of the gait at f0, U1, L / (C_d U1 ln 2)"""
+    """the settings of the brain of REEF3D for this body (X 200 s0 k, X 202 n_u n_d, X 203 sd, X 204 tau_c, X 209 C_d).
+    With the drag law of the glide (C_d), X 209 can give it to the brain (patch 0041; written commented), and X 204
+    is the exponential equivalent, L / (C_d U1 ln 2) with U1 the speed of the gait at f0: the same half-time of the
+    glide from U1 (the brain without X 209 glides with it; with X 209 it is the decay of the water that passed the
+    body at the start)"""
     s1 = bd.stride(p, p["f0"], 0.0)
     n_down, tau_c = p["n_down"], p["tau_coast"]
-    lines = ["# the brain's settings for the body of %s (fit_body.py)" % os.path.basename(path)]
+    # (comment lines start with "/", as REEF3D's ctrl.txt reads them)
+    lines = ["// the brain's settings for the body of %s (fit_body.py)" % os.path.basename(path)]
     if p.get("C_d", 0.0) > 0.0:
         U1 = s1 * p["f0"] * p["L"]
         tau_c = p["L"] / (p["C_d"] * U1 * math.log(2.0))
-        lines.append("# the glide by the drag law, C_d %.4f: tau_coast is its equivalent from U1 = %.3f m/s" % (p["C_d"], U1))
+        lines.append("// the glide by the drag law, C_d %.4f (X 209, patch 0041); X 204 its exponential equivalent from "
+                     "U1 = %.3f m/s" % (p["C_d"], U1))
     lines += ["X 200 %d %.4f %.4f 0" % (body_id, s1, p["k"]),
               "X 202 %d %.3f %.3f" % (body_id, p["n_up"], n_down),
               "X 203 %d 0.05" % body_id,
               "X 204 %d %.2f" % (body_id, tau_c)]
+    if p.get("C_d", 0.0) > 0.0:
+        # the drag law of the glide for the brain: off (commented) by default; with the 2D swimmer it predicts the
+        # glide better but holds the station no better (validation 31)
+        lines.append("// X 209 %d %.4f" % (body_id, p["C_d"]))
     open(path, "w").write("\n".join(lines) + "\n")
 
 

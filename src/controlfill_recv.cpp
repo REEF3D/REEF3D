@@ -3606,6 +3606,8 @@ void control::ctrlrecv()
     ii++;
     X208 = ictrl[ii];
     ii++;
+    X209 = ictrl[ii];
+    ii++;
     X194 = ictrl[ii];
     ii++;
     X199 = ictrl[ii];
@@ -5177,6 +5179,12 @@ void control::ctrlrecv()
     {
         Iarray(X208_id,X208);
         Darray(X208_k,X208);
+    }
+    
+    if(X209>0)
+    {
+        Iarray(X209_id,X209);
+        Darray(X209_c,X209);
     }
     
     if(X194>0)
@@ -7358,6 +7366,14 @@ void control::ctrlrecv()
         X208_id[n] = ictrl[ii];
         ii++;
         X208_k[n] = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<X209;++n)
+    {
+        X209_id[n] = ictrl[ii];
+        ii++;
+        X209_c[n] = dctrl[dd];
         dd++;
     }
     

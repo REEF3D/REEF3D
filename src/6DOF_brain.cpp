@@ -69,16 +69,45 @@ namespace
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                            double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
-                           double tau_u, double tau_d, double n_u, double n_d, double s_sd, double tau_c, double kappa)
+                           double tau_u, double tau_d, double n_u, double n_d, double s_sd, double tau_c, double kappa,
+                           double C_d)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
                tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
                tauu_(tau_u>0.0 ? tau_u : brain_tauu/f0), taud_(tau_d>0.0 ? tau_d : brain_tauu/f0),
                nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)),
                ssd_(std::max(0.0, s_sd)), tc0_(tau_c>0.0 ? tau_c : brain_tauc0/f0), tf_(1.0/f0), uf_(L*f0),
-               kap_(kappa), lat_(lateral), tp_(tp)
+               kap_(kappa), cd_(std::max(0.0, C_d)), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
+}
+
+double sixdof_brain::glide_speed(double u0, double dt, double g, bool drag, double L)
+{
+    // exponential: g the coasting time; the drag law (X 209): g the drag coefficient, dU/dt = -g U|U|/L
+    return drag ? u0/(1.0 + g*u0*dt/L) : u0*std::exp(-dt/g);
+}
+
+double sixdof_brain::glide_learn(double u0, double u1, double dt, bool drag, double L, double tf, double g0)
+{
+    // the constant that takes u0 to u1 in dt: the coasting time within 0.5-30 T, or the drag coefficient within
+    // 0.1-10 times its prior g0
+    if(!drag)
+    return std::min(30.0*tf, std::max(0.5*tf, dt/std::log(u0/u1)));
+    return std::min(10.0*g0, std::max(0.1*g0, L*(1.0/u1 - 1.0/u0)/dt));
+}
+
+double sixdof_brain::glide_dist(double u0, double u1, double g, bool drag, double L)
+{
+    if(u0<=u1)
+    return 0.0;
+    return drag ? L/g*std::log(u0/u1) : (u0 - u1)*g;
+}
+
+double sixdof_brain::glide_reach(double u0, double umin, double g, double L)
+{
+    // the drag law turning linear below umin, dU/dt = -g U (U + umin)/L: to rest
+    return (u0>0.0) ? L/g*std::log(1.0 + u0/umin) : 0.0;
 }
 
 const std::vector<double> &sixdof_brain::rays()
@@ -324,7 +353,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         // still be accelerating), not yet known
         ug_ = -1.0;
         E0_ = 0.0;
-        tauc_ = tc0_;
+        // (with the drag law of X 209 the constant of the glide is the drag coefficient, from X 209 and learnt from the
+        // glides; X 204 is then the decay of the water that passed the body at the start alone)
+        tauc_ = (cd_>0.0) ? cd_ : tc0_;
 
         // with the speed in tail beats (X 202): the body at rest over the ground at t = 0 (as REEF3D starts it),
         // the speed of its gait from rest over the ramp of the gait (to the start of the brain, at f0), and the
@@ -338,7 +369,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             for(int i=0; i<n; ++i)
             u += h*f0_/nu_*(f0_*L_*std::min(1.0, (i + 0.5)*h/std::max(t, 1.0e-9)) - u);
             ug_ = u;
-            E0_ = std::exp(-t/tauc_);
+            E0_ = std::exp(-t/tstart());
         }
         tdec_ = t;
         pdec_ = c_;
@@ -403,8 +434,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         {
             // gliding with the probes: the speed of the gait from them; the current along the axis from the track
             // less the speed through the water while the body is straight (not for a bent, braking body)
-            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
-            E0_ *= std::exp(-dt/tauc_);
+            const double Em = (E0_>0.0) ? E0_*tstart()/dt*(1.0 - std::exp(-dt/tstart())) : 0.0;
+            E0_ *= std::exp(-dt/tstart());
             const double u0 = ug_*kf_x_[0];
             const bool straight = std::max(std::fabs(b), std::fabs(bdec_))<0.05;
             if(straight)
@@ -419,15 +450,16 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             // the coasting time from the slowing down over a whole glide, as without the probes
             const double cm = std::sqrt(kf_x_[1]*kf_x_[1] + kf_x_[2]*kf_x_[2]);
             if(std::max(a, adec_)<0.05 && straight && wa>3.0*cm + 0.05*uf_ && wa<u0)
-            tauc_ = 0.7*tauc_ + 0.3*std::min(30.0*tf_, std::max(0.5*tf_, dt/std::log(u0/wa)));
+            tauc_ = 0.7*tauc_ + 0.3*((cd_>0.0) ? glide_learn(u0, wa, dt, true, L_, tf_, cd_)
+                                                : std::min(30.0*tf_, std::max(0.5*tf_, dt/std::log(u0/wa))));
         }
         else if(std::min(a, adec_)<0.95)
         {
             // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
             // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
             // (the water that passed the body at the start, X 202: the current felt only by 1 - E0)
-            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
-            E0_ *= std::exp(-dt/tauc_);
+            const double Em = (E0_>0.0) ? E0_*tstart()/dt*(1.0 - std::exp(-dt/tstart())) : 0.0;
+            E0_ *= std::exp(-dt/tstart());
             double uw = (Em>0.0) ? (y[0] - (1.0 - Em)*kf_x_[1])*ex(p0) + (y[1] - (1.0 - Em)*kf_x_[2])*ex(p1)
                                  : (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
             const double u0 = ug_*kf_x_[0];
@@ -447,7 +479,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             // above the uncertainty of the current
             const double cm = std::sqrt(kf_x_[1]*kf_x_[1] + kf_x_[2]*kf_x_[2]);
             if(std::max(a, adec_)<0.05 && std::max(std::fabs(b), std::fabs(bdec_))<0.05 && uw>3.0*cm + 0.05*uf_ && uw<u0)
-            tauc_ = 0.7*tauc_ + 0.3*std::min(30.0*tf_, std::max(0.5*tf_, dt/std::log(u0/uw)));
+            tauc_ = 0.7*tauc_ + 0.3*((cd_>0.0) ? glide_learn(u0, uw, dt, true, L_, tf_, cd_)
+                                                : std::min(30.0*tf_, std::max(0.5*tf_, dt/std::log(u0/uw))));
         }
         else
         {
@@ -462,8 +495,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             const double bm = 0.5*(b + bdec_);
             const double R = (brain_noise*uf_)*(brain_noise*uf_)*(1.0 + 4.0*bm*bm);
             // the water that passed the body at the start (X 202): the current along the axis felt by 1 - E0 only
-            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
-            E0_ *= std::exp(-dt/tauc_);
+            const double Em = (E0_>0.0) ? E0_*tstart()/dt*(1.0 - std::exp(-dt/tstart())) : 0.0;
+            E0_ *= std::exp(-dt/tstart());
             const double H0[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
             const double H1[2][3] = {{ugm*ex(p0), 1.0 - Em*ex(p0)*ex(p0), -Em*ex(p1)*ex(p0)},
                                      {ugm*ex(p1), -Em*ex(p0)*ex(p1), 1.0 - Em*ex(p1)*ex(p1)}};
@@ -598,7 +631,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     // glide: in a current and with a target slower than its slowest swimming speed through the water and
     // seeing nothing close, the fish stops beating its tail and coasts (amplitude 0, no bias)
     //  - early: the target ahead (within 30 deg of the axis) and the coasting distance (its speed through
-    //    the water times the coasting time, learnt from its glides) reaching it, the current known
+    //    the water times the coasting time, learnt from its glides; with the drag law of X 209, its coefficient
+    //    learnt from the glides, the distance to rest with the drag turning linear below the slowest swimming
+    //    speed) reaching it, the current known
     //  - at the target (brain_arrive), needing less than that speed, the current learnt (within brain_cknown,
     //    after brain_nknown updates of the filter: a glide stops the estimate, and a fish that arrives before
     //    it has learnt the current drifts off)
@@ -609,12 +644,17 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     {
         const double Umin = 0.3*f0_*s*L_;
         const double cm = std::sqrt(cur(p0)*cur(p0) + cur(p1)*cur(p1));
-        const double dstop = std::max(0.0, ug_)*s*tauc_;
+        // the coasting distance, to rest: exponential; with the drag law (X 209), which alone never stops the body,
+        // turning linear below the slowest swimming speed (dU/dt = -C U (U + Umin)/L, its coefficient learnt); the
+        // time of the coast as the distance over the speed (the coasting time when exponential)
+        const double u0 = std::max(0.0, ug_)*s;
+        const double dstop = (cd_>0.0) ? glide_reach(u0, Umin, tauc_, L_) : u0*tauc_;
+        const double tcoast = (cd_>0.0) ? ((u0>0.0) ? dstop/u0 : 0.0) : tauc_;
         const double rx = r(0)*ex(0) + r(1)*ex(1) + r(2)*ex(2), ry = r(0)*el(0) + r(1)*el(1) + r(2)*el(2);
         const bool onaxis = has_t && rx>0.0 && std::fabs(std::atan2(ry, rx))<0.5236;
         const bool calm = cm<Umin && vT_.norm()<Umin;
         const bool cvar = kf_P_[1][1] + kf_P_[2][2]<std::pow(brain_cknown*uf_, 2.0);
-        const bool known = cvar && cm*tauc_<brain_cdrift*L_;
+        const bool known = cvar && cm*tcoast<brain_cdrift*L_;
         const bool learnt = cvar && nkf_>=brain_nknown;
 
         if(!has_t || threat>0.0 || !calm)

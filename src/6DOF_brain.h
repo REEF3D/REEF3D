@@ -48,7 +48,12 @@ Architect: Hans Bihs
 //  the axis, decays with the coasting time; validation 25). The coasting time starts from 2 s or X 204 tau_c and
 //  is learnt from the glides
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
-//  s U_g ex + c. A Kalman filter
+//  s U_g ex + c. With X 209 C_d (patch 0041) the glide follows the drag law dU/dt = -C_d U|U|/L instead (the 2D
+//  swimmer: 1/U grows linearly in a glide, C_d 0.46, validation 30): C_d is the prior of the drag coefficient,
+//  learnt from the glides as the coasting time is (and kept in its place in the checkpoint); the coasting distance
+//  is that to rest with the drag turning linear below the slowest swimming speed, the drift of the current is taken
+//  over that distance at the speed of the body, and X 204 sets only the decay of the water that passed the body at
+//  the start. A Kalman filter
 //  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0 or X 203 sd s0, kept within
 //  0.5-1.6 s0) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,
@@ -123,7 +128,7 @@ public:
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                  double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
                  double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0, double s_sd = 0.0,
-                 double tau_c = 0.0, double kappa = 1.0);
+                 double tau_c = 0.0, double kappa = 1.0, double C_d = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -181,8 +186,22 @@ public:
     double stride_spread() const {return ssd_;}
     double coast_prior() const {return tc0_;}
     double probe_factor() const {return kap_;}
+    double glide_drag() const {return cd_;}
+
+    // the glide, exponential with the coasting time g, or by the drag law dU/dt = -g U|U|/L (X 209): the speed after
+    // dt from u0, the g that takes u0 to u1 in dt (the coasting time within 0.5-30 T, the drag coefficient within
+    // 0.1-10 times its prior g0), the distance from u0 to u1
+    static double glide_speed(double u0, double dt, double g, bool drag, double L);
+    static double glide_learn(double u0, double u1, double dt, bool drag, double L, double tf, double g0);
+    static double glide_dist(double u0, double u1, double g, bool drag, double L);
+    // the coasting distance of the brain with the drag law: to rest, the drag turning linear below umin (the slowest
+    // swimming speed), dU/dt = -g U (U + umin)/L
+    static double glide_reach(double u0, double umin, double g, double L);
 
 private:
+
+    // the decay time of the water that passed the body at the start: the coasting time, or with X 209 that of X 204
+    double tstart() const {return (cd_>0.0) ? tc0_ : tauc_;}
 
     Eigen::Vector3d target(double t) const;
     bool head_signals(const std::vector<double> &p, double q, double b, double &dpl, double &phd) const;
@@ -190,6 +209,7 @@ private:
     const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_, ssd_, tc0_;
     const double tf_, uf_;      // the units of the constants: the time 1/f0, the speed L f0
     const double kap_;          // the probes at the head read kappa times the speed through the water (X 208; 0: not used)
+    const double cd_;           // the drag law of the glide, C_d (X 209; 0: exponential)
     const int lat_;
     std::vector<target_point> tp_;
 
