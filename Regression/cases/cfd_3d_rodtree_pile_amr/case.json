@@ -1,0 +1,15 @@
+{
+ "np": 2,
+ "steps": 30,
+ "files": ["rodtree.dat"],
+ "description": "Flexible rod trees (Z 20) on the CFD mesh refinement: a current (B 60 1, U = 0.375 m/s from rest) past a vertical pile D = 0.25 m (S 33) with 7 rows of soft marine growth surrogates (45 mm silicone rods, 22 per row, make_fronds.py config b), two static levels around the pile (G 1 2, G 16 / G 15, G 7 0), N 40 5, 2 ranks. The rods take the velocity of the finest patch at their points (cfd_amr::rod_sample) and their reaction goes to the faces of the patches (cfd_amr::rod_forces); the kernel weight inside the pile goes to the fluid faces; rod-pile contact (rodtree 'cylinder').",
+ "tags": ["3d", "amr", "rodtree", "mpi", "current"],
+ "covers": [
+  "cfd_amr::scope: Z 20 with G 7 0",
+  "cfd_amr::rod_sample, rod_forces; rodtree_coupling::amr_sample, amr_spread",
+  "rodtree_coupling::fluid_scale (solid-aware kernel, level 0 and patches)",
+  "rodtree::contact_project (rodtree.dat 'cylinder')",
+  "momentum_forcing: rod trees on level 0 only (amr_patch)"
+ ],
+ "architect": "Hans Bihs"
+}
