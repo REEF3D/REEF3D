@@ -134,10 +134,18 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     {
         for(int qn=0; qn<p->A209;++qn)
         {
+        // the sweep from the old values (Jacobi), as the flow bed above: in place a symmetric bed came out
+        // asymmetric, and the bed depended on the number of ranks
+        slice4 ts(p);
+
+        for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+        for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+        ts(ii,jj) = b->topobed(ii,jj);
+
         SLICELOOP4
         {
         const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
-        b->topobed(i,j) = 0.5*b->topobed(i,j) + 0.125*(b->topobed(i-1,j) + b->topobed(i+1,j) + b->topobed(i,js) + b->topobed(i,jn));
+        b->topobed(i,j) = 0.5*ts(i,j) + 0.125*(ts(i-1,j) + ts(i+1,j) + ts(i,js) + ts(i,jn));
         }
         
         pgc->gcsl_start4(p,b->topobed,50);
