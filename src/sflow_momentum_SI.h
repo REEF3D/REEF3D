@@ -208,7 +208,7 @@ private:
     int rheo_passes(lexer*) const;
     void bc_setup(lexer*, fdm2D*, ghostcell*);
     void bc_method(lexer*);
-    void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);   // (fast flow: see fast_begin)
     void stage_rhs(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
     void advection(lexer*, fdm2D*, ghostcell*);
     void advection_bcg(lexer*, fdm2D*, ghostcell*, slice&, slice&);
@@ -315,6 +315,46 @@ private:
     double src_nlev(lexer*, int, int, int);
     double src_cell(lexer*, int, int, int);
     bool tl12 = false;      // A 210 12/13 with the second-order time levels (not with REEF3D::HYDRO)
+
+    // fast flow with the SSP-RK predictors (A 210 12/13, hydrostatic; A 236 1). The stages advect UH, VH with the
+    // discharge q^n and the velocities on the depth H^n. Linearised around a uniform flow U, H the flux q u is
+    // U q' + U (UH)' - U^2 h': only the second term moves with the stages, the other two are those of t^n for the whole
+    // step (forward Euler). A wave of 4-6 cells is then amplified by 6-10 % per step at a flow Courant number of 0.5
+    // and by 12-23 % at 0.8 for Froude numbers from 0.3 to 4 (von Neumann analysis of the step with the linear fifth-order upwind
+    // face values, theta 0.55). In a river the implicit gravity term and the bed friction damp it (dt gamma of order
+    // 0.1-1); in fast flow down a steep slope they do not (dt gamma of order 0.01, and a larger theta amplifies more
+    // above Froude number 1: at 2.5 and 0.8, 15 % with theta 0.5, 44 % with theta 1): short waves grow towards the
+    // outflow (slope 0.1, Froude number 2.6: depth 0.7-12 m around the normal depth of 2.13 m). With the time levels of tl12 (depth and acceleration of the stage time, but
+    // q^n) the amplification is larger for Froude numbers above 1 (64 % per step at 2.5 and 0.8).
+    // In fast flow the later stages therefore advect with the whole state of the stage time ts dt:
+    //   discharge  q_s = q^n + w_f ( mean(UH_s - UH^n) + ts (alpha_f (q^n - dt g H_f grad_f eta^n) - q^n) )   (fast_discharge)
+    //   depth      H_s = H^n - ts dt div(q^n)                                                                (fast_depth)
+    //   velocity   u_s = (UH_s + ts dt a^n)/H_s,  a^n the acceleration of gravity and bed friction (stage_accel)
+    // each weighted with w against what the stage has otherwise (stage_vel, fast_depth). The stages are then an
+    // explicit predictor of the shallow water equations that only the advective fluxes see; the gravity term of the
+    // step stays implicit and the continuity equation keeps q^n and WL^n (the volume is exact as before).
+    // Amplification 1.000-1.005 up to a flow Courant number of 0.85 for Froude numbers 0.03-4 (RK3); the momentum of
+    // the stages now moves with 2u, so the flow Courant number of the fast cells is at most 0.8 with RK3 and 0.5 with
+    // RK2 (sflow_timestep_SI::flowfac_cell).
+    // The weight w of a cell (fwc, fast_weight) from its Froude number at t^n: 0 up to 0.5, 1 from 1.0, in wet cells
+    // deeper than 10 A 244 and the thin-water depth A 232; w_f of a face: the mean of its two cells where both have a
+    // weight. Slow flow (w = 0) keeps the step as it was: with a gravity wave Courant number of 10 the explicit
+    // acceleration over the step is no predictor of the state (fast_weight). A 236 2 adds the slow cells where the
+    // step resolves the gravity waves.
+    bool fast = false;
+    double fts = 0.0;       // the time of the stage in dt (0 in the first stage)
+    slice4 fwc, hst;
+    slice1 qxs;
+    slice2 qys;
+    void fast_begin(lexer*, fdm2D*, ghostcell*);
+    void fast_depth(lexer*, fdm2D*, ghostcell*);
+    void fast_discharge(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+
+public:
+    static double fast_weight(lexer*, double fr, double cg);
+    static bool fast_on(lexer*);
+
+private:
 
     // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp, as NHFLOW v15 / 0004):
     // hoC the wet deep fluid cells of the stencils (with those of the neighbouring ranks), hoEx eta^{n+1} extrapolated

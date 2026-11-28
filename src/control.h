@@ -58,6 +58,7 @@ public:
     int A234;               // SFLOW semi-implicit, coupled eta-P solve: steps a preconditioner is kept (ini.cpp)
     int A226,A229;          // SFLOW semi-implicit free surface (A226: from A 210 12 / 13, A229: from A 243; not read from ctrl.txt)
     double A227,A228,A231,A232,A235;
+    int A236;               // SFLOW semi-implicit, RK predictors: stage state of fast flow (ini.cpp)
 
     // FNPF
     int A302,A306,A309,A310,A311,A312,A313,A314,A316,A318,A320,A324,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348,A358;

@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sflow_curv.h"
+#include"sflow_momentum_SI.h"
 
 sflow_timestep_SI::sflow_timestep_SI(lexer *p, fdm2D *b)
 {
@@ -74,6 +75,23 @@ double sflow_timestep_SI::flowfac(lexer *p)
     return (p->A226==1 && p->A210==1) ? 2.5 : nh;
 }
 
+// the factor of a cell: A 236 1 (A 210 12/13, hydrostatic): in fast flow (Froude number above 0.5,
+// sflow_momentum_SI::fast_weight) the stages advect with the discharge of the stage, the momentum moves with 2u: the
+// flow Courant number of these cells is at most 0.8 with SSP-RK3 (A 210 13; the default 2 N 47 with N 47 up to 0.4 is
+// below it) and 0.5 with SSP-RK2 (A 210 12). Uniform flow down a slope of 0.1 at Froude number 2.6 (normal depth
+// 2.13 m, 2 m cells), standard deviation of the depth: RK3 0.05 m at 0.8 and at 0.5; RK2 0.19 m at 0.8, 0.13 m at 0.6,
+// 0.055 m at 0.5, 0.047 m at 0.4 (the explicit scheme: 0.09 m)
+double sflow_timestep_SI::flowfac_cell(lexer *p, double fac, double u, double v, double h)
+{
+    if(h<=MAX(10.0*p->A244,p->A232) || !sflow_momentum_SI::fast_on(p))
+    return fac;
+
+    // with the weight of the cell: the limit of the step falls from the one of slow flow to the one of fast flow
+    const double w = sflow_momentum_SI::fast_weight(p,sqrt(u*u + v*v)/sqrt(fabs(p->W22)*h),1.0e20);
+
+    return fac + w*(MAX(fac,2.0*p->N47/(p->A210==2 ? 0.5 : 0.8)) - fac);
+}
+
 double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &hmax)
 {
     // 1/max(|u|/dx + |v|/dy), the explicit diffusion limit (A 212 1) scaled as in
@@ -106,7 +124,7 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     sigma += fabs(b->V(i,j))/p->DYN[JP];
     }
 
-    sigma *= nhfac;
+    sigma *= flowfac_cell(p,nhfac,b->U(i,j),b->V(i,j)*p->y_dir,b->WL(i,j));
 
     if(sigma>1.0e-20)
     cmin = MIN(cmin,1.0/sigma);
@@ -229,6 +247,9 @@ void sflow_timestep_SI::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"SFLOW A 210 11/12/13: flow Courant number "<<p->A235*nh<<" (A 235"<<(nh<1.0 ? ", halved for the non-hydrostatic WH" : "")<<")"<<endl;
     else
     cout<<"SFLOW A 210 11/12/13: flow Courant number "<<2.0*p->N47/flowfac(p)<<" (from N 47; A 235 sets it directly)"<<endl;
+
+    if(sflow_momentum_SI::fast_on(p))
+    cout<<"SFLOW A 210 12/13: flow Courant number at most "<<(p->A210==2 ? 0.5 : 0.8)<<" in fast flow (Froude number above 0.5: falling to it up to 1.0) (A 236 "<<p->A236<<")"<<endl;
     }
 
     if(p->A228<=0.0 && p->mpirank==0)

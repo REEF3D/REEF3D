@@ -64,7 +64,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),
                                       nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),sps(p),nF1x(p),
                                       nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),rUH(p),
-                                      rVH(p),rlc(p),rlx(p),rly(p),etaP(p,p->A233==1)
+                                      rVH(p),rlc(p),rlx(p),rly(p),etaP(p,p->A233==1),
+                                      fwc(p),hst(p),qxs(p),qys(p)
 {
     check(p);
 
@@ -106,6 +107,9 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     tl12 = !onestep && !hydro_sflow::wetting(p);
     tlev = (nh || onestep || tl12);
 
+    // A 236 1: the stage state of fast flow (A 210 12/13, hydrostatic; sflow_momentum_SI.h)
+    fast = fast_on(p);
+
     patch = block;
 
     // X 10 3: the ship pressure of the step is the mean of its start and its end (ship_level; a refined patch: its
@@ -128,6 +132,9 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     cout<<", mass flux dissipation "<<p->A231;
 
     cout<<", thin-water velocities below "<<p->A232<<" m (A 232)";
+
+    if(fast)
+    cout<<", stage state of fast flow (A 236 "<<p->A236<<")";
 
     if(nh)
     cout<<", non-hydrostatic quadratic pressure (A 220 "<<p->A220<<") coupled implicitly, alpha "<<adisp;
@@ -509,6 +516,173 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // A 221 2: the cells with dry land as a wall, from the state of t^n
     drywall_cells(p,b,pgc);
+
+    // A 236 1: the cells of fast flow, from the state of t^n
+    if(fast)
+    fast_begin(p,b,pgc);
+}
+
+bool sflow_momentum_SI::fast_on(lexer *p)
+{
+    // the SSP-RK predictors of the hydrostatic step (A 210 12/13 with A 220 0)
+    return p->A236>=1 && p->A226==1 && p->A210!=1 && p->A220!=2 && p->A220!=3 && p->X10==0;
+}
+
+double sflow_momentum_SI::fast_weight(lexer *p, double fr, double cg)
+{
+    // the weight of the stage state of a cell from its Froude number fr: 0 up to 0.5, 1 from 1.0
+    const double wf = fr<=0.5 ? 0.0 : (fr>=1.0 ? 1.0 : (fr-0.5)/0.5);
+
+    // A 236 2: also where the step resolves the gravity waves, from the gravity wave Courant number cg of the cell,
+    // sqrt(g h) dt/dx: 1 up to 1, 0 from 2 (slow flow at small time steps: there the stages are a predictor as well).
+    // Not at any time step: with the stage state in all cells the start of a river with a drop of 1 m to the outflow
+    // level blew up within a few steps at a gravity wave Courant number of 10 (sflow_1d_si_backwater, _uniform_rk3)
+    if(p->A236==2)
+    return MAX(wf, cg<=1.0 ? 1.0 : (cg>=2.0 ? 0.0 : 2.0-cg));
+
+    return wf;
+}
+
+void sflow_momentum_SI::fast_begin(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the weight of the cells from the Froude number at t^n (sflow_momentum_SI.h): wet, deeper than 10 A 244 and the
+    // thin-water depth A 232. One grid of several: all cells of the arrays (the state around the grid is filled)
+    const double hd = MAX(10.0*p->A244,p->A232);
+
+    auto wgt = [&](int a, int c)
+    {
+        const int q = (a-p->imin)*p->jmax + c-p->jmin;
+        const double h = WL0(a,c);
+
+        if(p->flagslice4[q]<=0 || p->wet[q]!=1 || h<=hd)
+        return 0.0;
+
+        // the gravity wave Courant number of the step (A 236 2), with the cell width of sflow_timestep_SI
+        double cg = 1.0e20;
+
+        if(p->A236==2)
+        {
+        const int ai = MIN(MAX(a,0),p->knox-1), ci = MIN(MAX(c,0),p->knoy-1);
+        const double dxc = p->geo_curv==1 ? sqrt(2.0/MAX(sflow_curv::inv2(p,ai,ci),1.0e-20))
+                         : ((p->j_dir==1) ? MIN(p->DXN[ai+marge],p->DYN[ci+marge]) : p->DXN[ai+marge]);
+        cg = sqrt(g*h)*p->dt/dxc;
+        }
+
+        return fast_weight(p,sqrt(UH0(a,c)*UH0(a,c) + VH0(a,c)*VH0(a,c))/(h*sqrt(g*h)),cg);
+    };
+
+    fts = 0.0;
+
+    if(amrgrid)
+    {
+        for(int a=p->imin; a<p->imin+p->imax; ++a)
+        for(int c=p->jmin; c<p->jmin+p->jmax; ++c)
+        fwc(a,c) = wgt(a,c);
+
+    return;
+    }
+
+    SLICELOOP4
+    fwc(i,j) = wgt(i,j);
+
+    // the cells of the neighbouring ranks: the weights and the momentum of t^n of the faces of a partition
+    exchange4(p,pgc,fwc);
+    exchange4(p,pgc,UH0);
+    exchange4(p,pgc,VH0);
+}
+
+void sflow_momentum_SI::fast_depth(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the depth of the fast cells at the time of the stage from the continuity equation with q^n, within 0.5-1.5 H^n,
+    // weighted with the depth the stage has otherwise: H^n, with the time levels (tl12) the levels extrapolated from
+    // t^{n-1} and t^n (WLq, WLh of nh_levels). With the extrapolated levels in the fast cells the uniform flow at Froude
+    // number 2.6 kept an unsteady wave of +-0.3 m and 100 m length before the outflow at a flow Courant number of 0.8
+    // (RK3; steady at 0.5)
+    SLICELOOP4
+    {
+    hst(i,j) = WL0(i,j);
+
+        if(fwc(i,j)>0.0)
+        {
+        const double h0 = (tl12 && WL0(i,j)>=p->A232) ? (fts>0.75 ? WLq(i,j) : WLh(i,j)) : WL0(i,j);
+        const double hc = MIN(MAX(WL0(i,j) - fts*p->dt*div(p,qxn,qyn), 0.5*WL0(i,j)), 1.5*WL0(i,j));
+
+        hst(i,j) = MAX(h0 + fwc(i,j)*(hc - h0), p->A232);
+        }
+    }
+}
+
+void sflow_momentum_SI::fast_discharge(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs, slice &VHs)
+{
+    // the face discharge of the stage in fast flow (sflow_momentum_SI.h): q^n plus the increment of the stage momentum
+    // of the two cells (the weights of the face predictor, si_assemble) plus the acceleration of the gravity term at
+    // t^n with the bed friction of the face up to the time of the stage (the compact face gradient of eta^n)
+    const double dt = p->dt;
+    const bool cv = (p->geo_curv==1);
+    const bool hbed = hydro_sflow::wetting(p);
+    double nx,ny,wl,wr;
+
+    SLICELOOP1
+    {
+    qxs(i,j) = qxn(i,j);
+
+    const double wf = (fwc(i,j)>0.0 && fwc(i+1,j)>0.0) ? 0.5*(fwc(i,j) + fwc(i+1,j)) : 0.0;
+
+        if(wf>0.0 && Hx(i,j)>0.0)
+        {
+        wl = wr = 0.5;
+
+        if(hbed)
+        face_weights(p,b,1,i,j,wl,wr);
+
+        double dq = wl*(UHs(i,j) - UH0(i,j)) + wr*(UHs(i+1,j) - UH0(i+1,j));
+        double dn = p->DXP[IP];
+
+        if(cv)
+        {
+        fnorm(p,1,i,j,nx,ny);
+        dq = wl*((UHs(i,j) - UH0(i,j))*nx + (VHs(i,j) - VH0(i,j))*ny) + wr*((UHs(i+1,j) - UH0(i+1,j))*nx + (VHs(i+1,j) - VH0(i+1,j))*ny);
+        dn = fdn(p,1,i,j);
+        }
+
+        const double af = alx(i,j)*(qxn(i,j) - dt*g*Hx(i,j)*(b->eta(i+1,j) - b->eta(i,j))/dn) - qxn(i,j);
+
+        qxs(i,j) = qxn(i,j) + wf*(dq + fts*af);
+        }
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    qys(i,j) = qyn(i,j);
+
+    const double wf = (fwc(i,j)>0.0 && fwc(i,j+1)>0.0) ? 0.5*(fwc(i,j) + fwc(i,j+1)) : 0.0;
+
+        if(wf>0.0 && Hy(i,j)>0.0)
+        {
+        wl = wr = 0.5;
+
+        if(hbed)
+        face_weights(p,b,2,i,j,wl,wr);
+
+        double dq = wl*(VHs(i,j) - VH0(i,j)) + wr*(VHs(i,j+1) - VH0(i,j+1));
+        double dn = p->DYP[JP];
+
+        if(cv)
+        {
+        fnorm(p,2,i,j,nx,ny);
+        dq = wl*((UHs(i,j) - UH0(i,j))*nx + (VHs(i,j) - VH0(i,j))*ny) + wr*((UHs(i,j+1) - UH0(i,j+1))*nx + (VHs(i,j+1) - VH0(i,j+1))*ny);
+        dn = fdn(p,2,i,j);
+        }
+
+        const double af = aly(i,j)*(qyn(i,j) - dt*g*Hy(i,j)*(b->eta(i,j+1) - b->eta(i,j))/dn) - qyn(i,j);
+
+        qys(i,j) = qyn(i,j) + wf*(dq + fts*af);
+        }
+    }
+
+    exchange1(p,pgc,qxs);
+    exchange2(p,pgc,qys);
 }
 
 void sflow_momentum_SI::drywall_cells(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -570,8 +744,14 @@ void sflow_momentum_SI::si_stage_vel(lexer *p, fdm2D* b, ghostcell* pgc, int s)
     stc = (!tl12 || s==0) ? 0.0 : (s==1 ? 1.0 : 0.5);
 
     // A 210 12/13: the acceleration of the gravity term at t^n for the later stages, once per step (stage_accel)
-    if(tl12 && s==1)
+    if((tl12 || fast) && s==1)
     stage_accel(p,b,pgc);
+
+    // A 236 1: the time of the stage for the fast cells, their depth at that time (without the time levels of tl12)
+    fts = (!fast || s==0) ? 0.0 : (s==1 ? 1.0 : 0.5);
+
+    if(fts>0.0)
+    fast_depth(p,b,pgc);
 
     stage_vel(p,b,pgc,*UHs,*VHs);
     stc = 0.0;
@@ -1326,7 +1506,9 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     double *const U = b->U.V, *const V = b->V.V, *const W = b->W.V;
     double *const uhs = UHs.V, *const vhs = VHs.V;
     const double *const wl0 = WL0.V, *const wlq = WLq.V, *const wlh = WLh.V, *const au = acU.V, *const av = acV.V;
+    const double *const fw = fwc.V, *const hf = hst.V;
     const double a232 = p->A232, a244 = p->A244, dt = p->dt;
+    const bool fst = (fts>0.0);    // A 236 1: the fast cells on their stage state
     
     for(int ii=0; ii<p->knox; ++ii)
     {
@@ -1340,13 +1522,23 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
                 // a later stage of A 210 12/13 (stc > 0): the momentum with the acceleration of the gravity term at t^n
                 // (stage_accel) up to the time of the stage, on the depth of that time; thin water (the depth of the stage
                 // or of t^n below A 232) as before
+                // a later stage in fast flow (A 236 1): the momentum with the acceleration of gravity and bed friction at
+                // t^n up to the time of the stage, on the depth of that time (fast_depth)
+                if(fst && fw[q]>0.0)
+                {
+                const double wa = stc>0.0 ? 1.0 : fw[q];
+                U[q] = (uhs[q] + wa*fts*dt*au[q])/hf[q];
+                V[q] = (vhs[q] + wa*fts*dt*av[q])/hf[q]*p->y_dir;
+                }
+
+                else
                 if(stc>0.0 && wl0[q]>=a232 && (stc>0.75 ? wlq[q] : wlh[q])>=a232)
                 {
                 const double hs = stc>0.75 ? wlq[q] : wlh[q];
                 U[q] = (uhs[q] + stc*dt*au[q])/hs;
                 V[q] = (vhs[q] + stc*dt*av[q])/hs*p->y_dir;
                 }
-                
+
                 else
                 if(wl0[q]>=a232)
                 {
@@ -1417,6 +1609,10 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     const double alpha = 1.0-a;
 
     clearrhs(p,b);
+
+    // A 236 1: the face discharges of the stage in fast flow (q^n elsewhere)
+    if(fts>0.0)
+    fast_discharge(p,b,pgc,UHs,VHs);
 
     // advection with the face discharges of t^n
     advection(p,b,pgc);
@@ -1508,9 +1704,11 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     // the SSP-RK predictors of A 210 12/13: q^n in all stages (with the discharge extrapolated to t^{n+1/2}, and the
     // lagged acceleration of the step before in the stage velocities, steady uniform river flow kept a standing
     // oscillation of +-0.1 m with theta 0.55; stage_accel)
+    // A 236 1: a later stage with the discharge of the stage in fast flow (fast_discharge; q^n in the other faces)
     const bool qrk = (tl12 && !onestep);
-    slice &qa = (tlev && !qrk) ? (slice&)qxa : (slice&)qxn;
-    slice &qb = (tlev && !qrk) ? (slice&)qya : (slice&)qyn;
+    const bool qfs = (fast && fts>0.0);
+    slice &qa = qfs ? (slice&)qxs : ((tlev && !qrk) ? (slice&)qxa : (slice&)qxn);
+    slice &qb = qfs ? (slice&)qys : ((tlev && !qrk) ? (slice&)qya : (slice&)qyn);
 
     if(onestep)
     advection_bcg(p,b,pgc,qa,qb);

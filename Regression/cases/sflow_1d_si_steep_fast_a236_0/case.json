@@ -1,0 +1,21 @@
+{
+ "base": "sflow_1d_si_steep_fast_rk3",
+ "ctrl_set": {
+  "A 236": "0",
+  "A 235": "0.2"
+ },
+ "description": "sflow_1d_si_steep_fast_rk3 at a flow Courant number of 0.2 (A 235) without the stage state of fast flow (A 236 0): the stages with q^n and the extrapolated levels as before.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "river"
+ ],
+ "covers": [
+  "A 236 0"
+ ]
+}

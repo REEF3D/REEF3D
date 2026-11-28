@@ -3,7 +3,8 @@
 // rho g (sum A r^2 + V z_B) of the tilted body; the Morison inertia force on a held column in deep-water waves against the
 // integral of the linear kinematics; the dynamic pressure on the end face against linear theory; the free heave of a
 // column with its end added mass against T = 2 pi sqrt((m + Ca rho D^3/6)/(rho g A)); kinematics cached at the
-// undisplaced strips = exact on a held body; the keyword; drag_only (the drag beside a potential-flow model).
+// undisplaced strips = exact on a held body; the keyword; drag_only (the drag beside a potential-flow model); the
+// vertical wave force on a column through the surface (rho g A eta once) and on a member below it.
 // Architect: Hans Bihs
 #include"coral/hydro/coral_strip_hydro.h"
 #include"coral/core/coral_model.h"
@@ -95,7 +96,7 @@ static void test_waves()
     strip_hydro s(m, b, {c}, w, RHO, G, Vec3::Zero(), "col");
     const double A = M_PI;
     // t = T/4: crest passed, u = 0 at the surface in phase with the acceleration's maximum: eta = a cos(om t) = 0
-    double e = 0.0, emax = 0.0;
+    double e = 0.0, emax = 0.0, ez = 0.0;
     for(double t : {0.0, 2.5, 4.0})
     {
         Vec3 F, M; double V;
@@ -116,12 +117,26 @@ static void test_waves()
         // dynamic pressure at the end face (-40 m): rho g a e^(k z) cos(om t), upwards on the bottom, and the
         // added mass of the end, Ca_end rho D^3/6 times the vertical acceleration -om^2 a e^(k z) cos(om t)
         const double pz = (RHO*G*A - RHO*8.0/6.0*om*om)*a*std::exp(-k*40.0)*std::cos(om*t);
-        // added to the buoyancy and the normal Morison force (no vertical component): F_z - buoyancy
-        const double buoy = RHO*G*A*(std::min(eta, 5.0) + 40.0);
-        e = std::max(e, std::fabs(F(2) - buoy - pz)*1e-3);
+        // the vertical force on the column is the pressure on its bottom: the still-water buoyancy and pz. The
+        // buoyancy of the wet strips reaches to eta, the end takes p_dyn - rho g eta (not rho g A eta twice)
+        const double buoy = RHO*G*A*40.0;
+        ez = std::max(ez, std::fabs(F(2) - buoy - pz)/buoy);
     }
-    check(e < 1e-3*emax, fmt("held column in deep-water waves: Morison inertia force = the integral of the linear kinematics, "
-                             "end face: pressure rho g a e^(kz) and added mass (largest difference %.2e of %.3e N)", e, emax));
+    check(e < 1e-3*emax, fmt("held column in deep-water waves: Morison inertia force = the integral of the linear kinematics "
+                             "(largest difference %.2e of %.3e N)", e, emax));
+    check(ez < 1e-4, fmt("its vertical force = still-water buoyancy + (pressure rho g a e^(kz) and added mass) on the end face, "
+                         "rho g A eta once (relative error %.1e)", ez));
+    // a member below the surface (a pontoon on end, -40 .. -20 m, both ends closed): its buoyancy does not change
+    // with eta, the ends take the full dynamic pressure, bottom minus top
+    {
+        strip_member d = c;
+        d.p2 = Vec3(0, 0, -20.0); d.n = 200; d.end2 = true; d.Ca_end = 0.0;
+        strip_hydro sd(m, b, {d}, w, RHO, G, Vec3::Zero(), "sub");
+        Vec3 F, M; double V;
+        sd.total(m, 0.0, F, M, V);
+        const double Fz = RHO*G*A*20.0 + RHO*G*A*a*(std::exp(-k*40.0) - std::exp(-k*20.0));
+        check(std::fabs(F(2) - Fz) < 1e-9*Fz, fmt("submerged member: buoyancy and the dynamic pressure on both ends (%.6e, %.6e N)", F(2), Fz));
+    }
     // cached kinematics at the undisplaced strips = exact on a held body
     strip_hydro x(m, b, {c}, w, RHO, G, Vec3::Zero(), "colx");
     x.exact_kinematics = true;

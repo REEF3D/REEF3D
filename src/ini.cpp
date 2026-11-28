@@ -60,6 +60,7 @@ void control::ini_default()
     A233=0;      // int SFLOW semi-implicit, hydrostatic eta system: 0 BiCGStab with one V(1,1) cycle as preconditioner, started from eta^n; 1 V(2,2) cycles (BiCGStab where they stall), started from the level extrapolated from the last two steps
     A234=1;      // int SFLOW semi-implicit with the non-hydrostatic pressure (A 220 2/3), coupled eta-P solve: the preconditioner (its matrices and multigrid levels) is set up again after at most this many steps; 1 every step. Earlier when the non-hydrostatic cells change, the time step changes by more than a quarter, a cell dries, or the solve needs two iterations more than with the new preconditioner
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
+    A236=1;      // int SFLOW semi-implicit, RK predictors (A 210 12/13), hydrostatic: 1 in fast flow (Froude number above 0.5, full from 1) the later stages advect with the state of the stage time (discharge, depth and velocity with the acceleration of gravity and bed friction at t^n), flow Courant number there at most 0.8 (A 210 13) or 0.5 (A 210 12); 2 also in slow flow where the step resolves the gravity waves (gravity wave Courant number of the cell up to 1, fading to 2); 0 off (q^n and H^n in all stages)
     A235=-1.0;   // double SFLOW semi-implicit: flow Courant number of the step, dt max(|u|/dx + |v|/dy); not given (< 0): 0.8 N 47 (A 210 11), 2 N 47 (A 210 12/13)
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model

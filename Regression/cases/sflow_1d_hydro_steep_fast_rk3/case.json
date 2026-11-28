@@ -1,0 +1,18 @@
+{
+ "description": "REEF3D::HYDRO point source of 50 m3/s (R 40) at the head of a dry channel of 400 m, slope 0.1, Manning n 0.0445, free outfall (F 50 2, F 62 at the bed), semi-implicit (A 210 13, flow Courant number 0.8): normal depth 2.13 m at Froude number 2.6 (handoff 261128, HYDRO/handoffs/261128_sflow_si_steep). With the stage state of fast flow (A 236 1) the depth between x 40 and 330 m is 2.16 +- 0.05 m at 900 s; with q^n and H^n in all stages it swung between 0.7 and 11.7 m. 2500 steps (about 280 s): the front has left the channel and the old scheme oscillates.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 2500,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_momentum_SI::fast_depth, stage_vel, fast_discharge without the time levels (REEF3D::HYDRO wetting mode)",
+  "sflow_momentum_SI::stage_accel for the fast cells"
+ ]
+}

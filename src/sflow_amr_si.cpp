@@ -675,7 +675,7 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             }
 
             // the factor of the advective limit (A 210 11: 2.5, A 220 2/3: 2, A 235: the flow Courant number; sflow_timestep_SI)
-            sigma *= sflow_timestep_SI::flowfac(p);
+            sigma *= sflow_timestep_SI::flowfac_cell(p,sflow_timestep_SI::flowfac(p),pb->U(ii,jj),pb->V(ii,jj)*p->y_dir,pb->WL(ii,jj));
 
             if(sigma>1.0e-20)
             cmin = MIN(cmin,1.0/sigma);

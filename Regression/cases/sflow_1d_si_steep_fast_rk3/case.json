@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW semi-implicit (A 210 13, theta 0.55) in fast flow: uniform flow down a channel of 400 m, slope 0.1 (S 61), Manning n 0.0445 (B 50 0.5), q 25 m2/s in (B 60 1, W 10), started at the normal depth (F 65 1), normal depth 2.13 m, Froude number 2.6, flow Courant number 0.8 (N 47 0.4). The stage state of fast flow (A 236 1: discharge, depth and velocity of the stage time in the later RK stages): steady at 2.128 m. With q^n and the extrapolated levels in all stages (A 236 0) short waves grew until the inflow cell fell dry. Validated in Dropbox HYDRO/validation/15_sflow_si_fast_flow.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "river"
+ ],
+ "covers": [
+  "sflow_momentum_SI::fast_begin, fast_depth, fast_discharge (A 236 1, with the time levels tl12)",
+  "sflow_timestep_SI::flowfac_cell"
+ ]
+}
