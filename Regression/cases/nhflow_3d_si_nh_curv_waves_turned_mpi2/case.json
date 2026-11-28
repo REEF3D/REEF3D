@@ -1,0 +1,25 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step with the fourth-order horizontal operators on a curvilinear grid that is a turned uniform grid (needs patch v51): regular waves (H 0.02 m, T 1 s, d 0.5 m) in a flume of 200 x 4 x 10 cells (dx 0.1 m, 15 cells per wavelength) turned by 30 deg, relaxation zones B 107 / B 108 with step-consistent weights (B 95 0.01), A 510 11, dt 0.02 s, 2 ranks, 300 steps. The stencils run along the two index directions; the momentum of the cells through its components along the two face normals. After 10 wavelengths the surface is 0.03 mm from that of the Cartesian twin and 0.4 mm from the run with 30 cells per wavelength (second order: 6.6 mm).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 300,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear",
+  "fourth_order",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::ho_turned, ho_begin on a curvilinear grid",
+  "ho_predictor, ho_cell_gravity, ho_gradient, ho_phi_corr and nh_cell_faces_curv on a turned grid",
+  "the four-cell stencils across a rank boundary on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}
