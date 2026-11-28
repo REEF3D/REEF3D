@@ -353,6 +353,28 @@ void sflow_momentum_SI::si_restore(lexer *p, fdm2D* b, ghostcell* pgc)
     exchange4(p,pgc,b->WL);
     exchange4(p,pgc,b->eta);
     }
+
+    // the first step of the grid (the start; a patch new at a regrid): sflow_eta::wetdry has given the dry cells
+    // the film of the wetting criterion (WL = A 244, eta = A 244 - d). It is no water: a face between a film cell
+    // and its neighbour has the depth eta_up + min(d) = A 244 and opens with the round-off of eta (H_f > A 244),
+    // so the film of a dry slope drains into the thin shoreline cells, whose velocities UH/WL then reach
+    // 0.01-1 m/s in a lake at rest. The semi-implicit step starts from WL = 0 there; the wetting and drying of
+    // the eta system keeps WL >= 0 afterwards, and the steps after take WLk, not the film the main loop puts back.
+    // Not with REEF3D::HYDRO rain and sources (hydro_sflow::wetting): its volume budget starts from the film and
+    // the rain falls on dry land, where the film is the wetting criterion of the runoff
+    else
+    if(!hydro_sflow::wetting(p))
+    {
+        SLICELOOP4
+        if(b->WL(i,j)<=p->A244+1.0e-6)
+        {
+        b->WL(i,j) = 0.0;
+        b->eta(i,j) = -b->depth(i,j);
+        }
+
+    exchange4(p,pgc,b->WL);
+    exchange4(p,pgc,b->eta);
+    }
 }
 
 void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)

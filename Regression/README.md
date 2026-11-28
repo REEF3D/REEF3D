@@ -1227,7 +1227,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_si_vortex_max_ckpt`, `sflow_2d_si_vortex_max_restart` | 2 | the maxima in the checkpoints: the restart at step 30 (after the start of the maxima) gives the final state and the point table bitwise those of the uninterrupted run (`same_as`, `regression.py ranks`) |
 | `nhflow_3d_channel_coriolis_mpi2`, `sflow_2d_channel_coriolis_mpi2` | 2 | channel flows with a strong f-plane Coriolis force (W 212 0.01): the explicit RK stages of NHFLOW and SFLOW |
 | `sflow_2d_si_curv_dambreak_rot90` | 1 | `sflow_2d_curv_dambreak_rot90` semi-implicit (A 210 13): the grid is the Cartesian one turned by 90 deg; eta and WL per cell index equal those of the Cartesian semi-implicit run to round-off (checked by hand) |
-| `sflow_2d_si_curv_lake_wet` (`_island`) | 1 | `sflow_2d_curv_lake_island` semi-implicit on the wavy curvilinear grid: island submerged, exactly at rest; island emerged, wetting and drying (the 1 mm initial film on the island drains into the thin shoreline cells) |
+| `sflow_2d_si_curv_lake_wet` (`_island`) | 1 | `sflow_2d_curv_lake_island` semi-implicit on the wavy curvilinear grid: island submerged and emerged (wetting and drying), exactly at rest |
 | `sflow_2d_si_mb_quadrants` | 1 | `sflow_2d_mb_quadrants` semi-implicit: one eta system over the four turned blocks (reefamr_si, level 0) |
 | `sflow_2d_si_mb_quadrants_n16_3` | 1 | `sflow_2d_si_mb_quadrants` with N 16 3: four curvilinear blocks, the block-local V-cycles on the CPU, the native grid on the reference device; `same_as` the CPU run within 1e-5 (needs patch REEFMG/0010) |
 | `sflow_2d_si_mb_quadrants_n16_4` | 1 | `sflow_2d_si_mb_quadrants` with N 16 4: the native level-0 grid by GCR around a single-precision BiCGStab on the reference device, the block-local V-cycles on the CPU; `same_as` the CPU run within 1e-5 (patch REEFMG/0011) |
@@ -1235,7 +1235,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_si_amr_lake_at_rest` | 1 | the bar without the tilt: at rest to 1e-14 with a patch |
 | `sflow_2d_si_amr_adaptive` | 1 | adaptive refinement (G 2 4) of the semi-implicit basin: the composite system rebuilt at the regrids |
 | `sflow_1d_si_amr_tidal_flat` | 1 | `sflow_1d_si_tidal_flat` with a patch across the shoreline (x-only refinement): wetting and drying of the composite system, the coefficients of the coarse faces next to the patch from the fine faces (rsi_couple) |
-| `sflow_2d_si_curv_amr_lake_island` (`_wet`) | 1 | the curvilinear lake with a patch across the island, semi-implicit |
+| `sflow_2d_si_curv_amr_lake_island` (`_wet`) | 1 | the curvilinear lake with a patch across the island, semi-implicit: at rest to the eta solve tolerance |
+| `sflow_2d_si_lake_bar_emerged` | 1 | `sflow_2d_si_basin_bar` at rest with the bar crest above the water: exactly at rest (the semi-implicit step starts the dry cells without the film of the wetting criterion, which drained down the slopes) |
+| `sflow_2d_si_amr_lake_bar_emerged` | 1 | the same with a patch whose edges cross both shorelines: at rest to the eta solve tolerance (shoreline-aware interpolation and restriction of reefamr_si, eta^n gradient of the coarse faces next to the patch from the fine faces) |
+| `nhflow_3d_si_amr_still_emerged` | 1 | `nhflow_3d_si_amr_still` with the bump crest above the water and G 30 1: NHFLOW semi-implicit on the levels at rest with dry cells |
 | `sflow_2d_si_mb_amr` | 1 | `sflow_2d_mb_amr` semi-implicit: patches cut at the turned block faces in the composite eta system |
 | `sflow_2d_si_vortex_amr_mpi2` | 2 | the GAHM vortex with a patch around the track: met forcing on the patches, Flather edges on level 0 |
 | `sflow_2d_si_amr_basin_bar_ckpt`, `_restart` | 1 | the restart at step 30 gives the final state of the uninterrupted run bitwise (the SI state of the patches in the checkpoint) |

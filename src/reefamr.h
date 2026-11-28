@@ -1034,7 +1034,9 @@ protected:
     void rsi_free();
     void rsi_fillv(int v, bool all=true);       // Krylov vector v of all grids (all: the levels as well)
     void rsi_restrict(int tag, const std::function<slice&(int)> &F);
+    double rsi_interp(int g, slice&, int, int, int, int);
     double rsi_interp(lexer*, slice&, int, int, int, int);
+    vector<int> rsi_ix;                         // [g+1]: the position of grid g in rsg, -1 none
     void rsi_rows0(int x, int y);               // y = A x on the own rows of the level-0 grids (level-0 fill)
     void rsi_ras(int, int);
     void rsi_cs_build();

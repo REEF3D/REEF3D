@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_amr.h"
+#include"hydro_sflow.h"
 #include"sflow_momentum_SI.h"
 #include"sflow_timestep_SI.h"
 #include"sflow_curv.h"
@@ -273,11 +274,13 @@ void sflow_amr::si_hooks(bool on)
 }
 
 // the face values of the coarse faces next to the patches: the means of the fine faces
-//  what 0: q^E and q^n before the right-hand sides of the eta systems
+//  what 0: q^E and q^n before the right-hand sides of the eta systems, and the gradient of eta^n of the face, which the
+//          cell momentum takes (a covered cell at the shoreline holds the mean water level of its children over their
+//          mean bed, which lies above the lake at rest where children are dry)
 //  what 1: q after the face update (the volume of the coarse cell changes by the fine fluxes)
 void sflow_amr::si_match(int what)
 {
-    const int nv = (what==0) ? 2 : 1;
+    const int nv = (what==0) ? 3 : 1;
     rsm_begin(nv);
 
     for(int g : rsi_grids())
@@ -296,6 +299,7 @@ void sflow_amr::si_match(int what)
             {
             s[0] = (dir==1) ? m->qxE(fi,fj) : m->qyE(fi,fj);
             s[1] = (dir==1) ? m->qxn(fi,fj) : m->qyn(fi,fj);
+            s[2] = (dir==1) ? m->gx0(fi,fj) : m->gy0(fi,fj);
             }
             else
             s[0] = (dir==1) ? m->qx(fi,fj) : m->qy(fi,fj);
@@ -316,11 +320,13 @@ void sflow_amr::si_match(int what)
                 {
                 m->qxE(fi,fj) = sgn*v[0];
                 m->qxn(fi,fj) = sgn*v[1];
+                m->gx0(fi,fj) = sgn*v[2];
                 }
                 else
                 {
                 m->qyE(fi,fj) = sgn*v[0];
                 m->qyn(fi,fj) = sgn*v[1];
+                m->gy0(fi,fj) = sgn*v[2];
                 }
                 return;
             }
@@ -402,6 +408,26 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     if(si_lv)
     for(int l=1; l<=maxlev; ++l)
     fill_level(pgc,l,0);
+
+    // the dry cells around the patches: the prolongation gives them the film of the wetting criterion (WL = A 244), on
+    // which a face toward a wet cell of the patch opens with the round-off of eta (H_f = A 244); without the film, as
+    // the dry cells of the grids (sflow_momentum_SI::si_restore; not with REEF3D::HYDRO rain and sources)
+    if(si_lv && !hydro_sflow::wetting(p))
+    for(auto q : P)
+    {
+        if(q->lev<1)
+        continue;
+        sflow_amr_patch *c = SP(q);
+        lexer *pp = c->pp;
+        const double wd = p->A244;
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        if(!(ii>=EXT && ii<EXT+q->nx && jj>=EY && jj<EY+q->ny) && fabs(c->b->WL(ii,jj)-wd)<=1.0e-12)
+        {
+        c->b->WL(ii,jj) = 0.0;
+        c->b->eta(ii,jj) = -c->b->depth(ii,jj);
+        }
+    }
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_begin(q,bb,pgc); });
 

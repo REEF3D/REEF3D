@@ -391,10 +391,11 @@ void nhflow_amr::si_hooks(bool on)
 }
 
 // q^E and q^n of the coarse faces next to the patches: the means of the fine faces (the right-hand side of the coarse
-// cell takes the fine fluxes)
+// cell takes the fine fluxes); the gradient of eta^n of the face as well, which the cell momentum takes (a covered
+// cell at the shoreline holds the mean water level of its children over their mean bed, above the lake at rest)
 void nhflow_amr::si_match_faces()
 {
-    rsm_begin(2);
+    rsm_begin(3);
 
     for(int g : rsi_grids())
     {
@@ -410,6 +411,7 @@ void nhflow_amr::si_match_faces()
             double *s = rsm_slot(g,side,r);
             s[0] = (dir==1) ? m->qxE(fi,fj) : m->qyE(fi,fj);
             s[1] = (dir==1) ? m->qxn(fi,fj) : m->qyn(fi,fj);
+            s[2] = (dir==1) ? m->gx0(fi,fj) : m->gy0(fi,fj);
         }
     }
 
@@ -425,11 +427,13 @@ void nhflow_amr::si_match_faces()
             {
             m->qxE(fi,fj) = sgn*v[0];
             m->qxn(fi,fj) = sgn*v[1];
+            m->gx0(fi,fj) = sgn*v[2];
             }
             else
             {
             m->qyE(fi,fj) = sgn*v[0];
             m->qyn(fi,fj) = sgn*v[1];
+            m->gy0(fi,fj) = sgn*v[2];
             }
         });
     }
