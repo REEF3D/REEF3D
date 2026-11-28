@@ -547,6 +547,7 @@ private:
     // composite volume of the level set (F 46 2/3): leaf cells of all grids
     void volume(double &V, double &dV);
     void volume_correct(lexer*, ghostcell*);
+    void volume_edge(lexer*);           // REEF3D_AMR_VOLEDGE=1: the volume through the patch edges, fine against coarse (a diagnostic)
     void rovisc_all();
     double vol_step = 0.0, vol_net = 0.0;
     bool vol_ini = false;

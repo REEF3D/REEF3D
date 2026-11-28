@@ -2550,6 +2550,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         end_block(s);
     }
 
+    // REEF3D_AMR_VOLEDGE=1: the volume through the patch edges as the two levels see it (a diagnostic)
+    volume_edge(p);
+
     // the volume correction over the leaf cells of all grids (F 46 2, 3)
     volume_correct(p,pgc);
 
