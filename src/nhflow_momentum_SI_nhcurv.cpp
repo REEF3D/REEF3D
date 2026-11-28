@@ -41,7 +41,7 @@ Architect: Hans Bihs
 //    velocities (u . a) L_1, (u . b) L_2 in place of UH, VH (nh_curv_metric, nh_curv_vel: nUZx, nUZy)
 //  - the phi face terms of a cell (UH, VH Cartesian): from the mean normals and the mean face terms of the open
 //    faces of the two index directions, as the gravity term of cell_update (nh_cell_faces_curv)
-// Second order in space (no fourth-order operators on a curvilinear grid), the nonlinear terms with the time levels
+// Second order in space (fourth order on a turned uniform grid, nhflow_momentum_SI_ho.cpp), the nonlinear terms with the time levels
 // of the curvilinear hydrostatic step (no tl2).
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -181,6 +181,27 @@ void nhflow_momentum_SI::nh_cell_faces_curv(lexer *p, fdm_nhf *d, double *cx, do
         {
         cx[k] = bg*bx;
         cy[k] = bg*by;
+        }
+    }
+
+    // turned uniform grid: the parts along the two face normals with (-1, 9, 9, -1)/16 of four faces
+    if(ho && hoT==1)
+    {
+    const bool h4x = ho_cell(p,d,1,i,j), h4y = ho_cell(p,d,2,i,j);
+
+        if(h4x || h4y)
+        for(k=0;k<K;++k)
+        {
+        double a1 = cx[k]*hon1x + cy[k]*hon1y, a2 = cx[k]*hon2x + cy[k]*hon2y;
+
+        if(h4x)
+        a1 = (9.0*(NQx[PIm1JK] + NQx[PIJK]) - NQx[PIm2JK] - NQx[PIp1JK])/16.0;
+
+        if(h4y)
+        a2 = (9.0*(NQy[PIJm1K] + NQy[PIJK]) - NQy[PIJm2K] - NQy[PIJp1K])/16.0;
+
+        cx[k] = a1*hon1x + a2*hon2x;
+        cy[k] = a1*hon1y + a2*hon2y;
         }
     }
 }

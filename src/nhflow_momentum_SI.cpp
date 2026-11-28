@@ -804,10 +804,11 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     if(nh || onestep || tl2)
     nh_begin(p,d,pgc);
 
-    // fourth-order horizontal operators on one Cartesian grid (uniform spacing: ho_begin): the cells of the stencils.
-    // Second order stays on curvilinear, multi-block and refined grids and with the semi-Lagrangian advection
-    // (A 549 1: with the fourth-order operators at Courant 2 the Thacker basin went unstable).
-    if(p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && elm_mode(p)==0)
+    // fourth-order horizontal operators on one Cartesian grid (uniform spacing: ho_begin) and on one curvilinear grid
+    // that is a turned uniform grid of rectangles (ho_turned): the cells of the stencils. Second order stays on other
+    // curvilinear grids, on multi-block and refined grids and with the semi-Lagrangian advection (A 549 1: with the
+    // fourth-order operators at Courant 2 the Thacker basin went unstable).
+    if(p->geo_mb==0 && p->G1==0 && elm_mode(p)==0)
     ho_begin(p,d,pgc);
 
     // tl2: two passes. The first (the estimate) advects with the transport of the step before and solves the
@@ -862,7 +863,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         nh_solve(p,d,pgc);
 
         // curvilinear grid with A 539 1: the non-orthogonal part of the phi face terms with phi of the solve
-        if(nhco)
+        if(nhco && hoT!=1)
         {
         int it0 = nh_iter;
         for(nhco_it=1; nhco_it<=nhco_n; ++nhco_it)

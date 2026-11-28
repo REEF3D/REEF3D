@@ -160,7 +160,7 @@ using namespace std;
 // Cartesian grid): the log-law drag of the side walls in the column operators (nhflow_momentum_SI_wall.cpp).
 // SEASTATE surfbeat (A 770 1; one Cartesian grid): the long-wave boundary at the x- side as a Flather face (bc_setup).
 //
-// The non-hydrostatic pressure on one curvilinear grid (G 50 2): nhflow_momentum_SI_nhcurv.cpp, second order, with
+// The non-hydrostatic pressure on one curvilinear grid (G 50 2): nhflow_momentum_SI_nhcurv.cpp, second order (fourth order on a turned uniform grid of rectangles), with
 // A 539 1 the non-orthogonal part of the face gradients of eta (from the estimate pass) and of phi (a second solve).
 //
 // Not available (stops in check()): the non-hydrostatic pressure on multi-block or refined grids; wave breaking,
@@ -425,6 +425,11 @@ private:
     double *NQcx = nullptr, *NQcy = nullptr;
     std::vector<double> hoPS;
     void ho_begin(lexer*,fdm_nhf*,ghostcell*);
+    // curvilinear grid (G 50 2): hoT 1 a turned uniform grid of rectangles (-1: not checked yet), the unit normals of
+    // its x and y faces and the centre distances (ho_turned)
+    int hoT = -1;
+    double hon1x = 1.0, hon1y = 0.0, hon2x = 0.0, hon2y = 1.0, hod1 = 0.0, hod2 = 0.0;
+    void ho_turned(lexer*,ghostcell*);
     void ho_estimate(lexer*,ghostcell*);
     bool ho_face(lexer*,int,int,int);
     bool ho_cell(lexer*,fdm_nhf*,int,int,int);

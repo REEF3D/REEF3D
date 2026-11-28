@@ -1039,7 +1039,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ho_phi_corr(p,d,pgc);
 
     // curvilinear grid with A 539 1: the non-orthogonal part of the phi face terms
-    if(nhco)
+    if(nhco && hoT!=1)
     nh_curv_phi_corr(p,d,pgc);
 
     int N=0;
@@ -2012,12 +2012,12 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP1
     if(Hx(i,j)>0.0 && ho_face(p,1,i,j))
-    face(i,j,i+1,j,1,0,p->DXP[IP],Hx(i,j),NQcx);
+    face(i,j,i+1,j,1,0,hoT==1 ? hod1 : p->DXP[IP],Hx(i,j),NQcx);
 
     if(p->j_dir==1)
     SLICELOOP2
     if(Hy(i,j)>0.0 && ho_face(p,2,i,j))
-    face(i,j,i,j+1,0,1,p->DYP[JP],Hy(i,j),NQcy);
+    face(i,j,i,j+1,0,1,hoT==1 ? hod2 : p->DYP[JP],Hy(i,j),NQcy);
 
     // open boundary faces: no pressure term
     for(const bc_face &f : bcf)
