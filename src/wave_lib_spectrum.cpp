@@ -68,7 +68,7 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
     if(p->B85==10)
     Sval = spectrum_file(p,w);
 
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
     Sval = 0.0;  // For 2D spectrum, this function should not be called directly
 
     return Sval;
@@ -83,6 +83,13 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	if(p->B94==1)
 	wD=p->B94_wdt;
 
+	// SWAN spectral file (B 85 12), or a 2D spectrum file with the discretisation of B 143 / B 144
+	if(spec2d_active(p))
+	{
+	spec2d_parameters(p);
+	return;
+	}
+
 	if(p->B85==10)
 	spectrum_file_read(p);
 
@@ -92,6 +99,10 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	if(p->B85==11)
 	{
 	spectrum_file_2d_read(p);
+
+	// the components are built by directional_spreading, B 130 0 gave a wave field of zero amplitude
+	if(p->B130==0)
+	p->B130 = 1;
 
 	// Override p->wN and p->B133 with actual dimensions from file
 	p->wN = ptnum_freq_2d;
@@ -420,9 +431,11 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
             p->Darray(dee,p->wN);
 
+            // the middle of each of the wN intervals of equal energy; the ends of the band (n/(wN-1)) put a
+            // full share of the energy on B 87_1 and B 87_2
             for(n=0;n<p->wN;++n)
             {
-                dee[n] = cdf[0]+n*(cdf[NN-1]-cdf[0])/double (p->wN-1);
+                dee[n] = cdf[0]+(double(n)+0.5)*(cdf[NN-1]-cdf[0])/double (p->wN);
             }
         	}
 
@@ -481,9 +494,11 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
             p->Darray(dee,p->wN);
 
+            // the middle of each of the wN intervals of equal energy of the whole spectrum (it was 0.5 % ... 99.5 %,
+            // the ends included)
             for(n=0;n<p->wN;++n)
             {
-                dee[n] = cdf_s + double (n)*(cdf_e-cdf_s)/double (p->wN-1);
+                dee[n] = cdf[0]+(double(n)+0.5)*(cdf[NN-1]-cdf[0])/double (p->wN);
             }
         	}
 
@@ -610,7 +625,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
     {
         // Amplitudes for 2D spectrum file
         // Si[n] already contains S(w,beta) from directional spreading
@@ -620,7 +635,15 @@ void wave_lib_spectrum::amplitudes_irregular(lexer *p)
             Ai[n] = sqrt(2.0*Si[n]*dw[n]*fabs(dbeta));
         }
     }
-    else if(p->B84==1 && p->B136!=4)
+    else if(p->B130>0 && p->B136!=4 && (p->B84==1 || p->B84==2))
+    {
+        // directions of equal width (B 136 1, 2, 3), B 84 1 or 2: S(w) D(beta) dw dbeta
+        for(int n=0;n<p->wN;++n)
+        {
+            Ai[n] = sqrt(2.0*Si[n]*dw[n]*dbeta);
+        }
+    }
+    else if(p->B84==1)
     {
         // Amplitudes
         for(int n=0;n<p->wN;++n)
