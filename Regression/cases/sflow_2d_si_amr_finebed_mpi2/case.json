@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_amr_finebed",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_amr_finebed on 2 ranks: the patch across the partition, every rank reads the tiles; the patch bed and the lake at rest as on one rank.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "mpi",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_amr_bed on several ranks (global level-0 nodes, remote bed requests)"
+ ],
+ "architect": "Hans Bihs"
+}

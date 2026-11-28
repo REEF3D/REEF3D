@@ -588,8 +588,10 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     build_flags(p);
 
     // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box);
-    // multi-block grids: the solid flags (a block on any rank reaches the native cells next to it)
-    if(par.place>0 || p->geo_mb>0)
+    // multi-block grids: the solid flags (a block on any rank reaches the native cells next to it);
+    // the fine bed of SFLOW (G 60 1): the global level-0 nodes (gnode), not the flags
+    const bool gflags = (par.place>0 || p->geo_mb>0);
+    if(gflags || p->G60==1)
     {
         const int np = p->mpi_size;
         const int m = marge;
@@ -627,6 +629,11 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
         };
         nodes(p->XN,O0i,NX0,GNX,gxn);
         nodes(p->YN,O0j,NY0,GNY,gyn);
+    }
+
+    if(gflags)
+    {
+        const int np = p->mpi_size;
 
         vector<short> mine((size_t)NX0*NY0);
         for(int ii=0; ii<NX0; ++ii)

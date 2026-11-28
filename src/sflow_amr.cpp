@@ -339,6 +339,10 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // hierarchy: rank boxes, tiles, level-0 flags, no-refinement cells
     setup(p,pgc);
 
+    // fine bed of the refined levels (G 60 1)
+    if(p->G60==1)
+    fbed_read(p);
+
     // bed and still water depth in the level-0 halo (the fine bed is prolonged from it)
     pgc->gcslparax(p,b->bed,4);
     pgc->gcslparax(p,b->depth,4);
@@ -831,7 +835,9 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 
 // fine bed: limited-linear prolongation, level by level from level 0 (children average = parent,
 // area weighted on a curvilinear grid);
-// solid cells and cells next to solids take the parent value without slopes
+// solid cells and cells next to solids take the parent value without slopes;
+// with G 60 1 the cells inside a tile of amr-bed.dat take the parent plus their deviation from it in the tile
+// (sflow_amr_bed.cpp)
 double sflow_amr::bed_at(int l, int I, int J)
 {
     // multi-block: the cell an index around a block stands for
@@ -879,6 +885,42 @@ double sflow_amr::bed_at(int l, int I, int J)
 
     int Ic = fsh(I,1), Jc = fsh(J,sy);
     double bc = bed_at(l-1,Ic,Jc);
+
+    // fine bed (G 60 1): the parent plus the deviation of the cell's sample mean from the mean of its
+    // siblings, where the tiles resolve all children of the parent: the children average to the parent
+    // (a lake at rest stays at rest), the detail below the parent comes from the tile
+    if(!fbed.empty() && flag0(fsh(I,l),fsh(J,ysh(l)))>=0)
+    {
+        double zs[4], zm=0.0, zself=0.0;
+        int n=0;
+        bool all=true;
+
+        for(int d=0; d<=sy && all; ++d)
+        for(int a=0; a<2; ++a)
+        {
+            const int Ik = 2*Ic+a, Jk = (sy==0) ? J : 2*Jc+d;
+
+            if(!fbed_mean(l,Ik,Jk,zs[n]))
+            {
+                all = false;
+                break;
+            }
+
+            zm += zs[n];
+
+            if(Ik==I && Jk==J)
+            zself = zs[n];
+
+            ++n;
+        }
+
+        if(all && n>0)
+        {
+        const double r = bc + zself - zm/double(n);
+        bedmemo[key]=r;
+        return r;
+        }
+    }
 
     if(flag0(fsh(I,l),fsh(J,ysh(l)))<0)
     {
@@ -1168,7 +1210,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 // level of a dry one kept
 void sflow_amr::ini_patch_prolong(int l)
 {
-    const int nv = 4*NPR+7;
+    const int nv = 4*NPR+8;
 
     block_down_if(l,nv,7160+l,
                   [&](reefamr_patch *q) { return q->fresh; },
@@ -1187,6 +1229,7 @@ void sflow_amr::ini_patch_prolong(int l)
                       w[4] = (*sWH[B.g+1])(ic,jc);
                       w[5] = G.b->press(ic,jc);
                       w[6] = G.b->breaking(ic,jc);
+                      w[7] = G.b->depth(ic,jc);
                   },
                   [&](reefamr_patch *q, int id, int kb, const double *v)
                   {
@@ -1241,11 +1284,24 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     // without taking their water) passes its water level on to its children instead of the film A 244.  The
     // patches following a shoreline (G 22) otherwise lost that water at every fresh block (Thacker bowl:
     // 1.6e-3 of the mass in 11 s, which hid as much of the gain of the wet-dry resets)
+    // In the initial hierarchy (the initial state is a surface) such a parent is a cell the wet-dry flags hold dry
+    // although it is deep (sflow_eta::wetdry: a channel one cell wide, both neighbours across it dry): its children
+    // take its surface over their own bed, not its water level (a lake at rest; the water level of a 400 m channel
+    // cell over the beds of its 50 m children put the surface metres above and below the lake)
     if((int)w[0]==0 && pv[0]==0.0 && w[1]>wd)
     {
         for(int a=0;a<2;++a)
         for(int d=0;d<=sy;++d)
-        b->WL(i0+a,j0+d) = w[1];
+        {
+            if(dryfill)
+            {
+            const double h = w[1] - w[7] + b->depth(i0+a,j0+d);
+            b->WL(i0+a,j0+d) = h>wd ? h : wd;
+            pp->wet[lij(pp,i0+a,j0+d)] = h>wd ? 1 : 0;
+            }
+            else
+            b->WL(i0+a,j0+d) = w[1];
+        }
     }
     else
     // curvilinear grid: the volumes of the children (area weighted) sum to the parent's

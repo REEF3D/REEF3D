@@ -466,6 +466,11 @@ private:
     double native_bed(int, int);
     double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
+    // fine bed of the refined levels (G 60 1, amr-bed.dat, sflow_amr_bed.cpp)
+    struct fbed_tile { int nx=0, ny=0; double x0=0.0, y0=0.0, dx=0.0; vector<float> z; };
+    vector<fbed_tile> fbed;
+    void fbed_read(lexer*);
+    bool fbed_mean(int, int, int, double&);
     void ini_patch_defaults(sflow_amr_patch&);
     // S 10 (sflow_amr_sed.cpp)
     sediment_f *sed0 = nullptr;

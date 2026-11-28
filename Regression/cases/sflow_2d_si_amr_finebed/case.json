@@ -1,0 +1,22 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "files": [
+  "geo.dat",
+  "amr-bed.dat"
+ ],
+ "description": "SFLOW semi-implicit lake at rest (200 x 100 m basin, 2 m cells, still water 2 m) with a patch (1 m) and a fine bed on it (G 60 1, amr-bed.dat, 0.5 m samples): bar, an island (top 1 m above the water), a dike 1 m wide (0.5 m above the water, half a coarse cell) and a pit. geo.dat holds the 2 m means of the same samples, A 209 0 keeps them unsmoothed. The patch cells take the parent bed plus their deviation in the tile, here the 1 m means of the samples: the dike and the island are dry on the patch, and the lake stays at rest (u at the tolerance of the eta solve).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_amr_bed: amr-bed.dat tiles, sflow_amr::bed_at parent + tile deviation"
+ ],
+ "architect": "Hans Bihs"
+}

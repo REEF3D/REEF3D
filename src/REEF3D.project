@@ -1537,6 +1537,7 @@
         <File Name="sflow_amr_wave.cpp"/>
         <File Name="sflow_amr_hydro.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_bed.cpp"/>
         <File Name="sflow_amr_si.cpp"/>
         <File Name="sflow_amr_sinh.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>

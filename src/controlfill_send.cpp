@@ -219,6 +219,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = G14;
     ii++;
+    ictrl[ii] = G60;
+    ii++;
 
     dctrl[dd] = A305;
     dd++;
