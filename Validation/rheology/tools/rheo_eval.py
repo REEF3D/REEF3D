@@ -14,6 +14,7 @@
   rheo_eval.py terrainseries <case> <out> <name>:<value>:<run> ...   26: a parameter series of terrainslide runs
   rheo_eval.py tsunamirunup <run> <case> <runup.csv> <out> <name> [radius]   27: landslide tsunami runup vs a survey
   rheo_eval.py tsunamiseries <case> <runup.csv> <out> <name>:<run> ...       27: a series of tsunamirunup runs
+  rheo_eval.py valdez <case> <out> <label>:<run> ...                         36: Port Valdez 1964 (NTHMP benchmark 7)
 
 Reads the SFLOW free-surface VTP files (REEF3D_SFLOW_VTP_FSF); needs numpy and matplotlib.
 """
@@ -1161,6 +1162,142 @@ def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
     np.savez_compressed(os.path.join(out, stem + "_points.npz"), pts=A, full=full)
     return r_out
 
+def _gauges(run):
+    """the wave gauges P 51 (REEF3D_NHFLOW_WSF or REEF3D_SFLOW_WSF, -HG.dat): times (n,), levels (n, gauges)"""
+    fs = glob.glob(os.path.join(run, "REEF3D_*_WSF", "REEF3D-*-WSF-HG.dat"))
+    if not fs:
+        return None, None
+    rows, on = [], False
+    for ln in open(fs[0]):
+        w = ln.split()
+        if w and w[0] == "time":
+            on = True; continue
+        if on and w:
+            try:
+                rows.append([float(v) for v in w])
+            except ValueError:
+                pass
+    A = np.array(rows)
+    return A[:, 0], A[:, 1:]
+
+def valdez(case, out, runs, radius=100.0):
+    """36: NTHMP landslide benchmark 7, Port Valdez 1964 (valdez_terrain.py), the slide layer under SFLOW or NHFLOW
+    (P 112 maxima, P 51 gauges) against the observations: the highest water level on land in the shore stretches
+    (Anderson Bay 24 m, Cliff Mine 52 m, Jackson Point 9.5 m), the level at the Narrows light (pedestal 11 m above MLLW
+    overtopped), the depth at the Valdez Hotel (0.46 m), the share of the observed inundation line at the head of the
+    bay and of McKinley Street the water reached, and the waves at the waterfront (gauges 1, 2)."""
+    plt = style()
+    from matplotlib.colors import LightSource
+    R = np.load(os.path.join(case, "reference.npz"))
+    x, y, dx, bed = R["x"], R["y"], float(R["dx"]), R["bed"]
+    ny, nx = bed.shape
+    X, Y = np.meshgrid(x, y)
+    slide0 = (R["h_hpv"] if "hpv" in list(R["slides"]) else 0) + (R["h_sbm"] if "sbm" in list(R["slides"]) else 0)
+    lines = {k: [R[f] for f in R.files if f.startswith("line_%s_" % k)]
+             for k in ("InundationLine", "InundationLineIslands", "InundationLineFirstWave", "McKinley_St")}
+    res = {}
+    for lab, run in runs:
+        M = _sflow_max_cells(run, nx, ny, dx) if glob.glob(os.path.join(run, "REEF3D_SFLOW_MAX", "*.vtp")) \
+            else _nhflow_max_cells(run, nx, ny, dx)
+        wet = np.isfinite(M["max_eta"])
+        land = (bed > 0.0) & (slide0 <= 0.0)
+        r = {}
+        for nm, s in zip(R["shore_names"], R["shores"]):
+            box = (X >= s[0]) & (X <= s[1]) & (Y >= s[2]) & (Y <= s[3]) & land & wet
+            r[str(nm)] = {"obs": None if np.isnan(s[4]) else float(s[4]),
+                          "model_max_runup": float(np.max(M["max_eta"][box])) if box.any() else 0.0}
+        for nm, o, q in zip(R["obs_names"], R["obs"], R["obs_qty"]):
+            near = (np.hypot(X - o[0], Y - o[1]) <= max(radius, 1.5*dx)) & wet
+            if q == "eta":
+                r[str(nm)] = {"obs_min": float(o[2]), "model_max_eta": float(np.max(M["max_eta"][near])) if near.any() else None}
+            else:
+                j, i = int(o[1]//dx), int(o[0]//dx)
+                r[str(nm)] = {"obs": float(o[2]), "terrain": float(bed[j, i]),
+                              "model_max_depth": float(M["max_depth"][j, i]) if wet[j, i] else 0.0,
+                              "model_max_depth_within_%.0fm" % max(radius, 1.5*dx): float(np.max(M["max_depth"][near])) if near.any() else 0.0}
+        def reached(k):
+            pts = np.vstack(lines[k]) if lines[k] else np.zeros((0, 2))
+            if not len(pts):
+                return None
+            i = np.clip((pts[:, 0]//dx).astype(int), 0, nx - 1); j = np.clip((pts[:, 1]//dx).astype(int), 0, ny - 1)
+            hit = np.zeros(len(pts), bool)
+            for di in (-1, 0, 1):
+                for dj in (-1, 0, 1):
+                    hit |= wet[np.clip(j + dj, 0, ny - 1), np.clip(i + di, 0, nx - 1)]
+            return float(hit.mean())
+        r["inundation_line_reached"] = reached("InundationLine")
+        r["first_wave_debris_line_reached"] = reached("InundationLineFirstWave")
+        r["McKinley_St_reached"] = reached("McKinley_St")
+        r["flooded_land_km2"] = float(np.sum(wet & land & (M.get("inundation", np.full_like(bed, 2.0)) == 2))*dx*dx/1e6)
+        t, G = _gauges(run)
+        if t is not None:
+            # waves at the waterfront: the maxima of gauge 2 (harbour) above 1 m, at least 120 s apart
+            g = G[:, 1]; pk = []
+            for k in range(1, len(g) - 1):
+                if g[k] >= g[k - 1] and g[k] > g[k + 1] and g[k] > 1.0 and (not pk or t[k] - pk[-1][0] > 120.0):
+                    pk.append((float(t[k]), float(g[k])))
+                elif pk and g[k] > pk[-1][1] and t[k] - pk[-1][0] <= 120.0 and g[k] >= g[k - 1] and g[k] > g[k + 1]:
+                    pk[-1] = (float(t[k]), float(g[k]))
+            r["harbour_waves_t_s_eta_m"] = [[round(a, 1), round(b, 2)] for a, b in pk[:6]]
+            r["gauges"] = (t, G)
+        res[lab] = (r, M)
+    # figure: per run the maxima over the bay and at the head of the bay; gauges below
+    n = len(runs)
+    fig = plt.figure(figsize=(15, 4.2*n + 3.5))
+    gs = fig.add_gridspec(n + 1, 2, width_ratios=[3.2, 1], height_ratios=[1]*n + [0.8])
+    hs = LightSource(azdeg=315, altdeg=45).hillshade(np.maximum(bed, 0.0), vert_exag=2, dx=dx, dy=dx)
+    ext = [0, nx*dx, 0, ny*dx]
+    for k, (lab, run) in enumerate(runs):
+        r, M = res[lab]
+        for c, (xl, yl) in enumerate((((0, nx*dx), (0, ny*dx)), ((22300, 25800), (3200, 6900)))):
+            ax = fig.add_subplot(gs[k, c])
+            ax.imshow(hs, origin="lower", extent=ext, cmap="gray", vmin=-0.3, vmax=1.3)
+            land = bed > 0
+            me = np.where(np.isfinite(M["max_eta"]) & land, np.maximum(M["max_eta"] - np.maximum(bed, 0), 0.0) if c else M["max_eta"], np.nan)
+            sea = np.where(~land, M["max_eta"], np.nan)
+            im2 = ax.imshow(sea, origin="lower", extent=ext, cmap="Blues", vmin=0, vmax=30 if c == 0 else 15)
+            im = ax.imshow(me, origin="lower", extent=ext, cmap="viridis" if c == 0 else "magma_r", vmin=0, vmax=60 if c == 0 else 5)
+            ax.contour(X, Y, bed, [0], colors="k", linewidths=0.5)
+            ax.contour(X, Y, slide0, [0.05], colors="white", linewidths=0.7, linestyles="--")
+            for q in lines["InundationLine"] + lines["InundationLineIslands"]:
+                ax.plot(q[:, 0], q[:, 1], "-", color="gold", lw=1.6)
+            for q in lines["InundationLineFirstWave"]:
+                ax.plot(q[:, 0], q[:, 1], "-", color="red", lw=1.4)
+            for q in lines["McKinley_St"]:
+                ax.plot(q[:, 0], q[:, 1], "-", color="k", lw=1.2)
+            for nm, o in zip(R["obs_names"], R["obs"]):
+                ax.plot(o[0], o[1], "^", color="red", ms=6, mec="k")
+            if c == 0:
+                for nm, s in zip(R["shore_names"], R["shores"]):
+                    ax.add_patch(plt.Rectangle((s[0], s[2]), s[1] - s[0], s[3] - s[2], fill=False, ec="m", lw=0.8))
+                    v = r[str(nm)]
+                    ax.text(s[0], s[3] + 80, "%s: %s / %.0f m" % (str(nm).split(" (")[0], "-" if v["obs"] is None else "%.0f" % v["obs"],
+                            v["model_max_runup"]), fontsize=7, color="m")
+                ax.set_title("%s: highest water level (sea: blue 0-30 m; land: 0-60 m); survey / model runup" % lab, fontsize=9)
+                fig.colorbar(im, ax=ax, shrink=0.7, pad=0.01, label="land: max level (m)")
+            else:
+                ax.set_title("head of the bay: max flow depth on land (0-5 m); gold: observed inundation,\nred: debris of the 1st wave, black: McKinley St, triangle: hotel", fontsize=8)
+                fig.colorbar(im, ax=ax, shrink=0.7, pad=0.01, label="max depth (m)")
+            ax.set_xlim(*xl); ax.set_ylim(*yl); ax.set_aspect("equal"); ax.tick_params(labelsize=7)
+    ax = fig.add_subplot(gs[n, :])
+    cols = [BLUE, ORANGE, GREEN, GREY, LBLUE]
+    for k, (lab, run) in enumerate(runs):
+        r = res[lab][0]
+        if "gauges" in r:
+            t, G = r["gauges"]
+            ax.plot(t/60, G[:, 1], "-", color=cols[k % 5], lw=1.0, label="%s, harbour (gauge 2)" % lab)
+            ax.plot(t/60, G[:, 0], ":", color=cols[k % 5], lw=1.0, label="%s, hotel (gauge 1)" % lab)
+    ax.axvspan(0, 5, color="k", alpha=0.05); ax.axvspan(10, 15, color="r", alpha=0.06)
+    ax.text(0.2, ax.get_ylim()[1]*0.9 if ax.get_ylim()[1] > 0 else 1, "1st wave (< 5 min)", fontsize=8)
+    ax.text(10.2, ax.get_ylim()[1]*0.9 if ax.get_ylim()[1] > 0 else 1, "2nd wave (10-15 min after the 1st)", fontsize=8)
+    ax.set_xlabel("time (min)"); ax.set_ylabel("water level (m)"); ax.legend(fontsize=7, ncol=2)
+    fig.tight_layout(); os.makedirs(out, exist_ok=True)
+    stem = "36_valdez_" + "_".join(re.sub(r"\W+", "", l) for l, _ in runs)[:60]
+    fig.savefig(os.path.join(out, stem + ".png"), dpi=130); plt.close(fig)
+    outr = {lab: {k: v for k, v in res[lab][0].items() if k != "gauges"} for lab, _ in runs}
+    json.dump(outr, open(os.path.join(out, stem + ".json"), "w"), indent=1)
+    return outr
+
 def tsunamiseries(case, obs_csv, out, runs, radius=100.0):
     """27: a series of tsunamirunup runs (e.g. the basal friction): runup against the distance from the slide for every
     run with the survey, and the highest runup per location; runs = [(label, run dir), ...]"""
@@ -1223,6 +1360,9 @@ if __name__ == "__main__":
         r = terrainseries(sys.argv[2], sys.argv[3], [(a.split(":")[0], float(a.split(":")[1]), a.split(":")[2]) for a in sys.argv[4:]])
     elif cmd == "tsunamiseries":
         r = tsunamiseries(sys.argv[2], sys.argv[3], sys.argv[4], [tuple(a.split(":", 1)) for a in sys.argv[5:]])
+    elif cmd == "valdez":
+        # valdez <case dir with reference.npz> <out> <label>:<run> ...
+        r = valdez(sys.argv[2], sys.argv[3], [tuple(a.split(":", 1)) for a in sys.argv[4:]])
     elif cmd == "tsunamirunup":
         r = tsunamirunup(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], *(float(a) for a in sys.argv[7:8]))
     elif cmd == "terrainslide":

@@ -169,6 +169,12 @@ tools/run_case.sh <REEF3D> <DiveMESH> 27_taan_fiord_2015 <run>/t_mu010 "mpirun -
 python3 tools/rheo_eval.py tsunamiseries 27_taan_fiord_2015 27_taan_fiord_2015/runup_albers.csv 27_taan_fiord_2015/results mu0.10:<run>/t_mu010 mu0.15:<run>/t_mu015 mu0.20:<run>/t_mu020
 tools/run_case.sh <REEF3D> <DiveMESH> 30_tracy_arm_2025 <run>/ta_mu015 "mpirun -np 2"   # after slide_mound.py (30_tracy_arm_2025/README.md); W 121 8.5 / 2.9
 python3 tools/rheo_eval.py tsunamirunup <run>/ta_mu015 30_tracy_arm_2025 30_tracy_arm_2025/runup_survey.csv 30_tracy_arm_2025/results 30_mu015_survey   # also runup_trimline.csv
+python3 tools/valdez_terrain.py <benchmark_7_data> 36_port_valdez_1964 --dx 40   # 36: geo.dat, slide-level.dat, reference.npz (--slides hpv / sbm: one slide)
+cp 36_port_valdez_1964/{geo,slide-level}.dat 36_port_valdez_1964/sflow/
+tools/run_case.sh <REEF3D> <DiveMESH> 36_port_valdez_1964 <run>/pv_nh40 "mpirun -np 2"
+tools/run_case.sh <REEF3D> <DiveMESH> 36_port_valdez_1964/sflow <run>/pv_sf40 "mpirun -np 2"
+python3 tools/rheo_eval.py valdez 36_port_valdez_1964 36_port_valdez_1964/results "NHFLOW 40 m":<run>/pv_nh40 "SFLOW 40 m":<run>/pv_sf40
+python3 tools/valdez_video.py <run>/pv_nh40 36_port_valdez_1964 <out>/36_port_valdez_nhflow40m.mp4 --label "slide layer under NHFLOW, 40 m"
 ```
 
 CFD cases 11–15, 31, 33 (`tools/rheo3_eval.py`; 11, 13, 33: one rank, the others two ranks):
@@ -740,7 +746,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_staged_series.png)
 
-## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29, 32 and 35
+## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29, 32, 35 and 36
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -1179,6 +1185,24 @@ du/dt = (1 − r) g sin θ − max(μ + tan ψ, 0) max(σ₀ − p_e, 0.02 σ₀
 - Run times (1 core): SFLOW 8-12 s, NHFLOW 164 s.
 
 ![](35_slide_dilatancy/results/35_dilatancy.png)
+
+### 36 Slide layer under NHFLOW: Port Valdez 1964 (NTHMP benchmark 7)
+
+The two submarine slides of 27 March 1964 in Port Valdez, Alaska (HPV64 at the old town, 55 Mm³; SBM64 at the Shoup
+Bay moraine, 248 Mm³; benchmark grids, new tools/valdez_terrain.py), Coulomb 6°, under NHFLOW (non-hydrostatic, 5 σ
+layers) and SFLOW, 40 m cells, 1200 s (NHFLOW 2.1 h, SFLOW 11 min on 2 cores).
+
+- The first wave off the waterfront (+5.0 / 5.5 m at 37-38 s) comes from HPV64, the second (+2.6 / 2.9 m at 12 min)
+  from SBM64 across the bay, as the eyewitnesses (10-15 min later) and Wilson & Tørum (1972) suggest.
+- Narrows light 11.8 / 13.2 m (overtopped, > 11 m), Anderson Bay 29 / 37 m (24 m), Valdez Hotel 0.56 m in NHFLOW
+  (0.46 m); Cliff Mine 24 / 27 m against 52 m.
+- The inundation of the town depends on the bed friction: SFLOW with Manning 0.02 stops at the observed line, without
+  friction the flats flood 1 km further. NHFLOW floods further than SFLOW: its bed friction acts on the bottom σ layer
+  only, without a turbulence model nothing carries it up the water column.
+
+Details in 36_port_valdez_1964/README.md; video with tools/valdez_video.py.
+
+![](36_port_valdez_1964/results/36_valdez_both_HPV64only_SBM64only.png)
 
 ## Not covered yet
 
