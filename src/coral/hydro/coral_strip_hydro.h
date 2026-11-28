@@ -28,7 +28,11 @@ Architect: Hans Bihs
 //              the changing wet length of the surface-piercing members and the moving centres)
 //   Morison    f L (rho A Cm a_w,n - rho A Ca a_b,n + 1/2 rho Cd D |u_r,n| u_r,n), normal to the axis, u_r = u_w + U_c - u_b
 // At a closed member end below the surface (e.g. the bottom of a column; flag end1/end2), along the axis:
-//   pressure   -rho p_dyn/rho A n_out (the dynamic pressure of the waves on the end face: heave excitation)
+//   pressure   -(p_dyn - rho g eta) A n_out on the end of a member that pierces the surface: the buoyancy of its wet
+//              strips already holds the hydrostatic pressure below the instantaneous elevation, rho g (eta - z), so
+//              the end takes what the wave pressure differs from it by (the decay of the dynamic pressure with
+//              depth; the vertical wave force on a column is then p_dyn A, not (rho g eta + p_dyn) A);
+//              -p_dyn A n_out on the ends of a member below the surface (its buoyancy does not change with eta)
 //   added mass Ca_end rho D^3/6 (a_w,ax - a_b,ax) (Ca_end 1: half the added mass of a disk, rho D^3/3)
 //   drag       1/2 rho Cd_end A |u_r,ax| u_r,ax
 // Wave kinematics from the wave source (CORAL's linear waves or a sampled fluid) at the strip centres and the end
@@ -80,7 +84,8 @@ namespace coral
 
     private:
         struct strip {Vec3 s; Vec3 e; double L, D, Cd, Ca, Cm; bool buoy;};
-        struct end {Vec3 s; Vec3 n; double D, Ca, Cd; bool p;};     // body frame: point, outward normal; with pressure
+        // body frame: point, outward normal; with pressure; the member's other end (does the member pierce the surface)
+        struct end {Vec3 s; Vec3 n; double D, Ca, Cd; bool p; Vec3 so;};
         // the forces of the current state at their points (callback per force)
         template<class Add> void forces(const model&, double t, Add &&add, double &V) const;
 
