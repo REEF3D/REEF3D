@@ -1,0 +1,6 @@
+# the brain's settings for the body of body_2d_swimmer_L50_ctrl.txt (fit_body.py, validation 30)
+# the glide by the drag law, C_d 0.4626: tau_coast is its equivalent from U1 = 0.559 m/s
+X 200 0 0.5594 1.0640 0
+X 202 0 0.874 0.698
+X 203 0 0.05
+X 204 0 5.58
