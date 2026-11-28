@@ -77,6 +77,16 @@ public:
     // at the new time level of a CFD step (after simtime += dt)
     void step(lexer*, fdm*, ghostcell*);
 
+    // for other models (CPM Q 69 2): the model of the run (nullptr without S 200), whether it has started
+    // (S 213), the excess pore pressure of a cell of the rank (0 outside the soil)
+    static soil_stress *instance;
+    bool running() const {return active;}
+    double pore(int i, int j, int k) const
+    {
+        const int q = id(i,j,k);
+        return int(ctype[q])==SOIL ? X[3*N+q] : 0.0;
+    }
+
     enum celltype : int {NOCELL=0, SOIL=1, FREE=2, WALL=3, ROLLER=4};
     enum dofkind : int {NODOF=0, UNK=1, ZERO=2};
 

@@ -1268,7 +1268,7 @@ void control::ini_default()
     Q66=0.0;            // double bedload layer: reference height of the bed shear stress in cells above the bed, 0: first cell
     Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
     Q68=1;              // int bedload layer: bed shear stress, 0 log law, 1 max(log law, 0.3 rho k) with the turbulent kinetic energy, 2 sqrt(log law * 0.3 rho k) (two velocity scales)
-    Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on
+    Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on (rigid bed, Laplace), 2 the pore pressure of the soil stress model S 200
     Q85=0;              // int CFD mesh refinement: the region of the grid of CPM, Q 85 xs xe ys ye zs ze (the mobile bed; default the bounding box of the boxes G 15)
     Q85_xs=Q85_xe=Q85_ys=Q85_ye=Q85_zs=Q85_ze=0.0;
     Q86=0;              // int CFD mesh refinement, CPM bedload layer: the common reference height of the bed shear stress where a column takes the fluid of a coarser grid, 0 the centre of the first cell of that grid, 1 the centre of its second cell (velocity; k of the first fluid cell)

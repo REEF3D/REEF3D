@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"soil_stress.h"
 
 /*--------------------------------------------------------------------
 seepage flow in the bed (Q 69 1, S 10 1)
@@ -37,7 +38,13 @@ pressure follows Darcy's law in a rigid bed of uniform permeability: the piezome
 is harmonic in the bed, div(grad p*) = 0, with p* of the fluid at the bed surface (Dirichlet at
 the centres of the adjacent fluid cells), no flux through walls, solid bodies and the bottom,
 or with Q 70 an excess pore pressure p*_s + Q 70 at the bottom (upflow tests; p*_s is the mean p*
-of the fluid at the bed surface). The Laplace equation is solved by red-black SOR sweeps once per
+of the fluid at the bed surface).
+Q 69 2: the pore pressure of a deformable, compressible bed from the soil stress model (S 200,
+soil_stress.h): until the soil model starts (S 213) the Laplace solution as Q 69 1, then
+    p* = p*_0 + p_e
+with p*_0 the Laplace solution of the last step before the start (at least the first step) and p_e the excess pore pressure of
+the soil model (consolidation, phase lag and damping under waves, partial saturation; of the step
+before). Q 70 does not apply (the soil model has an impermeable bottom). The Laplace equation is solved by red-black SOR sweeps once per
 time step, warm-started from the last step, until the change is below 1e-6 of the range of p*.
 
 The seepage acts on the grains through the excess pore pressure. Per unit volume of the bed the
@@ -70,6 +77,26 @@ void CPM::seepage_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(p->Q69<1 || p->S10==2)
     return;
+
+    // Q 69 2: the excess pore pressure of the soil stress model, once it runs
+    const soil_stress *soil = p->Q69==2 ? soil_stress::instance : nullptr;
+
+    if(p->Q69==2 && soil==nullptr && seep_ini==0 && p->mpirank==0)
+    cout<<"Q 69 2: no soil stress model (S 200): the seepage of Q 69 1"<<endl;
+
+    // (after one step of the Laplace solution, its p*_0)
+    if(soil!=nullptr && soil->running() && seep_ini==1)
+    {
+        BASELOOP
+        if(seep_bed(p,a,i,j,k))
+        Pse(i,j,k) = Pse0(i,j,k) + soil->pore(i,j,k);
+        else
+        Pse(i,j,k) = pstar_fluid(p,a,i,j,k);
+
+        pgc->start4a(p,Pse,1);
+        seepage_gradient(p,a,pgc,0.0);
+        return;
+    }
 
     // reference: mean p* of the fluid cells on top of the bed; range for the tolerance
     double psum=0.0, pmin=1.0e20, pmax=-1.0e20;
@@ -197,7 +224,22 @@ void CPM::seepage_update(lexer *p, fdm *a, ghostcell *pgc)
         break;
     }
 
-    // vertical gradient of p* in the bed, for the effective stress of the contact network
+    // Q 69 2: the start of the soil model
+    if(p->Q69==2)
+    {
+        BASELOOP
+        Pse0(i,j,k) = Pse(i,j,k);
+        pgc->start4a(p,Pse0,1);
+    }
+
+    seepage_gradient(p,a,pgc,pbot);
+}
+
+// vertical gradient of p* in the bed, for the effective stress of the contact network
+void CPM::seepage_gradient(lexer *p, fdm *a, ghostcell *pgc, double pbot)
+{
+    const bool q70 = fabs(p->Q70)>0.0 && p->Q69!=2;
+
     BASELOOP
     {
         Gsz(i,j,k) = 0.0;
@@ -211,10 +253,10 @@ void CPM::seepage_update(lexer *p, fdm *a, ghostcell *pgc)
             double pp = okp ? Pse(i,j,k+1) : Pse(i,j,k);
 
             // bottom with the excess pressure: the face value
-            if(!okm && k-1<0 && p->nb5<0 && fabs(p->Q70)>0.0)
+            if(!okm && k-1<0 && p->nb5<0 && q70)
             pm = 2.0*pbot - Pse(i,j,k);
 
-            double dz = (okm||(k-1<0 && fabs(p->Q70)>0.0) ? p->DZP[KM1] : 0.0) + (okp ? p->DZP[KP] : 0.0);
+            double dz = (okm||(k-1<0 && q70) ? p->DZP[KM1] : 0.0) + (okp ? p->DZP[KP] : 0.0);
 
             Gsz(i,j,k) = dz>0.0 ? (pp-pm)/dz : 0.0;
         }

@@ -31,6 +31,8 @@ Architect: Hans Bihs
 
 using namespace std;
 
+soil_stress *soil_stress::instance = nullptr;
+
 double soil_stress::DXN(int ii) const {return p->DXN[ii+p->marge];}
 double soil_stress::DYN(int jj) const {return p->DYN[jj+p->marge];}
 double soil_stress::DZN(int kk) const {return p->DZN[kk+p->marge];}
@@ -55,6 +57,15 @@ soil_stress::soil_stress(lexer *pp, fdm *a, ghostcell *pgc) : p(pp)
     const double mvh = p->S202_vh;
     const double om  = p->S203_O;
     const double den = (1.0+mhh)*(1.0 - mhh - 2.0*om*mvh*mvh);
+
+    // a porous bed with the pore flow in the CFD (S 10 2): the pore pressure would be there twice
+    if(p->S10==2)
+    {
+        if(p->mpirank==0)
+        cout<<"S 200: not with S 10 2 (the CFD resolves the pore flow of the porous bed)"<<endl;
+        pgc->final();
+        exit(1);
+    }
 
     if(den<=0.0 || Ev<=0.0 || om<=0.0)
     {
@@ -117,6 +128,8 @@ soil_stress::soil_stress(lexer *pp, fdm *a, ghostcell *pgc) : p(pp)
     mkdir("./REEF3D_CFD_Soil",0777);
 
     MPI_Comm_split(pgc->mpi_comm,p->origin_i*(p->gknoy+1)+p->origin_j,p->origin_k,&colcomm);
+
+    instance = this;
 
     // start now (the initial CFD pressure the reference) or at the first step after S 213
     if(p->simtime>=p->S213-1.0e-12)
