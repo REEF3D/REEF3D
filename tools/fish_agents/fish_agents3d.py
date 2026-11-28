@@ -46,16 +46,27 @@
 #    "physiology": {"W": 2500, "T": 12} or {"ucrit": 1.0}, and the constants of tools/fish_physiology/physiology.py
 #         (optional): the oxygen debt and the fatigue of each fish from its speed through the water; an exhausted fish
 #         swims no faster than its aerobic limit until it has recovered
-#    "stages": {"U_pref": [0.30, 0.08], "h": 0.1, "lead": 1.0}   (optional, with "school" and "physiology"): the
+#    "stages": {"U_pref": [0.30, 0.08], "h": 0.1, "lead": 1.0, "burst_glide": 1, "u_bg": 0, "delta": 0.05,
+#               "kappa": 0.05, "net_escape": 1, "t_pin": 2.0}   (optional, with "school" and "physiology"): the
 #         behaviour of salmon in a cage as the current rises (Hvas et al. 2021, Fig. 1; Johansson et al. 2014):
 #         (a) 0 circling: the school at its preferred speed;
 #         (b, c) 1 standing on the current: a fish whose current exceeds its own preferred swimming speed
 #              (U_pref, mean and SD over the fish [m/s], with the hysteresis h) leaves the circle and holds its
 #              station facing the current, lead L upstream of where it stopped (at least lead L + 1 m inside the
 #              net); when it falls below, it circles again;
-#         (-) 2 standing on anaerobic power: standing at more than its aerobic limit U_a (the gait changes to
-#              burst and glide in a real salmon; here only marked);
-#         (d) 3 exhausted: it cannot hold the current and falls back on the downstream net until it has recovered.
+#         (-) 2 burst and glide: standing in a current above its gait transition (U_a, or "u_bg" U_crit), the fish
+#              no longer swims steadily ("burst_glide": 1): it beats at its fastest gait (2 f0) until its speed
+#              through the water is (1 + delta) of the current, glides (the tail still) until it is (1 - delta) of
+#              it, and holds its station on average (the thresholds rise by kappa per L the fish is behind it);
+#              with "burst_glide": 0 it swims steadily and the stage only marks it as anaerobic;
+#         (d) 3 exhausted: it cannot hold the current and falls back on the downstream net.
+#         "net_escape": 1 (default): a fish that is not exhausted and is pressed against the net for t_pin s
+#         turns towards its station and swims off at its fastest gait (the net is no free support); the contacts
+#         are counted (welfare_metrics: the time on the net, the contacts per fish and hour).
+#    "body": {"C_glide": 0.13}   (optional): the glide with the tail still by a drag law, dU/dt = -C_glide U^2/L,
+#         instead of tau_coast (a real salmon at Re 5e5: C_f 0.0066 on a wetted area 0.47 L^2, about 0.13)
+#    with "physiology" the cost of swimming is that of the gait: the demand at the speed the gait would hold,
+#         s f a L (no faster than the fish can swim), and SMR with the tail still (a glide, a brake)
 # Output: the tracks (t id x y z heading_deg U f a b mode) every out_dt, with "physiology" also (stage F MO2 U_crit
 # u_cur): the stage, the fatigue (debt over capacity), MO2 [mg O2/kg/h], the fish's U_crit and the current at it;
 # the summary per fish (distance to its target, mean frequency); for a school also school_metrics() (spacing,
@@ -188,6 +199,11 @@ class Fish3:
         self.contacts = 0
         self.stage = 0                        # the cage stage (stages): 0 circling, 1 standing, 2 anaerobic, 3 exhausted
         self.station = None
+        self.bg = None                        # burst and glide: "burst" | "glide" | None (steady)
+        self.pin = 0.0                        # the time pressed against the net
+        self.escape = None                    # the end of an escape from the net
+        self.on_net = False; self.net_t = 0.0; self.net_n = 0
+        self.Uc = 0.0
 
 
 SCHOOL = {"U": 0.15, "dir": 1, "d_sep": 0.7, "d_ali": 2.0, "d_coh": 3.0, "w_path": 1.0, "w_band": 1.0,
@@ -276,6 +292,13 @@ def school_metrics(rows, net=None, t0=60.0, r_fish=0.15):
             "near_net": float(np.mean(near)) if near else None, "contacts_per_fish_min": float(cont / nf / (dur / 60.0))}
 
 
+def body_step3(Ug, fg, ag, bg, t, dt, body):
+    """fish_agents.body_step, with the glide (tail still, body straight) by a drag law when body["C_glide"] > 0"""
+    if body.get("C_glide", 0.0) > 0.0 and ag < 0.5 and abs(bg) <= 0.5:
+        return Ug - dt * body["C_glide"] * body["s"] * Ug * Ug / body["L"], body["k_brake"]
+    return fa.body_step(Ug, fg, ag, bg, t, dt, body)
+
+
 def stage_step(fish, st, ph, cur, U_pref, L):
     """the cage stages: circling (0), standing on the current (1), on anaerobic power (2), exhausted (3); cur the
     horizontal current at each fish (2 x n), ph the physiology of the fish"""
@@ -302,12 +325,65 @@ def stage_step(fish, st, ph, cur, U_pref, L):
                         f.station = [nx_ + (f.x - nx_) * rmax / dr, ny_ + (f.y - ny_) * rmax / dr, f.z]
             if c > 1e-6:                                     # the station, lead L upstream
                 f.goal = [f.station[0] - st["lead"] * L * cur[0][k] / c, f.station[1] - st["lead"] * L * cur[1][k] / c, f.station[2]]
-            if new == 1 and f.Uw > ph.u_aerobic()[k]:
+            if st.get("burst_glide", 1):
+                if new == 1 and c > st["u_bg_abs"][k] * (1.0 + 0.5 * h):
+                    new = 2
+                elif new == 1 and f.stage == 2 and c > st["u_bg_abs"][k] * (1.0 - 0.5 * h):
+                    new = 2
+            elif new == 1 and f.Uw > ph.u_aerobic()[k]:
                 new = 2
+        if new != 2 or not st.get("burst_glide", 1):
+            f.bg = None
+        elif f.bg is None:
+            f.bg = "burst"
         f.stage = new
 
 
-def welfare_metrics(rows, t0=0.0, net=None):
+def gait_override(f, k, t, st, cur, body, L):
+    """the gait targets that replace the brain's: the escape from the net, the burst and glide"""
+    f0 = body["f0"]
+    # the escape: pressed against the net for t_pin s, not exhausted: turn towards the station and swim off
+    if st.get("net_escape", 1) and f.stage in (0, 1, 2) and st.get("net") is not None:
+        if f.escape is None and f.pin >= st["t_pin"]:
+            f.escape = t + 10.0
+        if f.escape is not None:
+            nx_, ny_ = st["net"][0], st["net"][1]
+            gx, gy = (f.goal[0], f.goal[1]) if f.station is not None else (nx_, ny_)
+            want = math.atan2(gy - f.y, gx - f.x)
+            err = math.atan2(math.sin(want - f.h), math.cos(want - f.h))
+            off = st["net"][2] - math.hypot(f.x - nx_, f.y - ny_)
+            if t > f.escape or (abs(err) < 0.5 and off > 0.5):
+                f.escape = None
+            else:
+                f.g["f"][2], f.g["f"][3] = 2.0 * f0, 0.15
+                f.g["a"][2], f.g["a"][3] = 1.0, 0.15
+                f.g["b"][2], f.g["b"][3] = max(-1.0, min(1.0, 2.0 * err)), 0.15
+                f.second = None
+                return
+    # the burst and glide
+    if f.bg is None:
+        return
+    c = math.hypot(cur[0][k], cur[1][k])
+    e = 0.0
+    if f.station is not None and c > 1e-6:                    # how far behind its station the fish is [L]
+        e = ((f.x - f.station[0]) * cur[0][k] + (f.y - f.station[1]) * cur[1][k]) / c / L
+    hi = c * (1.0 + st["delta"] + st["kappa"] * e)
+    lo = c * (1.0 - st["delta"] + st["kappa"] * e)
+    if f.bg == "burst" and f.Uw >= hi:
+        f.bg = "glide"
+    elif f.bg == "glide" and f.Uw <= lo:
+        f.bg = "burst"
+    b = max(-0.45, min(0.45, f.g["b"][2]))                    # the brain's steering, mild enough to glide
+    if f.bg == "burst":
+        f.g["f"][2], f.g["a"][2] = 2.0 * f0, 1.0
+    else:
+        f.g["a"][2] = 0.0
+    f.g["f"][3] = f.g["a"][3] = 0.15
+    f.g["b"][2] = b
+    f.second = None
+
+
+def welfare_metrics(rows, t0=0.0, net=None, fish=None):
     """with "physiology": per fish the share of the time above 60 and 80 % of its U_crit (the speed through the
     water), the shares of the fish in each stage over time, the fish exhausted at least once; with the net, the share
     of the time a fish that is not exhausted leans on the net (within 0.2 m of it, slower than 0.6 of its current:
@@ -324,8 +400,13 @@ def welfare_metrics(rows, t0=0.0, net=None):
     a80 = [float((u[R[:, 1] == i] > 0.8).mean()) for i in ids]
     ex = [bool((R[R[:, 1] == i, 11] == 3).any()) for i in ids]
     share = {k: float((R[:, 11] == k).mean()) for k in range(4)}
-    return {"above60_mean": float(np.mean(a60)), "above80_mean": float(np.mean(a80)), "exhausted_fish": float(np.mean(ex)),
-            "stage_share": share, "F_max": float(R[:, 12].max()), "MO2_mean": float(R[:, 13].mean()), "leaning_on_net": lean}
+    out = {"above60_mean": float(np.mean(a60)), "above80_mean": float(np.mean(a80)), "exhausted_fish": float(np.mean(ex)),
+           "stage_share": share, "F_max": float(R[:, 12].max()), "MO2_mean": float(R[:, 13].mean()), "leaning_on_net": lean}
+    if fish is not None:
+        dur = max(R[:, 0].max() - R[:, 0].min(), 1e-9)
+        out["net_time_s_mean"] = float(np.mean([f.net_t for f in fish]))
+        out["net_contacts_per_fish_h"] = float(np.mean([f.net_n for f in fish]) / (dur / 3600.0))
+    return out
 
 
 def orbit_target(c, r, z, w, ph):
@@ -392,8 +473,10 @@ def run(case):
             pc.pop("W", None); pc.pop("T", None)
         ph = phy.Physiology(n, uc, seed=case.get("seed", 1), **pc)
         if "stages" in case and school is not None:
-            stg = dict({"U_pref": [0.3, 0.08], "h": 0.1, "lead": 1.0}, **case["stages"])
+            stg = dict({"U_pref": [0.3, 0.08], "h": 0.1, "lead": 1.0, "burst_glide": 1, "u_bg": None, "delta": 0.05,
+                        "kappa": 0.05, "net_escape": 1, "t_pin": 2.0}, **case["stages"])
             stg["net"] = nets[0] if nets else None
+            stg["u_bg_abs"] = (ph.ucrit * stg["u_bg"]) if stg["u_bg"] else ph.u_aerobic()
             rs = np.random.default_rng(case.get("seed", 1) + 101)
             U_pref = np.clip(stg["U_pref"][0] + stg["U_pref"][1] * rs.standard_normal(n), 0.05, None)
     phst = {"F": np.zeros(n), "MO2": np.zeros(n)}
@@ -413,6 +496,8 @@ def run(case):
         cur = (uf, vf)
         umax = ph.u_max() if ph is not None else None
         for k, f in enumerate(fish):
+            if stg is not None:
+                gait_override(f, k, t, stg, cur, body, L)
             for key in "fab":
                 v, r, tg, ts = f.g[key]
                 lam = 4.744 / ts
@@ -423,11 +508,17 @@ def run(case):
                     f.g[key][2] = v; f.g[key][3] = f.second[4]
                 f.second = None
             fg, ag, bg = f.g["f"][0], f.g["a"][0], f.g["b"][0]
-            f.Ug, kt = fa.body_step(f.Ug, fg, ag, bg, t, dt, body)
+            f.Ug, kt = body_step3(f.Ug, fg, ag, bg, t, dt, body)
             if umax is not None and body["s"] * f.Ug > umax[k]:     # exhausted: no faster than its aerobic limit
                 f.Ug = umax[k] / body["s"]
             Uw = body["s"] * f.Ug
             f.Uw = Uw
+            # the cost of swimming: the speed the gait would hold (SMR with the tail still)
+            f.Uc = 0.0 if ag < 0.5 else body["s"] * fg * ag * L
+            if umax is not None:
+                f.Uc = min(f.Uc, umax[k])
+                if umax[k] < 1e9 and f.on_net:                     # exhausted on the net: it rests there
+                    f.Uc = 0.0
             f.h += dt * kt * bg * Uw / L
             ex, ey = math.cos(f.h), math.sin(f.h)
             wz = max(-depth["w_max"], min(depth["w_max"], (f.target(t)[2] - f.z) / depth["tau"]))
@@ -441,12 +532,21 @@ def run(case):
                 dd = math.hypot(nx - c[0], ny - c[1])
                 if c[3] <= nz <= c[4] and dd < c[2] + 0.02:
                     s_ = (c[2] + 0.02) / max(dd, 1e-9); nx, ny = c[0] + (nx - c[0]) * s_, c[1] + (ny - c[1]) * s_
+            held = False
             for c in nets:
                 if math.hypot(f.x - c[0], f.y - c[1]) < c[2]:          # in this cage
                     dd = math.hypot(nx - c[0], ny - c[1])
                     if dd > c[2] - 0.1:
                         s_ = (c[2] - 0.1) / dd; nx, ny = c[0] + (nx - c[0]) * s_, c[1] + (ny - c[1]) * s_
+                        held = True
                     nz = min(max(nz, c[3] + 0.1), c[4] - 0.1)
+            if stg is not None:
+                if held and not f.on_net:
+                    f.net_n += 1
+                f.on_net = held
+                f.pin = f.pin + dt if held else 0.0
+                if held:
+                    f.net_t += dt
             f.acc_U += ((nx - f.x) * ex + (ny - f.y) * ey) / dt; f.acc_n += 1
             f.vx, f.vy, f.vz = (nx - f.x) / dt, (ny - f.y) / dt, (nz - f.z) / dt
             f.x, f.y, f.z = nx, ny, nz
@@ -461,7 +561,7 @@ def run(case):
                 for k, f in enumerate(fish):
                     f.x, f.y, f.z = P[k]
         if ph is not None:
-            phst = ph.step(np.array([f.Uw for f in fish]), dt)
+            phst = ph.step(np.array([f.Uc for f in fish]), dt)
             if stg is not None:
                 stage_step(fish, stg, ph, cur, U_pref, L)
         t += dt
@@ -527,7 +627,7 @@ def main():
         R = np.array(rows); fm = float(R[R[:, 0] > a.after, 7].mean())
         m["f_mean"] = fm
         if "physiology" in case:
-            m["welfare"] = welfare_metrics(rows, a.after, net)
+            m["welfare"] = welfare_metrics(rows, a.after, net, fish)
             print("welfare after %.0f s: %s" % (a.after, json.dumps(m["welfare"])))
         if a.summary:
             json.dump(m, open(a.summary, "w"), indent=1)
