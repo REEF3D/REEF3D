@@ -967,6 +967,10 @@ void driver::logic_cfd()
         }
     }
 
+    // N 67 (the face density of the pressure gradient p(n) in the momentum step): the one-step scheme N 40 5
+    if(p->N67>0 && p->mpirank==0 && !(p->N40==5 && p->F30>0))
+    cout<<"N 67 needs the one-step scheme N 40 5 with the level set (F 30): not used"<<endl;
+
     // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
     // and in cfd_amr::timestep (the patches of the mesh refinement)
     if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->N48==0))

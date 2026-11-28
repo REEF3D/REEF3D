@@ -287,6 +287,8 @@ private:
     rheology_cfd_wall *pwall = nullptr;   // W 135: side-wall friction of the rheology (point-implicit, after the VRANS drag)
     cfd_singlephase *psingle = nullptr;   // F 41 1: the velocity of the water extended into the air after the projections
     bool phiold;
+    bool pgold;         // N 67 1 (N 40 5): the pressure gradient of the momentum step with the face density of frk1
+    bool keepold;       // phiold or pgold: frk1 kept
     double phiold_valid;
     unsigned long long ckid_phiold;
 

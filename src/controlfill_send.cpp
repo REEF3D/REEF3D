@@ -2019,6 +2019,8 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = N66;
     dd++;
+    ictrl[ii] = N67;
+    ii++;
     dctrl[dd] = N56;
     dd++;
     dctrl[dd] = N52;
