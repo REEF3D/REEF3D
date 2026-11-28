@@ -784,9 +784,10 @@ void control::ini_default()
     F81=0;             // int PIC free surface flow: 1 single phase (water particles, p = 0 at the surface), 2 water particles with Eulerian air, 10 passive particles
     F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 1, 2), 1 - F82 PIC
     F83=2;             // int PIC particles per cell and direction
+    F75=0;             // int PIC single phase (F 81 1): 1 the faces at the free surface (one of their cells in the air) keep the velocity of the grid, not that of the particles: no damping of non-breaking waves, not for breaking waves (their momentum is not carried there); 0 the particles' velocity on all faces next to the water
     F76=1;             // int PIC (F 81 1, 2): 1 the particles and their free surface move in the stages of the SSP-RK3 step (N 40 3, 13, 23), 0 once per step with u(n+1)
     F77=1;             // int PIC velocity transfer (F 81 1, 2): 0 FLIP/PIC (F 82), 1 APIC, 2 FLIP/PIC (F 82) with the affine velocities of APIC
-    F78=30;            // int PIC redistribution of the particles every F78 steps (0: off)
+    F78=30;            // int PIC redistribution of the particles every F78 steps at CFL 0.25 (adaptive time step: every F78 0.25/N47 steps, the same interval in time; 0: off)
     F86=1;             // int PIC particles kept in the water every F86 steps (0: off)
     F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
     F79=0.1;           // double PIC redistribution step (particle spacings per unit of the neighbour push)

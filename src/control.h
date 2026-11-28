@@ -360,7 +360,7 @@ public:
     int F73;
     int F74;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-    int F76,F77,F78,F80,F81,F83,F85,F86;
+    int F75,F76,F77,F78,F80,F81,F83,F85,F86;
     double F79,F82,F87;
 
     int F88,F90;

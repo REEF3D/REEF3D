@@ -259,15 +259,6 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc, bool stage)
     const int n = p->knox*p->knoy*p->knoz;
     std::vector<double> sw(n,0.0);
 
-    // F 76 1, in the stages: next to an open outflow (B 60, the end of a wave tank) the free surface
-    // of the 4 cells there stays that of the start of the step. Rebuilt there in the stages, the
-    // channel drained twice as fast as with F 76 0 (cfd_2d_channel_pic2 over 18 s at CFL 0.3: -6.1 %
-    // of its water against -3.0 %); with the band as with F 76 0
-    std::vector<double> phi0;
-    const bool keepout = stage && pgc->globalisum(p->gcout_count)>0;   // all ranks (start4)
-    if(keepout)
-    phi0.assign(a->phi.V, a->phi.V + size_t(p->imax)*p->jmax*p->kmax);
-
     // the particles of this rank and the halo: their kernel weights at the cell centres around
     auto deposit = [&](double x, double y, double z)
     {
@@ -425,26 +416,6 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc, bool stage)
     p->reini_iter = p->F44;
     preini->start(a,p,a->phi,pgc,pflow);
     pgc->start4(p,a->phi,gcval_phi);
-
-    if(keepout)
-    {
-        const int band = 4;        // cells inside; the 3 ghost cells too
-        for(int q=0; q<p->gcout_count; ++q)
-        {
-            const int i0=p->gcout[q][0], j0=p->gcout[q][1], k0=p->gcout[q][2], cs=p->gcout[q][3];
-            const int di = cs==1 ? 1 : (cs==4 ? -1 : 0);
-            const int dj = cs==3 ? 1 : (cs==2 ? -1 : 0);
-            const int dk = cs==5 ? 1 : (cs==6 ? -1 : 0);
-            for(int m=-3; m<band; ++m)
-            {
-                const int ii=i0+m*di, jj=j0+m*dj, kk=k0+m*dk;
-                const size_t g = size_t(ii-p->imin)*p->jmax*p->kmax + size_t(jj-p->jmin)*p->kmax + size_t(kk-p->kmin);
-                a->phi.V[g] = phi0[g];
-            }
-        }
-
-        pgc->start4(p,a->phi,gcval_phi);
-    }
 
     // B 60: phi in the ghost cells of the inflow, as for the level set
     if(inflowsrc)
