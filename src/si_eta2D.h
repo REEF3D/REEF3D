@@ -87,7 +87,7 @@ public:
     // reaction and right-hand side of the pattern wd_rows, the new pattern wd_update: local changes)
     void build(lexer*, slice &ax, slice &ay, slice &rhs, slice &eta, slice &r);
     void wd_start(lexer*);
-    void wd_rows(lexer*, slice &rhsW, slice &depth, slice &bdiag);
+    void wd_rows(lexer*, slice &rhsW, slice &depth, slice &bdiag, double pdry=0.0);
     // islands: the search for dry islands (wd_islands); off for the composite system with refined patches, where a
     // grid alone does not see the couplings through the patches (rsi_couple) and its covered cells
     int wd_update(lexer*, slice &ax, slice &ay, slice &bdiag, slice &eta, slice &depth, bool islands=true);
@@ -116,9 +116,10 @@ private:
     matrix2D M;
     vec2D xvec, rhsvec;
     
-    // wet pattern, reaction term and right-hand side of the wetting and drying iteration
-    slice4 pw, pw0, pr, rW, react, rhs;   // pattern, pattern of the pass before, made wet as an island in this step,
-                                          // right-hand side of the volume equation
+    // wet pattern, reaction term and right-hand side of the wetting and drying iteration; the guess of a solve
+    // that is repeated with regular dry rows (solve_wetdry)
+    slice4 pw, pw0, pr, rW, react, rhs, eta0w;   // pattern, pattern of the pass before, made wet as an island in this step,
+                                                // right-hand side of the volume equation, the guess of a repeated solve
     std::vector<int> wdmark;
 };
 
