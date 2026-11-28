@@ -355,6 +355,15 @@ private:
     void eta_update(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
     void cell_update(lexer*, fdm_nhf*, ghostcell*);
     void relax(lexer*, fdm_nhf*, ghostcell*);
+    // A 505 1: the relaxation zones inside the step, an implicit damping term sigma (target - f) of the momentum of the faces
+    // and cells and of the water level (the eta system), sigma dt = -ln r of the zone weight r of the step (B 95)
+    bool rzimp = false;
+    std::vector<double> rzSU, rzSV, rzSW, rzUH, rzVH, rzWH;   // packed (lN): sigma dt and the target
+    std::vector<double> rzSL, rzEL;                           // columns: sigma dt and the target eta
+    std::vector<double> rzFx, rzFy;                           // packed faces: 1/(1 + sigma dt), the factor of the phi terms
+    std::vector<double> rzDV;                                 // columns: the water depth the damping added in the step
+    static constexpr double rz_nhcut = 3.0;                   // sigma dt above which a zone column is hydrostatic
+    void rz_targets(lexer*, fdm_nhf*, ghostcell*);
     void finish(lexer*, fdm_nhf*, ghostcell*);
     void level_ghosts(lexer*, fdm_nhf*, ghostcell*);
     void log(lexer*, fdm_nhf*, ghostcell*);

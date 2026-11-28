@@ -82,6 +82,8 @@ public:
     virtual void WL_relax(lexer*,ghostcell*,slice&,slice&)=0;
     // (x,y) inside a relaxation (generation or beach) zone
     virtual bool relax_zone(double, double) {return false;}
+    // the zones relax towards low-passed states (B 98 6, B 99 6): their targets depend on the state and carry filters
+    virtual bool relax_lowpass() const {return false;}
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     // SFLOW: um/vm/wm_relax(U,UH,WL) at the cell centres

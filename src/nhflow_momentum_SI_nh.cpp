@@ -323,6 +323,18 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 && (nhflow_drywall::cliff(p,d,i,j,WL0(i,j))
                     || (!dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)))));
     nAct[IJ] = (a && !df_col(p,i,j)) ? 1 : 0;
+
+    // A 505 1: the inner part of a relaxation zone (sigma dt > rz_nhcut, the zone takes more than 95 % per step) is
+    // hydrostatic, the targets carry the non-hydrostatic pressure of the wave there. With phi there too, its terms damped
+    // by 1/(1 + sigma dt), the solve made phi (1 + sigma dt) times larger (up to some 700 next to the wall at the end of
+    // a generation zone, where the zone weight goes to 0), and the small difference between the damping of the faces and
+    // of the cells drove the velocity of single cells there to 1.5 m/s (case 2 tank, dt 0.04 s; 0.4 m/s in the waves)
+    if(rzimp && nAct[IJ])
+    {
+    k=0;
+    if(MAX(rzSL[IJ],rzSU[PIJK])>rz_nhcut)
+    nAct[IJ] = 0;
+    }
     }
 
     // w*: the vertical advection of the step (column operator without viscosity), as cell_update
@@ -339,6 +351,14 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(ld)
         ld_cell(p,2);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
+
+        // A 505 1: the damping of the relaxation zones, as cell_update
+        if(rzimp)
+        for(k=0;k<K;++k)
+        {
+        wcd[k] += rzSW[PIJK];
+        wb[k] += rzSW[PIJK]*rzWH[PIJK];
+        }
 
         if(thv<1.0)
         {
@@ -582,6 +602,10 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
     y[(size_t)B*n] = nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - w;
 
+    // A 505 1: the damping of the water level in the relaxation zones (as si_rhs, eta_update)
+    if(rzimp)
+    y[(size_t)B*n] += rzSL[IJ]*(etaI(i,j) - rzEL[IJ]);
+
     // VRANS: the storage n_s
     if(vr)
     y[(size_t)B*n] += (d->PORS(i,j) - 1.0)*(nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - WL0(i,j));
@@ -637,8 +661,9 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         // [w]_k, Keller box, with w^{n+1}; 6DOF: in a cell of a body the body velocity (fb_wcell)
         const int fbc = fbon ? fb_wcell(p) : 0;
+        const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;     // A 505 1: the phi term of w damped in a relaxation zone
         const double dtw = vr ? dt*vr_sw(p) : dt;    // VRANS: the inertia factor and the drag of w
-        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - dtw*(ph_up - PHI[PIJK])/h;
+        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - fw*dtw*(ph_up - PHI[PIJK])/h;
         const double wup = 2.0*wk - wlo;
         D += wup - wlo;
         wlo = wup;
@@ -732,6 +757,16 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             pR0[ci()] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
             pL1[ci()] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
             pR1[ci()] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
+
+                // A 505 1: the phi terms of a face in a relaxation zone damped (face_update)
+                if(rzimp)
+                {
+                const double fz = (iR!=iL ? rzFx : rzFy)[PIJK];
+                pL0[ci()] *= fz;
+                pR0[ci()] *= fz;
+                pL1[ci()] *= fz;
+                pR1[ci()] *= fz;
+                }
             }
         }
 
@@ -890,6 +925,11 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
 
     // mass row: eta + d - WL^n + dt sum_k dsig_k div(theta Q_k)
     at(0,0,0) += nPw[IJ];
+
+    // A 505 1: the damping of the water level in the relaxation zones
+    if(rzimp)
+    at(0,0,0) += rzSL[IJ];
+
     if(vr)
     at(0,0,0) += ((*psi->stor)(i,j) - 1.0)*nPw[IJ];    // VRANS: the storage n_s (d->PORS)
     for(int kk=0;kk<K;++kk)
@@ -955,10 +995,12 @@ void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,
 
             if(fbc==0)
             {
-            const double dtw = vr ? dt*vr_sw(p) : dt;    // VRANS (k = kk)
-            wc[kk] += dtw/h;
+            // A 505 1: the phi term of w damped in a relaxation zone (nh_residual, nh_cell); VRANS (k = kk)
+            const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;
+            const double dtw = vr ? dt*vr_sw(p) : dt;
+            wc[kk] += fw*dtw/h;
             if(kk<K-1)
-            wc[kk+1] -= dtw/h;
+            wc[kk+1] -= fw*dtw/h;
             }
 
                 for(int m=0;m<K;++m)
@@ -1300,7 +1342,8 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(nAct[IJ])
             {
             const double ph_up = (k<K-1) ? PHI[PIJKp1] : 0.0;
-            d->WH[IJK] -= (vr ? dt*vr_sw(p) : dt)*(ph_up - PHI[PIJK])/p->DZN[KP];
+            const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;
+            d->WH[IJK] -= fw*(vr ? dt*vr_sw(p) : dt)*(ph_up - PHI[PIJK])/p->DZN[KP];
             }
 
             // the breaking parameter of Popinet 2020: |w| <= b sqrt(g H)

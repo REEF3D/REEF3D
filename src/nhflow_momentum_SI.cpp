@@ -791,6 +791,9 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 
     si_begin(p,d,pgc,S);
 
+    // A 505 1: the damping rates and targets of the relaxation zones of the step (t^{n+1})
+    rz_targets(p,d,pgc);
+
     // 6DOF: the faces next to the columns of a body over the whole water depth (a piston or flap wavemaker) carry the
     // discharge of the moving wall (fb_walls_set, after face_depth)
     if(fbon)
@@ -3098,6 +3101,17 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] += dt*DFx[PIJK];
 
+        // A 505 1: the damping of the relaxation zones (rz_targets), sigma dt on the diagonal and sigma dt Q_T on the
+        // right-hand side of the column; through the second solve (r) it is in alpha_f of the eta system too
+        if(rzimp)
+        for(k=0;k<p->knoz;++k)
+        {
+        const double sf = 0.5*(rzSU[PIJK] + rzSU[PIp1JK]);
+        wcd[k] += sf;
+        rzFx[PIJK] = 1.0/(1.0 + sf);
+        wb[k] += sf*0.5*((rzUH[PIJK] + rzUH[PIp1JK])*nx + (rzVH[PIJK] + rzVH[PIp1JK])*ny);
+        }
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmx(i,j),wb.data(),wr.data());
 
         qh = 0.0;
@@ -3209,6 +3223,16 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(DFy!=nullptr)
         for(k=0;k<p->knoz;++k)
         wb[k] += dt*DFy[PIJK];
+
+        // A 505 1: the damping of the relaxation zones
+        if(rzimp)
+        for(k=0;k<p->knoz;++k)
+        {
+        const double sf = 0.5*(rzSV[PIJK] + rzSV[PIJp1K]);
+        wcd[k] += sf;
+        rzFy[PIJK] = 1.0/(1.0 + sf);
+        wb[k] += sf*0.5*((rzUH[PIJK] + rzUH[PIJp1K])*nx + (rzVH[PIJK] + rzVH[PIJp1K])*ny);
+        }
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmy(i,j),wb.data(),wr.data());
 
@@ -3445,6 +3469,16 @@ void nhflow_momentum_SI::si_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
         rhsW(i,j) += dt*wsrc(i,j);
     }
 
+    // A 505 1: the damping of the water level in the relaxation zones, sigma dt (eta_T - eta^{n+1})
+    if(rzimp)
+    {
+        SLICELOOP4
+        {
+        bdiag(i,j) += rzSL[IJ];
+        rhsW(i,j) += rzSL[IJ]*rzEL[IJ];
+        }
+    }
+
     // VRANS: the storage n_s
     if(vr)
     vr_rhs(p,d);
@@ -3475,7 +3509,7 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             // the non-hydrostatic pressure of the face (A 520 > 0, nh_faces)
             if(nh)
-            Qx[PIJK] += NQx[PIJK];
+            Qx[PIJK] += rzimp ? rzFx[PIJK]*NQx[PIJK] : NQx[PIJK];
 
             // 6DOF: a layer blocked by a body, the discharge of the body motion (si_assemble)
             if(fbon && fb_blocked(p,1))
@@ -3505,7 +3539,7 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             Qy[PIJK] = QAy[PIJK] - G*Ry[PIJK] - ky(i,j)*G1;
 
             if(nh)
-            Qy[PIJK] += NQy[PIJK];
+            Qy[PIJK] += rzimp ? rzFy[PIJK]*NQy[PIJK] : NQy[PIJK];
 
             // 6DOF: a layer blocked by a body, the discharge of the body motion (si_assemble)
             if(fbon && fb_blocked(p,2))
@@ -3630,6 +3664,9 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     // WL from the divergence of the layer transport: the volume is conserved exactly, independent
     // of the tolerance of the eta solve, and omega (layer continuity with the same transport)
     // vanishes at the surface; with the wetting and drying iteration WL >= 0 up to round-off
+    if(rzimp)
+    vrelax = 0.0;
+
     SLICELOOP4
     {
     double s=0.0;
@@ -3641,6 +3678,15 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
 
     if(mass_source)
     w += p->dt*wsrc(i,j);
+
+    // A 505 1: the damping of the water level in the relaxation zones, as in the eta rows of the solve
+    if(rzimp)
+    {
+    const double dv = rzSL[IJ]*(rzEL[IJ] - etaI(i,j));
+    w += dv;
+    rzDV[IJ] = dv;
+    vrelax += dv*carea(p,i,j);
+    }
 
     // VRANS: the storage n_s
     if(vr)
@@ -3676,6 +3722,9 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
 
     Qin = pgc->globalsum(Qin);
     Qout = pgc->globalsum(Qout);
+
+    if(rzimp)
+    vrelax = pgc->globalsum(vrelax);
 
     // ghost cells; the interior values are kept
     SLICELOOP4
@@ -3941,6 +3990,11 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ld_cell(p,0);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
+        // A 505 1: the damping of the relaxation zones (rz_targets), as on the faces
+        if(rzimp)
+        for(k=0;k<p->knoz;++k)
+        wcd[k] += rzSU[PIJK];
+
         for(k=0;k<p->knoz;++k)
         wb[k] = 1.0;
 
@@ -3968,6 +4022,11 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         wb[k] = UHD[PIJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0) + (nhc ? wnx[k] : 0.0);
+
+        // A 505 1: the target; the phi term is damped by the column like every other force (as on the faces, rzFx)
+        if(rzimp)
+        for(k=0;k<p->knoz;++k)
+        wb[k] += rzSU[PIJK]*rzUH[PIJK];
 
         if(thv<1.0)
         {
@@ -4009,6 +4068,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(k=0;k<p->knoz;++k)
             wb[k] = VHD[PIJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0) + (nhc ? wny[k] : 0.0);
 
+            if(rzimp)
+            for(k=0;k<p->knoz;++k)
+            wb[k] += rzSU[PIJK]*rzVH[PIJK];
+
             if(thv<1.0)
             {
             for(k=0;k<p->knoz;++k)
@@ -4046,6 +4109,14 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(ld)
         ld_cell(p,2);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
+
+        // A 505 1: the damping of the relaxation zones (the phi term of nh_cell with the same factor)
+        if(rzimp)
+        for(k=0;k<p->knoz;++k)
+        {
+        wcd[k] += rzSW[PIJK];
+        wb[k] += rzSW[PIJK]*rzWH[PIJK];
+        }
 
         if(thv<1.0)
         {
@@ -4360,11 +4431,132 @@ void nhflow_momentum_SI::df_reforce(lexer *p, fdm_nhf *d, ghostcell *pgc)
     df_apply(p,d,pgc,d->UH,d->VH,d->WH,d->WL,true);
 }
 
+// A 505 1: the relaxation zones inside the step. Blended after the coupled solve (relax), a zone acts once per step: at a
+// time step several times the explicit one its weight was too weak to hold the wave it generates (empty tank, T 1.4 s,
+// H 0.15 m, dx 0.05 m: +6.5 % at dt 0.02 s, +7.5 % at 0.04 s), and made stronger per step (B 95) the blend moved the state
+// so far between two solves that the coupled solve failed (dt 0.04 s, Gamma^3 and stronger). Here (case 2 tank, B 95 0.002)
+// the wave is within 1.5 % of nominal at dt 0.02 and 0.04 s and up to 0.08 s, as with RK2. The zones are a damping
+// term sigma (f_T - f) of the momentum of every face and cell column and of the water level, implicit in the step:
+//  - face and cell columns: sigma dt on the diagonal of the column operator, sigma dt f_T on the right-hand side, so the
+//    face coefficients of the eta system (alpha_f) and the explicit discharge carry it;
+//  - water level: sigma dt on the diagonal of the eta rows (bdiag; the mass row of the coupled eta-phi system and its
+//    Jacobian) and sigma dt eta_T on the right-hand side, the same mass term in eta_update. It is a source spread over
+//    the layers in proportion to their thickness: omega (finish) from the layer transport without it;
+//  - the non-hydrostatic pressure terms damped with the same factor 1/(1 + sigma dt): the face terms in face_update and
+//    nh_dfaces, the cell terms inside the column solve, w in nh_residual, its Jacobian and nh_cell. The targets carry the
+//    non-hydrostatic pressure of the wave already; undamped, the zone added it once more (+5 % at the end of the zone).
+//    Where the zone holds the target (sigma dt > rz_nhcut) the column is hydrostatic (nh_prepare): with phi damped there
+//    the solve made phi up to 1 + sigma dt times larger, and single cells next to the wall ran away.
+// sigma dt = -ln r with r the zone weight of the step (B 95: r = Gamma^(dt/B95), a rate per time independent of dt; the
+// explicit RK2 step relaxes in both stages, so B 95 = half its time step gives its zone strength); the targets at
+// t^{n+1}. The targets and weights are read from the relaxation of iowave itself (every zone type, background, current):
+// with f = 0 it gives (1 - r) f_T, with f = 1 (1 - r) f_T + r. Not with the low-passed zones (B 98 6, B 99 6), whose
+// targets depend on the state, and not on curvilinear, multi-block and refined grids: there the zones stay blended
+// after the step.
+void nhflow_momentum_SI::rz_targets(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    rzimp = false;
+
+    if(p->A505!=1 || (p->B98!=2 && p->B99!=1 && p->B99!=2 && p->B90==0) || pflow==nullptr || pflow->relax_lowpass())
+    return;
+
+    // one Cartesian grid (the composite steps of curvilinear, multi-block and refined grids keep the blend)
+    if(p->geo_curv==1 || p->geo_mb>0 || p->G1>0 || patch)
+    return;
+
+    rzimp = true;
+
+    if(p->B95==0.0 && p->count<=1 && p->mpirank==0)
+    cout<<"NHFLOW A 505 1 without B 95: the zone weight of one step (B 95 -1), dt-dependent"<<endl;
+
+    // the targets of t^{n+1}
+    if(p->B95!=0.0)
+    pflow->wavegen_stage_nhflow(p,d,pgc,p->simtime+p->dt);
+
+    const int N = p->imax*p->jmax*(p->kmax+2);
+    const size_t NC = (size_t)p->imax*p->jmax;
+
+    rzSU.assign(lN,0.0); rzSV.assign(lN,0.0); rzSW.assign(lN,0.0);
+    rzUH.assign(lN,0.0); rzVH.assign(lN,0.0); rzWH.assign(lN,0.0);
+    rzSL.assign(NC,0.0); rzEL.assign(NC,0.0);
+    rzFx.assign(lN,1.0); rzFy.assign(lN,1.0);
+    rzDV.assign(NC,0.0);
+
+    std::vector<double> a0(N), b0(N), a1(N), b1(N);
+    std::vector<double> pr0(lN), pr1(lN);
+
+    auto rate = [](double r)
+    {
+        if(r>=1.0)
+        return 0.0;
+
+        return -std::log(MAX(r,1.0e-300));
+    };
+
+    // one field: relaxf(f, fH) on f = 0 and on f = 1, from the transport (fH) the rate and the target
+    auto probe = [&](const std::function<void(double*,double*)> &relaxf, std::vector<double> &S, std::vector<double> &T)
+    {
+        std::fill(a0.begin(),a0.end(),0.0);
+        std::fill(b0.begin(),b0.end(),0.0);
+        std::fill(a1.begin(),a1.end(),1.0);
+        std::fill(b1.begin(),b1.end(),1.0);
+
+        relaxf(a0.data(),b0.data());
+        relaxf(a1.data(),b1.data());
+
+        lset(p,pr0.data(),b0.data());
+        lset(p,pr1.data(),b1.data());
+
+        LOOP
+        {
+        const double r = pr1[PIJK] - pr0[PIJK];
+        S[PIJK] = rate(r);
+        T[PIJK] = r<1.0 ? pr0[PIJK]/(1.0 - r) : 0.0;
+        }
+    };
+
+    probe([&](double *f, double *fh){ pflow->U_relax(p,pgc,f,fh); },rzSU,rzUH);
+
+    if(p->j_dir==1)
+    probe([&](double *f, double *fh){ pflow->V_relax(p,pgc,f,fh); },rzSV,rzVH);
+
+    probe([&](double *f, double *fh){ pflow->W_relax(p,pgc,f,fh); },rzSW,rzWH);
+
+    // the water level
+    {
+    slice4 w0(p), w1(p);
+
+        SLICEBASELOOP
+        {
+        w0(i,j) = 0.0;
+        w1(i,j) = 1.0;
+        }
+
+    pflow->WL_relax(p,pgc,w0,d->depth);
+    pflow->WL_relax(p,pgc,w1,d->depth);
+
+        SLICELOOP4
+        {
+        const double r = w1(i,j) - w0(i,j);
+        rzSL[IJ] = rate(r);
+        rzEL[IJ] = r<1.0 ? w0(i,j)/(1.0 - r) - d->depth(i,j) : 0.0;
+        }
+    }
+
+    pexchC(p,pgc,rzSU.data());
+    pexchC(p,pgc,rzUH.data());
+    pexchC(p,pgc,rzSV.data());
+    pexchC(p,pgc,rzVH.data());
+}
+
 void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // relaxation zones (B 98 2, B 99 1/2, B 520 1/2), once per step: WL, then U, V, W with the
     // new water depth; the targets of the end of the step with B 95 (the zone weight acts once
-    // per step instead of once per RK stage)
+    // per step instead of once per RK stage). A 505 1: the zones were in the step (rz_targets), vrelax from eta_update
+    if(rzimp)
+    return;
+
     vrelax = 0.0;
 
     if(p->B98!=2 && p->B99!=1 && p->B99!=2 && p->B90==0)
@@ -4514,7 +4706,26 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     lget(p,Tx,d->FEx);
     lget(p,Ty,d->FEy);
 
+    // A 505 1: the damping of the water level is a source spread over the layers in proportion to their thickness (the
+    // sigma surfaces stretch with it, no flux through them): omega from the layer transport with deta/dt without it.
+    // With it, omega at the surface was minus the source and the top layer took the flux (a crest running into the beach
+    // reached 0.9 m/s in the top layer, 0.4 m/s with the blend)
+    if(rzimp)
+    {
+        SLICELOOP4
+        {
+        tS(i,j) = d->detadt(i,j);
+        d->detadt(i,j) -= rzDV[IJ]/p->dt;
+        }
+    }
+
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+
+    if(rzimp)
+    {
+        SLICELOOP4
+        d->detadt(i,j) = tS(i,j);
+    }
 
     // VRANS: omega with the porosity of the volume the moving layer interfaces sweep
     if(vr)

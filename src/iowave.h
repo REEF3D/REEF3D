@@ -189,6 +189,7 @@ public:
     // NHFLOW
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    bool relax_lowpass() const override {return gen_lp || beach_lp;}
     void wavegen_stage_fnpf(lexer*,fdm_fnpf*,ghostcell*,double,double) override final;
     void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);

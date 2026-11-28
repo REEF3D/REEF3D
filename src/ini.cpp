@@ -224,6 +224,7 @@ void control::ini_default()
     A535=0.5;   // double NHFLOW semi-implicit: theta
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A505=0;      // int NHFLOW semi-implicit: relaxation zones (B 98 2, B 99 1/2, B 520) 0 blended once after the step, 1 inside the step as an implicit damping term of momentum and water level, sigma dt = -ln r of the zone weight of the step; with B 95 (half the explicit time step: the zone strength of RK2) for a time step several times the explicit one
     A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A506=1.0e-4; // double NHFLOW semi-implicit with A 520 > 0 (2D, MPI): tolerance of the coupled eta-phi solve relative to the residual of the step's guess (FGMRES, max |r| <= A 506 max |r0|, rows in metres); the band LU of one row of columns is direct
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
