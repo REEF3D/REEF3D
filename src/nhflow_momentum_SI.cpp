@@ -245,14 +245,18 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     vad.assign(p->knoz,0.0);
     // A 510 11, and every predictor with the non-hydrostatic pressure: the vertical advection of the column operator
     // Crank-Nicolson (with omega at t^{n+1/2}, nh_begin)
-    // second-order time levels of the nonlinear terms (every predictor, hydrostatic or not) on one Cartesian grid: the
+    // second-order time levels of the nonlinear terms (every predictor, hydrostatic or not) on one grid, Cartesian or
+    // curvilinear: the
     // advecting transport of the step from an estimate pass (step_single), the face depths and omega at t^{n+1/2}
     // (nh_begin), the acceleration of the step in the advected velocities (the BCG source of A 510 11, the stage
-    // velocities of SSP-RK), Crank-Nicolson vertical advection in the column operator. Curvilinear, multi-block and
+    // velocities of SSP-RK), Crank-Nicolson vertical advection in the column operator. Multi-block and
     // refined grids and A 549 1 keep the other time levels of the step before (first order in time for the nonlinear
-    // terms)
-    tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch;
-    // the estimate pass of the advecting transport also where tl2 is not available (curvilinear, multi-block and refined
+    // terms). On a curvilinear grid the acceleration and the free surface terms of the step before are Cartesian
+    // vectors of the cells, so they are used as they are; the wall sides of the cell terms as in the Cartesian branch
+    // (cell_update, nh_cell_faces_curv). Without them a dam break on a turned grid was 13 % off its Cartesian twin in
+    // the sum of eta^2 after 30 steps (1 % with them), a sloshing wave 6e-4 (3e-6)
+    tl2 = elm_mode(p)==0 && p->geo_mb==0 && p->G1==0 && !patch;
+    // the estimate pass of the advecting transport also where tl2 is not available (multi-block and refined
     // grids, not A 549 1): advected with the transport of the step before (one pass) the short waves in a current grew
     // from about theta - 1/2 < Fr (flume, h 0.109 m, U 0.42 m/s, theta 0.55, 0.5 - 4 % per step from flow Courant
     // numbers 0.25 on, curvilinear grid 4 - 29 mm noise; linear analysis of the hydrostatic step: the lag of the
@@ -263,9 +267,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // one curvilinear grid with A 539 1: the non-orthogonal part of the face gradient of eta^{n+1} from eta of the
     // estimate pass (si_assemble; that of eta^n for both time levels damped a sloshing wave on a grid sheared by 22 deg
     // by 77 % in 34 periods, hydrostatic, dt T/90; 4 % with the estimate)
-    cvE = p->geo_curv==1 && p->A539==1 && p->geo_mb==0 && p->G1==0 && !block && tp2;
+    cvE = p->geo_curv==1 && p->A539==1 && p->geo_mb==0 && p->G1==0 && !block && (tl2 || tp2);
 
-    // A 510 11 without tl2 (curvilinear, multi-block and refined grids): Crank-Nicolson vertical advection with
+    // A 510 11 without tl2 (multi-block and refined grids): Crank-Nicolson vertical advection with
     // omega at t^{n+1/2} (nh_begin), as with tl2
     if(onestep)
     thv = 0.5;
@@ -547,8 +551,8 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A510!=1 && p->A510!=2 && p->A510!=3)
     msg("a predictor other than one step, SSP-RK2 or SSP-RK3 (A 510 11, 12, 13) is");
 
-    // A 510 11 on curvilinear, multi-block and refined grids: the BCG advection without its source term (the
-    // acceleration of the step before is a quantity of the second-order time levels, tl2, one Cartesian grid), the face
+    // A 510 11 on multi-block and refined grids: the BCG advection without its source term (the
+    // acceleration of the step before is a quantity of the second-order time levels, tl2, one grid), the face
     // depths and omega at t^{n+1/2} (nh_begin on every grid), Crank-Nicolson vertical advection
 
     // mesh refinement (G 1): one eta system over the leaf cells of all grids (reefamr_si.cpp), one global time step
@@ -816,8 +820,8 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     // transport of this step, theta Q^{n+1} + (1-theta) Q^n, to O(dt^2). The second advects with that transport (the
     // momentum moves with the discharges that move the mass) and solves the full system. An extrapolation of the
     // transport to t^{n+1/2} instead was second order as well but let an odd-even mode live in a draining river
-    // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled). tp2: the same two passes on curvilinear
-    // grids (the multi-block grid and the refined grids: nhflow_amr::si_step)
+    // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled). tp2: the same two passes on the
+    // multi-block grid (the refined grids: nhflow_amr::si_step)
     const int npass = (tl2 || tp2) ? 2 : 1;
 
     faces_set = false;
@@ -3947,8 +3951,16 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 gg = n>0 ? gg/double(n) : 0.0;
             };
 
-            unit(ax_,ay_,ag,na);
-            unit(bx_,by_,bg,nb);
+            // tl2: a wall side counts in the mean of the face terms of its direction, with the sources of the predictor
+            // normal to it (as on the Cartesian grid above); the normal of the wall is that of the open face
+            // second-order time levels: the wall sides of the cell in the mean, as in the Cartesian branch
+            int wa=0, wb_=0;
+
+            if(wz)
+            curv_wall_sides(p,ax_,ay_,bx_,by_,na,nb,wa,wb_,ag,bg);
+
+            unit(ax_,ay_,ag,na+wa);
+            unit(bx_,by_,bg,nb+wb_);
 
             const double det = ax_*by_ - ay_*bx_;
 

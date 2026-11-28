@@ -497,6 +497,7 @@ private:
     void nh_curv_metric(lexer*, int, int, bool, bool, int, int, bool, bool);
     void nh_curv_vel(lexer*);
     void nh_cell_faces_curv(lexer*, fdm_nhf*, double*, double*);
+    void curv_wall_sides(lexer*, double, double, double, double, int, int, int&, int&, double&, double&);
     void nh_curv_phi_corr(lexer*, fdm_nhf*, ghostcell*);
 
     // a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
@@ -682,8 +683,8 @@ private:
     double theta, g;
     int rk, wd_iter, wd_cells, gcval_eta;
     bool onestep = false;
-    bool tl2 = false;          // second-order time levels of the nonlinear terms (one Cartesian grid, no A 549 1)
-    bool tp2 = false;          // the estimate pass for the advecting transport without tl2 (curvilinear, multi-block and
+    bool tl2 = false;          // second-order time levels of the nonlinear terms (one grid, no A 549 1)
+    bool tp2 = false;          // the estimate pass for the advecting transport without tl2 (multi-block and
                                // refined grids): the passes of tl2 with the other time levels of the step before
     double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
     double *vaU = nullptr, *vaV = nullptr, *vaW = nullptr;       // A 510 11 with tl2: its vertical-advection part (col_va)
