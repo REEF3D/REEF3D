@@ -154,7 +154,10 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
         for(int q=q0; q<q0+p->knoy; ++q)
         if(flag[q]>0)
         {
-        wo[q] = a*w0[q] + (1.0-a)*(ws[q] + p->dt*Kv[q]);
+        // = a*w0 + (1-a)*(ws + dt*K), written as an increment on ws: fl(1/3) + fl(2/3) = 1 + 2^-54, so the
+        // convex form multiplied WL by 1 + 5.5e-17 in the last RK3 stage (a = 1/3) and a lake at rest gained
+        // water every step (1e-13 of the mass in 2 s, an eta rise that gravity waves spread over the lake)
+        wo[q] = ws[q] + (a*(w0[q]-ws[q]) + (1.0-a)*p->dt*Kv[q]);
         eta[q] = wo[q] - depth[q];
         }
     }
