@@ -3,7 +3,7 @@
  "ctrl_set": {
   "A 510": "11"
  },
- "description": "`nhflow_2d_si_curv_flume_current_rot30` with the one-step predictor (A 510 11, BCG advection): one pass before, 2 mm noise after 2 s; with the estimate pass clean.",
+ "description": "`nhflow_2d_si_curv_flume_current_rot30` with the one-step predictor (A 510 11, BCG advection): one pass before, 2 mm noise after 2 s; with the estimate pass clean. Since patch v52 with the second-order time levels (tl2) of one curvilinear grid: the BCG source from the acceleration of the step before.",
  "tags": [
   "2d",
   "nhflow",

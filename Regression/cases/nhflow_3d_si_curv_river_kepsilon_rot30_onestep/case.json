@@ -3,7 +3,7 @@
  "ctrl_set": {
   "A 510": "11"
  },
- "description": "nhflow_3d_si_curv_river_kepsilon_rot30 with A 510 11: the river reach on the curvilinear grid turned by 30 deg (inflow along the face normal, stage outflow, k-epsilon).",
+ "description": "nhflow_3d_si_curv_river_kepsilon_rot30 with A 510 11: the river reach on the curvilinear grid turned by 30 deg (inflow along the face normal, stage outflow, k-epsilon). Since patch v52 with the second-order time levels (tl2) on the curvilinear grid (at 600 s the level within 3e-6 m of the run before).",
  "tags": [
   "3d",
   "nhflow",

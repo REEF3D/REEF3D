@@ -1,0 +1,23 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit step with the second-order time levels on a curvilinear grid (G 50 2; needs patch v52): sloshing (first mode, amplitude 0.1 m) with the Coriolis force (f-plane, W 211 1, f 2e-3 1/s) in a closed basin of 10 km x 400 m, d 10 m, 100 x 4 x 10 cells, turned by 30 deg, A 510 11, dt 5 s, 200 steps. The Coriolis force of the flow along the basin acts normal to the side walls: the wall sides of the cells count in the mean of the face terms with the source normal to the wall (curv_wall_sides), as on the Cartesian grid. After 400 steps eta agrees with the Cartesian run to 1.5e-6 m (2.3e-4 m without the time levels of v52), the cross-basin velocity of the wall rows is 0.65 mm/s as there (1.5 mm/s before).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "coriolis"
+ ],
+ "covers": [
+  "nhflow_momentum_SI: tl2 on one curvilinear grid",
+  "nhflow_momentum_SI_nhcurv.cpp: curv_wall_sides",
+  "nhflow_momentum_SI::cell_update, curvilinear branch with wall sides"
+ ],
+ "architect": "Hans Bihs"
+}
