@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_1d_si_nh_relax_implicit",
+ "np": 2,
+ "description": "nhflow_1d_si_nh_relax_implicit on 2 ranks: the zone rates and targets across the rank boundary (the faces of the generation zone on one rank, the beach on the other).",
+ "tags": ["quick", "1d", "nhflow", "semi_implicit", "nonhydrostatic", "iowave", "mpi"],
+ "covers": ["the exchange of the zone rates and targets (pexchC) and the face factors on both ranks"],
+ "architect": "Hans Bihs"
+}
