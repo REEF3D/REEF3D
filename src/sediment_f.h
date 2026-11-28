@@ -140,6 +140,7 @@ public:
     
     // SFLOW: bed shear stress with the waves (S 110), shared by the sediment step and the suspended load
     void physics_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void shallow_bedload(lexer*, ghostcell*);                  // S 67: no bed load in water shallower than the grains
     // SFLOW: depth-averaged suspended load (S 120), every flow step once the sediment transport has started
     void susp_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     // SFLOW wave formulas (S 11 6-9): the face directions of the Exner step from the transport direction

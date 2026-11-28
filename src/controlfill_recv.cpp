@@ -2713,6 +2713,8 @@ void control::ctrlrecv()
     dd++;
     S65 = dctrl[dd];
     dd++;
+    S67 = dctrl[dd];
+    dd++;
     S90 = ictrl[ii];
     ii++;
     S91 = ictrl[ii];

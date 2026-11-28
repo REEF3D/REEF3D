@@ -62,6 +62,8 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     if(s->pmix!=nullptr)
     s->pmix->bedload_fractions(p,pgc,s,pbed);
+
+    shallow_bedload(p,pgc);
     
     // wave formulas (S 11 6-9): the Exner step in the direction of the transport
     if(pbedw!=nullptr)
@@ -228,4 +230,26 @@ void sediment_f::transport_direction(lexer *p, ghostcell *pgc, int mode)
     for(j=-1; j<p->knoy; ++j)
     if((j+p->origin_j==-1 || j+p->origin_j==p->gknoy-1) && (*Qsave)(i,j)!=0.0)
     s->Q(i,j) = 0.5*((*Vty)(i,j) + (*Vty)(i,j+1));
+}
+
+// S 67 r (SFLOW): bed load needs water over the grains. The bed shear stress of the depth-averaged flow grows without
+// bound in thin water (Manning: tau = rho g n^2 U^2 / h^(1/3), with the velocity of the faces, which takes half the
+// velocity of a deep neighbour), and the bed load of the transport formula with it, in cells that hold a film; on
+// steep beds with coarse grains this moved metres of bed out of the wet margins in one step. The bed load is scaled
+// by f = clamp(h/(r d50) - 1, 0, 1): none in water shallower than r d50, full from 2 r d50 (with a mixture the total
+// bed load, the fractions take the same factor, d50 = S 20)
+void sediment_f::shallow_bedload(lexer *p, ghostcell *pgc)
+{
+    if(p->S67<=0.0)
+    return;
+
+    const double h0 = p->S67*p->S20;
+
+    SEDSLICELOOP
+    {
+    const double f = MAX(MIN(s->waterlevel(i,j)/h0 - 1.0, 1.0), 0.0);
+    s->qbe(i,j) *= f;
+    }
+
+    pgc->gcsl_start4(p,s->qbe,1);
 }

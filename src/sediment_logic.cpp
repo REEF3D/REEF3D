@@ -102,6 +102,13 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
         exit(1);
     }
     
+    if(p->S67<0.0 || (p->S67>0.0 && p->A10!=2))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! S 67 (bed load in shallow water) is >= 0 and for SFLOW (A 10 2) !!!"<<endl;
+        exit(1);
+    }
+
     // the lags of the bend morphology (sediment_exner_lag.cpp): S 95 0, 1 or 2; the suspended part S 64 of the
     // depth-averaged transport for SFLOW with one fraction, 0 <= S 64 <= 1
     if(p->S95<0 || p->S95>2 || p->S97<0.0
