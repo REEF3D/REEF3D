@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_onestep_singlephase_f67",
+ "np": 1,
+ "steps": 80,
+ "ctrl_add": [
+  "F 46 3"
+ ],
+ "description": "cfd_2d_dambreak_onestep_singlephase_f67 with the volume correction of the level set (F 46 3, picard_lsm: a uniform shift of the level set once per step to the volume of the start). With the single phase the dam break otherwise loses 15-20 % of its water in 4 s (validation CFD AMR speed/28).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "picard_lsm::correct_ls with F 41 1, F 66, F 67"
+ ],
+ "architect": "Hans Bihs"
+}

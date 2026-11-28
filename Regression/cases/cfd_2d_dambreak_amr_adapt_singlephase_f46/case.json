@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_singlephase_f67",
+ "np": 1,
+ "steps": 120,
+ "ctrl_add": [
+  "G 18 1",
+  "F 46 3"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_singlephase_f67 with G 18 1 and the volume correction over the leaf cells of all grids (F 46 3, cfd_amr::volume_correct) with the single phase and adaptive patches (validation CFD AMR speed/28).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_amr::volume_correct (F 46 3) with F 41 1 on adaptive patches"
+ ],
+ "architect": "Hans Bihs"
+}
