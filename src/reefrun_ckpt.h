@@ -81,6 +81,12 @@ public:
     void read();                // I 45 1, exits on a failure
     void step();                // after the outputs of a step: P 48, a stop signal and G 46
     void finish();              // the end of the run: a checkpoint, unless the last step wrote one
+    // the state of the run kept in memory and taken back (the repeat of a time step, N 66): what a
+    // checkpoint holds, without files; false: the case is not covered by the checkpoints (why: the
+    // reason), or the state did not fit
+    bool mem_save(std::string &why);
+    bool mem_restore(std::string &why);
+    long long mem_bytes() const;
     // SIGTERM or SIGUSR1 to a rank (collective): a checkpoint at this step boundary, then the run stops;
     // false: no signal
     bool signal_stop();
@@ -111,6 +117,7 @@ private:
     double next_time() const;
     int last_count = -1;        // the step (and sub) of the last checkpoint written or read
     int last_sub = -1;
+    reefckpt *memck = nullptr;  // mem_save
 };
 
 #endif

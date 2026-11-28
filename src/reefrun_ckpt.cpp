@@ -326,6 +326,66 @@ void reefrun_ckpt::write()
     }
 }
 
+// the state in memory (reefckpt in memory): the scalars, the counters of the outputs and the arrays of
+// write(), every rank its own
+bool reefrun_ckpt::mem_save(string &why)
+{
+    why = h.unsupported ? h.unsupported() : string();
+    if(!why.empty())
+    return false;
+
+    if(memck==nullptr)
+    memck = new reefckpt;
+    reefckpt &ck = *memck;
+    ck.mem_open(p);
+
+    ck.scalar("count",double(p->count));
+    ck.scalar("printcount",double(p->printcount));
+    ck.scalar("printcount_sixdof",double(p->printcount_sixdof));
+    ck.scalar("sediter",double(p->sediter));
+    run_scalars(p,[&](const char *n, double &v){ ck.scalar(n,v); });
+
+    vector<double> pv;
+    if(h.printer_state)
+    h.printer_state(pv);
+    ck.blob("printer",pv);
+
+    h.write(ck);
+    return true;
+}
+
+bool reefrun_ckpt::mem_restore(string &why)
+{
+    if(memck==nullptr)
+    {
+        why = "no state kept";
+        return false;
+    }
+    reefckpt &ck = *memck;
+    ck.mem_read();
+
+    if(!h.read(ck,why))
+    {
+        if(why.empty())
+        why = "the state kept does not fit";
+        return false;
+    }
+
+    p->count = int(ck.get_scalar("count"));
+    p->printcount = int(ck.get_scalar("printcount"));
+    p->printcount_sixdof = int(ck.get_scalar("printcount_sixdof"));
+    p->sediter = int(ck.get_scalar("sediter",p->sediter));
+    run_scalars(p,[&](const char *n, double &v){ v = ck.get_scalar(n,v); });
+    if(h.printer_restore)
+    h.printer_restore(ck.get_blob("printer"));
+    return true;
+}
+
+long long reefrun_ckpt::mem_bytes() const
+{
+    return memck==nullptr ? 0 : memck->mem_bytes();
+}
+
 void reefrun_ckpt::read()
 {
     reefckpt ck;

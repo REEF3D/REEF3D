@@ -2011,6 +2011,8 @@ void control::ctrlrecv()
     ii++;
     N65 = ictrl[ii];
     ii++;
+    N66 = dctrl[dd];
+    dd++;
     N56 = dctrl[dd];
     dd++;
     N52 = dctrl[dd];

@@ -287,6 +287,22 @@ long long reefckpt::count_of(int type) const
 
 void reefckpt::put(const string &name, int type, const void *data, long long n, size_t bytes)
 {
+    if(mem)
+    {
+        mrec &m = marr[name];
+        m.type = type;
+        m.n = n;
+        m.gen = mgen;
+        const size_t nb = (size_t)(n*(long long)bytes);
+        // most arrays of a run do not change from one step to the next (the solid, the fields of the
+        // models that are off): comparing reads, copying reads and writes
+        const bool same_size = m.data.size()==nb;
+        if(!same_size)
+        m.data.resize(nb);
+        if(nb>0 && (!same_size || memcmp(m.data.data(),data,nb)!=0))
+        memcpy(m.data.data(),data,nb);
+        return;
+    }
     wstr(out,name);
     wr(out,type);
     wr(out,n);
@@ -548,8 +564,56 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     return true;
 }
 
+// ---- in memory
+void reefckpt::mem_open(lexer *pp)
+{
+    p = pp;
+    mem = true;
+    ++mgen;
+    sc.clear();
+    bl.clear();
+    dirname = "memory";
+}
+
+void reefckpt::mem_read()
+{
+    rsc.clear();
+    rbl.clear();
+    for(const auto &x : sc)
+    rsc[x.first] = x.second;
+    for(const auto &x : bl)
+    rbl[x.first] = x.second;
+    same = true;
+    mine = p->mpirank;
+}
+
+void reefckpt::mem_put(const string &name, const void *data, long long n, size_t bytes)
+{
+    put(name,TB,data,n,bytes);
+}
+
+const vector<char>* reefckpt::mem_array(const string &name) const
+{
+    auto it = marr.find(name);
+    return (it!=marr.end() && it->second.gen==mgen) ? &it->second.data : nullptr;
+}
+
+long long reefckpt::mem_bytes() const
+{
+    long long b = 0;
+    for(const auto &m : marr)
+    if(m.second.gen==mgen)
+    b += (long long)m.second.data.size();
+    return b;
+}
+
 bool reefckpt::has(const string &name) const
 {
+    if(mem)
+    {
+        auto it = marr.find(name);
+        return rsc.count(name)>0 || rbl.count(name)>0 || (it!=marr.end() && it->second.gen==mgen);
+    }
     return rsc.count(name)>0 || rbl.count(name)>0 || rtype.count(name)>0;
 }
 
@@ -568,6 +632,17 @@ vector<double> reefckpt::get_blob(const string &name) const
 vector<double> reefckpt::get_rank_blob(const string &name, int r)
 {
     vector<double> res;
+    if(mem)
+    {
+        auto it = marr.find(name);
+        if(r==p->mpirank && it!=marr.end() && it->second.gen==mgen && it->second.type==TB)
+        {
+            res.resize((size_t)it->second.n);
+            if(it->second.n>0)
+            memcpy(res.data(),it->second.data.data(),(size_t)it->second.n*8);
+        }
+        return res;
+    }
     if(r<0 || r>=(int)box.size())
     return res;
     ifstream f(piece_name(dirname,r).c_str(),ios::binary);
@@ -598,6 +673,8 @@ vector<double> reefckpt::get_rank_blob(const string &name, int r)
 
 vector<vector<double>> reefckpt::get_rank_blobs(const string &name)
 {
+    if(mem)
+    return vector<vector<double>>(1,get_rank_blob(name,p->mpirank));
     vector<vector<double>> res(box.size());
     for(int r=0;r<(int)box.size();++r)
     res[r] = get_rank_blob(name,r);
@@ -606,6 +683,18 @@ vector<vector<double>> reefckpt::get_rank_blobs(const string &name)
 
 bool reefckpt::get(const string &name, int type, void *V, size_t bytes)
 {
+    if(mem)
+    {
+        auto it = marr.find(name);
+        int ok = (it!=marr.end() && it->second.gen==mgen && it->second.type==type) ? 1 : 0;
+        int all = 0;
+        MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,reef3d_comm());
+        if(!all)
+        return false;
+        if(it->second.n>0)
+        memcpy(V,it->second.data.data(),(size_t)(it->second.n*(long long)bytes));
+        return true;
+    }
     auto t = rtype.find(name);
     int ok = (t!=rtype.end() && t->second==type) ? 1 : 0;
     int all=0;
