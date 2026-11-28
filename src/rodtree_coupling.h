@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include<algorithm>
 #include<cmath>
 #include<string>
+#include<functional>
 
 class lexer;
 class fdm;
@@ -63,6 +64,17 @@ public:
 
     // CFD: adds the spread acceleration to the staggered forcing fields
     void start_cfd(lexer*, fdm*, ghostcell*, double alpha, field&, field&, field&, field&, field&, field&, bool finalize);
+
+    // CFD mesh refinement (cfd_amr, G 7 0): level 0 runs start_cfd as above; the patches
+    //  - sample the fluid velocity at the points they hold (mine: the point is a leaf point of the
+    //    patch), before the momentum of level 0; start_cfd then takes these samples instead of the
+    //    (restricted) velocity of level 0 under the patches
+    //  - get the reaction of the elements (as evaluated by start_cfd in the same stage) on their
+    //    faces, as an acceleration in Fext, Gext, Hext; width: the kernel width per direction in
+    //    cells of the patch (coarser near a patch edge, as the nets)
+    void amr_sample_begin();
+    void amr_sample(lexer*, fdm*, const std::function<bool(const double*)> &mine);
+    void amr_spread(lexer*, fdm*, const std::function<void(const double*,int*)> &width);
 
 private:
     void ini_points(lexer*, ghostcell*);
@@ -84,6 +96,15 @@ private:
     std::vector<double> wgt, shk;               // per element: representative weight, horizontal kernel scale
     int npts;
     std::vector<double> buf;                    // 4 per point: u,v,w,in-fluid
+    std::vector<double> abuf;                   // mesh refinement: 5 per point, u,v,w,in-fluid,sampled by a patch
+    bool amr_sampled;
+
+    // the kernel weights of the faces in the fluid: the fraction of the full weight of the
+    // stencil (D: the 1D weight functions of the three directions at the faces of one component)
+    // that lies in the solids or the bed (a->solid, a->topo < 0 on both sides of the face) is given
+    // to the faces in the fluid, so the reaction of an element next to a pile is not lost in it
+    double fluid_scale(lexer*, fdm*, int comp, int ii, int jj, int kk, int rx, int ry, int rz,
+                       const std::function<double(int,int,int,int)> &D) const;
     std::vector<Eigen::Vector3d> ufprev;
     double tprev;
     bool have_prev;

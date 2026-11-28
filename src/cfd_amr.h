@@ -635,6 +635,11 @@ private:
     // the nets (X 320, of the bodies or fixed): their forces on the fluid on every patch, G 7 0
     sixdof *nets6 = nullptr;
     void net_forces();
+    // flexible rod trees (Z 20, G 7 0): sampled on the finest grid that holds a point, their reaction
+    // on the faces of the patches as well (rod_sample before, rod_forces after the momentum of level 0)
+    int rods = 0;
+    void rod_sample();
+    void rod_forces();
     void body_fit(int, int, double);
     void body_refit(int, int);
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g

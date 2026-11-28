@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include<sys/types.h>
 #include"runlog.h"
 
-rodtree_coupling::rodtree_coupling(lexer *p, ghostcell *pgc) : npts(0), tprev(0.0), have_prev(false), printtime(0.0), printcount(0)
+rodtree_coupling::rodtree_coupling(lexer *p, ghostcell *pgc) : npts(0), amr_sampled(false), tprev(0.0), have_prev(false), printtime(0.0), printcount(0)
 {
     // rank 0 reads rodtree.dat, everybody parses the broadcast content
     std::string content;
@@ -127,6 +127,10 @@ void rodtree_coupling::ini_points(lexer *p, ghostcell *pgc)
     h = std::min(h,p->DYN[jj+marge]);
 
     h = pgc->globalmin(h);
+
+    // CFD mesh refinement: the points as dense as the cells of the finest level
+    if(p->A10==6 && p->G1>0)
+    h /= double(1<<p->G1);
 
     const int ne = rt.nelem();
     nq.resize(ne);
