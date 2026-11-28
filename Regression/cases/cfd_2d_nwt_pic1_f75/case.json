@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_nwt_pic1",
+ "ctrl_set": {
+  "F 75": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "pic"
+ ],
+ "description": "cfd_2d_nwt_pic1 with the faces at the free surface keeping the velocity of the grid (F 75 1): no P2G on the faces with one cell in the air (patch 0016)",
+ "covers": [
+  "pic_f::step_begin, F 75 1"
+ ],
+ "architect": "Hans Bihs"
+}
