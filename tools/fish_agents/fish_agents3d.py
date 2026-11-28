@@ -40,15 +40,36 @@
 #         or {"n": 60, "school": {"c": [cx, cy], "r": [r0, r1], "z": [z0, z1], "U": 0.15, "dir": 1,
 #                                 "d_sep": 0.7, "d_ali": 2.0, "d_coh": 3.0, "w_path": 1.0, "w_band": 1.0,
 #                                 "w_sep": 1.5, "w_ali": 1.0, "w_coh": 0.5, "lead": 1.5, "leash": 2.5}}}
-# Output: the tracks (t id x y z heading_deg U f a b mode) every out_dt; the summary per fish (distance to its
-# target, mean frequency); for a school also school_metrics() (spacing, polarisation, milling, the net, contacts).
+#    "flow": {..., "ramp": [[t, s], ...], "inside": 0.6}   (optional: the flow scaled by s(t), linear in t, and by
+#         "inside" within the nets: the current damped by the net and the fish, 20 % by a bare net, up to 50 % in a
+#         stocked cage, Hvas et al. 2021; 40 cm/s inside against 70 cm/s outside, Johansson et al. 2014)
+#    "physiology": {"W": 2500, "T": 12} or {"ucrit": 1.0}, and the constants of tools/fish_physiology/physiology.py
+#         (optional): the oxygen debt and the fatigue of each fish from its speed through the water; an exhausted fish
+#         swims no faster than its aerobic limit until it has recovered
+#    "stages": {"U_pref": [0.30, 0.08], "h": 0.1, "lead": 1.0}   (optional, with "school" and "physiology"): the
+#         behaviour of salmon in a cage as the current rises (Hvas et al. 2021, Fig. 1; Johansson et al. 2014):
+#         (a) 0 circling: the school at its preferred speed;
+#         (b, c) 1 standing on the current: a fish whose current exceeds its own preferred swimming speed
+#              (U_pref, mean and SD over the fish [m/s], with the hysteresis h) leaves the circle and holds its
+#              station facing the current, lead L upstream of where it stopped (at least lead L + 1 m inside the
+#              net); when it falls below, it circles again;
+#         (-) 2 standing on anaerobic power: standing at more than its aerobic limit U_a (the gait changes to
+#              burst and glide in a real salmon; here only marked);
+#         (d) 3 exhausted: it cannot hold the current and falls back on the downstream net until it has recovered.
+# Output: the tracks (t id x y z heading_deg U f a b mode) every out_dt, with "physiology" also (stage F MO2 U_crit
+# u_cur): the stage, the fatigue (debt over capacity), MO2 [mg O2/kg/h], the fish's U_crit and the current at it;
+# the summary per fish (distance to its target, mean frequency); for a school also school_metrics() (spacing,
+# polarisation, milling, the net, contacts) and with "physiology" welfare_metrics() (the time above 60 and 80 %
+# of U_crit, the shares in each stage, the fish exhausted).
 #
 # Architect: Hans Bihs
 import argparse, glob, json, math, os, random, re, sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fish_physiology"))
 import fish_agents as fa                                           # noqa: E402
+import physiology as phy                                           # noqa: E402
 bs = fa.bs
 ANG = fa.ANG
 
@@ -165,6 +186,8 @@ class Fish3:
         self.mode = -1
         self.vx = self.vy = self.vz = 0.0     # the velocity over the ground of the last step
         self.contacts = 0
+        self.stage = 0                        # the cage stage (stages): 0 circling, 1 standing, 2 anaerobic, 3 exhausted
+        self.station = None
 
 
 SCHOOL = {"U": 0.15, "dir": 1, "d_sep": 0.7, "d_ali": 2.0, "d_coh": 3.0, "w_path": 1.0, "w_band": 1.0,
@@ -180,6 +203,8 @@ def school_step(fish, sc, dt):
     dd = np.linalg.norm(D, axis=2); np.fill_diagonal(dd, np.inf)
     cx, cy = sc["c"]
     for i, f in enumerate(fish):
+        if f.stage > 0:                       # standing on the current, or exhausted: its own station (stage_step)
+            continue
         q = np.array(f.goal)
         # the path: round the cage at the radius and depth band (springs only outside the band)
         rx, ry = q[0] - cx, q[1] - cy
@@ -251,6 +276,58 @@ def school_metrics(rows, net=None, t0=60.0, r_fish=0.15):
             "near_net": float(np.mean(near)) if near else None, "contacts_per_fish_min": float(cont / nf / (dur / 60.0))}
 
 
+def stage_step(fish, st, ph, cur, U_pref, L):
+    """the cage stages: circling (0), standing on the current (1), on anaerobic power (2), exhausted (3); cur the
+    horizontal current at each fish (2 x n), ph the physiology of the fish"""
+    h = st["h"]
+    for k, f in enumerate(fish):
+        c = math.hypot(cur[0][k], cur[1][k])
+        if ph.exhausted[k]:
+            new = 3
+        elif f.stage == 0:
+            new = 1 if c > U_pref[k] * (1.0 + h) else 0
+        else:
+            new = 0 if c < U_pref[k] * (1.0 - h) else 1
+        if new == 0 and f.stage > 0:                         # back to the circle: the intention ahead of the fish
+            f.goal = [f.x + st["lead"] * L * math.cos(f.h), f.y + st["lead"] * L * math.sin(f.h), f.z]
+            f.station = None
+        if new > 0:
+            if f.station is None:
+                # where it stopped, but at least lead L + 1 m inside the net of its cage (not leaning on the net)
+                f.station = [f.x, f.y, f.z]
+                if st.get("net") is not None:
+                    nx_, ny_, nr_ = st["net"][:3]
+                    dr = math.hypot(f.x - nx_, f.y - ny_); rmax = max(0.0, nr_ - st["lead"] * L - 1.0)
+                    if dr > rmax:
+                        f.station = [nx_ + (f.x - nx_) * rmax / dr, ny_ + (f.y - ny_) * rmax / dr, f.z]
+            if c > 1e-6:                                     # the station, lead L upstream
+                f.goal = [f.station[0] - st["lead"] * L * cur[0][k] / c, f.station[1] - st["lead"] * L * cur[1][k] / c, f.station[2]]
+            if new == 1 and f.Uw > ph.u_aerobic()[k]:
+                new = 2
+        f.stage = new
+
+
+def welfare_metrics(rows, t0=0.0, net=None):
+    """with "physiology": per fish the share of the time above 60 and 80 % of its U_crit (the speed through the
+    water), the shares of the fish in each stage over time, the fish exhausted at least once; with the net, the share
+    of the time a fish that is not exhausted leans on the net (within 0.2 m of it, slower than 0.6 of its current:
+    the net holds it, which costs it nothing in the model)"""
+    R = np.array(rows)
+    R = R[R[:, 0] > t0]
+    lean = None
+    if net is not None:
+        rr = np.hypot(R[:, 2] - net[0], R[:, 3] - net[1])
+        lean = float(((rr > net[2] - 0.3) & (R[:, 6] < 0.6 * R[:, 15]) & (R[:, 15] > 0.1) & (R[:, 11] < 3)).mean())
+    ids = np.unique(R[:, 1])
+    u = R[:, 6] / R[:, 14]
+    a60 = [float((u[R[:, 1] == i] > 0.6).mean()) for i in ids]
+    a80 = [float((u[R[:, 1] == i] > 0.8).mean()) for i in ids]
+    ex = [bool((R[R[:, 1] == i, 11] == 3).any()) for i in ids]
+    share = {k: float((R[:, 11] == k).mean()) for k in range(4)}
+    return {"above60_mean": float(np.mean(a60)), "above80_mean": float(np.mean(a80)), "exhausted_fish": float(np.mean(ex)),
+            "stage_share": share, "F_max": float(R[:, 12].max()), "MO2_mean": float(R[:, 13].mean()), "leaning_on_net": lean}
+
+
 def orbit_target(c, r, z, w, ph):
     return lambda t: (c[0] + r * math.cos(ph + w * t), c[1] + r * math.sin(ph + w * t), z)
 
@@ -268,6 +345,8 @@ def run(case):
     nets = [list(c) for c in case.get("nets", [])]
     fl = case.get("flow", {"type": "uniform", "u": [0.0, 0.0, 0.0]})
     flow = UniformFlow3(fl["u"]) if fl["type"] == "uniform" else Reef3dFlow3(fl["run"], fl.get("t0"), fl.get("t1"))
+    ramp = np.array(fl["ramp"], float) if "ramp" in fl else None
+    inside = fl.get("inside", 1.0)
     t_start = case.get("t_start", max(1.0, 0.5 / f0))              # the brain starts at the end of the ramp
 
     fish = []
@@ -302,11 +381,37 @@ def run(case):
     n = len(fish)
     school = dict(SCHOOL, **spec["school"]) if isinstance(spec, dict) and "school" in spec else None
     at_rest = body.get("at_rest", 0)
+    # the physiology and the cage stages
+    ph, stg, U_pref = None, None, None
+    if "physiology" in case:
+        pc = dict(case["physiology"])
+        uc = pc.pop("ucrit", None)
+        if uc is None:
+            uc = float(phy.ucrit(pc.pop("W", 1000.0), pc.pop("T", 10.0)))
+        else:
+            pc.pop("W", None); pc.pop("T", None)
+        ph = phy.Physiology(n, uc, seed=case.get("seed", 1), **pc)
+        if "stages" in case and school is not None:
+            stg = dict({"U_pref": [0.3, 0.08], "h": 0.1, "lead": 1.0}, **case["stages"])
+            stg["net"] = nets[0] if nets else None
+            rs = np.random.default_rng(case.get("seed", 1) + 101)
+            U_pref = np.clip(stg["U_pref"][0] + stg["U_pref"][1] * rs.standard_normal(n), 0.05, None)
+    phst = {"F": np.zeros(n), "MO2": np.zeros(n)}
+    for f in fish:
+        f.Uw = 0.0
+    cur = None
     while t < T - 1e-9:
         if school is not None:
             school_step(fish, school, dt)
         X = np.array([f.x for f in fish]); Y = np.array([f.y for f in fish]); Z = np.array([f.z for f in fish])
         uf, vf, wf = flow(t, X, Y, Z)
+        if ramp is not None or inside != 1.0:
+            sc_ = np.full(n, float(np.interp(t, ramp[:, 0], ramp[:, 1])) if ramp is not None else 1.0)
+            for c in nets:
+                sc_ = np.where(np.hypot(X - c[0], Y - c[1]) < c[2], sc_ * inside, sc_)
+            uf, vf, wf = uf * sc_, vf * sc_, wf * sc_
+        cur = (uf, vf)
+        umax = ph.u_max() if ph is not None else None
         for k, f in enumerate(fish):
             for key in "fab":
                 v, r, tg, ts = f.g[key]
@@ -319,7 +424,10 @@ def run(case):
                 f.second = None
             fg, ag, bg = f.g["f"][0], f.g["a"][0], f.g["b"][0]
             f.Ug, kt = fa.body_step(f.Ug, fg, ag, bg, t, dt, body)
+            if umax is not None and body["s"] * f.Ug > umax[k]:     # exhausted: no faster than its aerobic limit
+                f.Ug = umax[k] / body["s"]
             Uw = body["s"] * f.Ug
+            f.Uw = Uw
             f.h += dt * kt * bg * Uw / L
             ex, ey = math.cos(f.h), math.sin(f.h)
             wz = max(-depth["w_max"], min(depth["w_max"], (f.target(t)[2] - f.z) / depth["tau"]))
@@ -352,6 +460,10 @@ def run(case):
                 P += (w[:, :, None] * D).sum(axis=1)
                 for k, f in enumerate(fish):
                     f.x, f.y, f.z = P[k]
+        if ph is not None:
+            phst = ph.step(np.array([f.Uw for f in fish]), dt)
+            if stg is not None:
+                stage_step(fish, stg, ph, cur, U_pref, L)
         t += dt
         for k, f in enumerate(fish):
             if t < f.next:
@@ -372,8 +484,12 @@ def run(case):
             f.mode = d.get("mode", 0)
             f.acc_U = 0.0; f.acc_n = 0
         if t >= t_out - 1e-9:
-            for f in fish:
-                rows.append((t, f.i, f.x, f.y, f.z, math.degrees(f.h), body["s"] * f.Ug, f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode))
+            for k, f in enumerate(fish):
+                r = (t, f.i, f.x, f.y, f.z, math.degrees(f.h), body["s"] * f.Ug, f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode)
+                if ph is not None:
+                    r += (f.stage, float(phst["F"][k]), float(phst["MO2"][k]), float(ph.ucrit[k]),
+                          float(math.hypot(cur[0][k], cur[1][k])) if cur is not None else 0.0)
+                rows.append(r)
             t_out += out_dt
     return fish, rows
 
@@ -400,15 +516,19 @@ def main():
     case = json.load(open(a.case))
     fish, rows = run(case)
     with open(a.out, "w") as fo:
-        fo.write("t id x y z heading U f a b mode\n")
+        ext = len(rows[0]) > 11
+        fo.write("t id x y z heading U f a b mode" + (" stage F MO2 U_crit u_cur" if ext else "") + "\n")
         for r in rows:
-            fo.write("%.3f %d %.4f %.4f %.4f %.3f %.5f %.4f %.4f %.4f %d\n" % r)
+            fo.write("%.3f %d %.4f %.4f %.4f %.3f %.5f %.4f %.4f %.4f %d" % r[:11] + (" %d %.4f %.1f %.4f %.4f" % r[11:] if ext else "") + "\n")
     spec = case["fish"]
     if isinstance(spec, dict) and "school" in spec:
         net = case["nets"][0] if case.get("nets") else None
         m = school_metrics(rows, net, a.after, dict(fa.BODY, **case.get("body", {}))["r_fish"])
         R = np.array(rows); fm = float(R[R[:, 0] > a.after, 7].mean())
         m["f_mean"] = fm
+        if "physiology" in case:
+            m["welfare"] = welfare_metrics(rows, a.after, net)
+            print("welfare after %.0f s: %s" % (a.after, json.dumps(m["welfare"])))
         if a.summary:
             json.dump(m, open(a.summary, "w"), indent=1)
         print("%d fish, %.1f s, after %.0f s: nearest neighbour %.2f m (10-90 %%: %.2f-%.2f), polarisation %.2f, milling %s, "
