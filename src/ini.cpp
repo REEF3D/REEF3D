@@ -531,7 +531,7 @@ void control::ini_default()
     B95=0.0;        // double SFLOW, NHFLOW and FNPF (RK3, RK4) relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
-	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
+	B97=0;          // int NHFLOW and CFD numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B100=0;         // int CFD relaxation wave generation (B 98 2): 0 wall at the inlet face as before; 1 the wave flux through the inlet face in the water, balanced by the air (net flux 0): no pressure of the order rho u L/dt at the inlet

@@ -88,9 +88,14 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		// Numerical Beach
         if(p->B99==1||p->B99==2||beach_relax==1)
 		{
-            // Zone 2
+            // Zone 2; B 97 1: waves on a current, the water relaxed to the inflow current Ui instead of to rest
             if(db<1.0e19)
+            {
+            if(p->B97==1)
+            uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k) + (1.0-relax1_nb(i,j))*ramp(p)*p->Ui*H;
+            else
             uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k);
+            }
         }
     
     }
