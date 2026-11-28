@@ -19,12 +19,17 @@
 // failure at a time and at a tension, restart after a failure, seabed on a slope, a grid and the bed of a
 // sampled fluid, bending stiffness (cantilever: deflection, clamping moment; frequency of a taut line),
 // cross-flow vortex-induced vibration (a taut string in a current: lock-in, the band of the synchronization
-// model, the direction, none with Cl 0, restart).
+// model, the direction, none with Cl 0, restart), the static equilibrium and the linear analysis of a body on dynamic
+// lines (the lines in their own equilibrium at every trial configuration: the offset under a load and the surge
+// frequency as with quasi-static lines, the run starts at rest).
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/core/coral_gravity.h"
+#include"coral/core/coral_static.h"
+#include"coral/core/coral_force.h"
+#include"coral/linear/coral_modes.h"
 #include"coral/structure/coral_linear6.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/mooring/coral_mooring.h"
@@ -1399,6 +1404,65 @@ static void test_viv()
     check(rs.r == hi.r && rs.A == hi.A, fmt("restart at 10 s: the run continues bit for bit (node 3 at z %.6f m)", hi.r(2)));
 }
 
+// static equilibrium of a body on dynamic lines under a load: the lines follow in their own equilibrium (static mode
+// of the loads), so the offset is that of the mooring (quasi-static lines), not that of lines held in their shape,
+// which act as their axial stiffness; the same for the stiffness of the linear analysis
+static void test_static_mode()
+{
+    std::cout<<"static equilibrium and linear analysis with dynamic lines"<<std::endl;
+    double x[2], f[2], moved = 0.0, rest = 0.0;
+    bool conv[2];
+    for(int k=0; k<2; ++k)
+    {
+        model m;
+        rigid_body b;
+        b.mass = 2.0e5;
+        b.inertia = Vec3(1e7, 1e7, 1e7).asDiagonal();
+        m.add_body(b);
+        m.add_constraint(std::make_unique<joint>(m, joint_type::prismatic, -1, 0, Vec3::Zero(), Vec3::UnitX()));
+        mooring_props p = chain();
+        mooring_end an, fl;
+        an.body = -1; an.p = Vec3(-100.0, 0.0, -50.0);
+        fl.body = 0;  fl.p = Vec3(-5.0, 0.0, -5.0);
+        mooring_end an2 = an, fl2 = fl;
+        an2.p(0) = 100.0; fl2.p(0) = 5.0;
+        if(k==0)
+        {
+            m.add_load(std::make_unique<mooring_qs>(m, an, fl, p));
+            m.add_load(std::make_unique<mooring_qs>(m, an2, fl2, p));
+        }
+        else
+        {
+            m.add_load(std::make_unique<mooring_line>(m, an, fl, p, 40, nullptr, Vec3::Zero(), -50.0));
+            m.add_load(std::make_unique<mooring_line>(m, an2, fl2, p, 40, nullptr, Vec3::Zero(), -50.0));
+        }
+        m.add_load(std::make_unique<point_force>(m, 0, Vec3::Zero(), Vec3(4.0e4, 0.0, 0.0), Vec3::Zero()));
+        const static_result sr = static_solve(m, 0.0);
+        conv[k] = sr.converged;
+        x[k] = m.bodies[0].x(0);
+        const mode_result mr = modes(m, 0.0, 1);
+        f[k] = mr.ok ? mr.frequency(0) : 0.0;
+        if(k==1)
+        {
+            // the run starts at rest in that equilibrium
+            timeint ti;
+            ti.initialize(m, 0.0);
+            const double h = 0.2;
+            for(int i=0; i<100; ++i)
+            {
+                ti.step(m, i*h, h);
+                moved = std::max(moved, std::fabs(m.bodies[0].x(0) - x[1]));
+                rest = std::max(rest, std::fabs(m.bodies[0].v(0)));
+            }
+        }
+    }
+    check(conv[0] && conv[1] && x[0] > 0.5 && std::fabs(x[1] - x[0]) < 0.02*x[0],
+          fmt("offset under 40 kN: dynamic lines %.4f m, quasi-static lines %.4f m", x[1], x[0]));
+    check(f[0] > 0.0 && std::fabs(f[1] - f[0]) < 0.02*f[0],
+          fmt("surge frequency of the linear analysis: dynamic lines %.5f Hz, quasi-static %.5f Hz", f[1], f[0]));
+    check(moved < 1.0e-4*x[1] && rest < 1.0e-5, fmt("the run stays in the static equilibrium: moves %.2e m, speed %.2e m/s in 20 s", moved, rest));
+}
+
 int main()
 {
     test_catenary();
@@ -1418,6 +1482,7 @@ int main()
     test_damping_law();
     test_stick_slip();
     test_viv();
+    test_static_mode();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

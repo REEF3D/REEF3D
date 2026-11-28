@@ -293,6 +293,27 @@ static void test_input()
     const std::string e0 = tip(""), e1 = tip(" K " + std::to_string(Kg)), e2 = tip(" K 2.0");
     check(e0.find("give K") != std::string::npos && std::fabs(std::atof(e1.c_str()) - Kg) < 1e-6*Kg && e2.find("below P_rated") != std::string::npos,
           "tune for a tip-speed limited rotor: without K an error, with K below P_rated/Omega_rated^3 taken, above it an error");
+    // the rated power: P_rated mechanical (DISCON's VS_RtPwr), P_electrical the generator's output over the efficiency
+    auto prated = [](const std::string &ctl)
+    {
+        try
+        {
+            coral_case k;
+            k.read_string("time dt 0.02 end 1\nwind steady U 15 z_ref 90\n"
+                          "rotor rot hub 0 0 90 axis 1 0 0 R_hub 2 blade ctrl_test_blade.dat airfoils 1 ctrl_test_af.dat hub_mass 50000 hub_inertia 1e7 \\\n"
+                          "   rpm 19 gearbox 50 gen_inertia 20 efficiency 0.9\n"
+                          "controller ctrl rotor rot " + ctl + "\n", ".");
+            for(auto &l : k.m.load_list)
+                if(auto *cc = dynamic_cast<controller_load*>(l.get())) return std::to_string(cc->controller().set.P_rated);
+            return std::string("no controller");
+        }
+        catch(const std::exception &e) {return std::string(e.what());}
+    };
+    const std::string p0 = prated("tune P_electrical 2.7e6 rpm_rated 19.0986"), p1 = prated("tune P_rated 3e6 rpm_rated 19.0986"),
+                      p2 = prated("P_electrical 4.5e6"), p3 = prated("P_rated 3e6 P_electrical 2.7e6");
+    check(std::fabs(std::atof(p0.c_str()) - 3.0e6) < 1.0 && std::fabs(std::atof(p1.c_str()) - 3.0e6) < 1.0
+          && std::fabs(std::atof(p2.c_str()) - 5.0e6) < 1.0 && p3.find("give one of them") != std::string::npos,
+          "P_electrical 2.7 MW at 90 % efficiency = P_rated 3 MW (tune and given), 4.5 MW without tune = 5 MW; both: an error");
     std::remove("ctrl_test_af.dat"); std::remove("ctrl_test_blade.dat"); std::remove("ctrl_test_tuning.dat");
     controller_load *cl = nullptr;
     for(auto &l : c.m.load_list)

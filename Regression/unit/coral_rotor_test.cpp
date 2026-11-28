@@ -7,12 +7,15 @@
 // flow; mass and inertia of hub and blades (flexible: the table's integral, also with stations inside the
 // elements); ElastoDyn's blade file (with and without PitchAxis); the keyword with its
 // channels; the gyroscopic whirl of the spinning rotor on a nacelle with tilt and yaw springs (analytic frequencies,
-// no energy drift); the idling rotor at rest, feathered (starts, the element load continuous through Vy = 0).
+// no energy drift); the idling rotor at rest, feathered (starts, the element load continuous through Vy = 0); the pitch
+// actuator under a steady moment about the pitch axis (with its integral action the blade holds the command, without
+// it sits off by M/k; the static equilibrium starts the run on the command).
 // Architect: Hans Bihs
 #include"coral/aero/coral_rotor.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
 #include"coral/core/coral_force.h"
+#include"coral/core/coral_static.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/structure/coral_linear6.h"
 #include"coral/io/coral_input.h"
@@ -325,6 +328,7 @@ static void test_pitch()
     // step of the command from 5 to 10 deg, no aerodynamic load: second-order response, 2 Hz, damping 0.7
     rotor_spec c = design(10);
     c.omega0 = 0.0; c.aero.rho = 0.0; c.pitch = 5.0*deg; c.pitch_joints = true;
+    c.pitch_ki = 0.0;
     model mc;
     mc.gravity = Vec3::Zero();
     const rotor_handles hc = build_rotor(mc, w, c);
@@ -347,6 +351,44 @@ static void test_pitch()
           && std::fabs(hc.pitch->angle(mc, 2) - 10.0*deg) < 1e-5,
           fmt("command step 5 -> 10 deg: overshoot %.2f %% at %.3f s (second order: %.2f %% at %.3f s), settles at 10 deg",
               ((peak - 5.0*deg)/(5.0*deg) - 1)*100, tpeak, over*100, M_PI/wd));
+    // a steady moment about the pitch axis of blade 1 (the aerodynamic moment, the thrust on a prebent blade), 0.02 k:
+    // the second-order actuator alone leaves the blade 0.02 rad off its command, the integral action brings it back
+    double off[2], ini = 0.0, drift = 0.0;
+    for(int q=0; q<3; ++q)
+    {
+        rotor_spec d = c;
+        d.pitch_ki = q==0 ? 0.0 : 0.2;
+        model md;
+        md.gravity = Vec3::Zero();
+        const rotor_handles hd = build_rotor(md, w, d);
+        const double Mp = 0.02*hd.pitch->k;
+        const rigid_body &pb = md.bodies[hd.pitch_bodies[0]];
+        // the pitch axis of blade 1 (up at azimuth 0), positive towards feather
+        const Vec3 ax = hd.pitch_joints[0]->axis(md);
+        md.add_load(std::make_unique<point_force>(md, hd.pitch_bodies[0], pb.x, Vec3::Zero(), Vec3(Mp*ax)));
+        // the rotor held about its shaft (a free rotor has no static equilibrium)
+        Mat6 Kh = Mat6::Zero();
+        Kh(3, 3) = 1.0e9;
+        md.add_load(std::make_unique<linear6>(md, hd.hub, md.bodies[hd.hub].x, Kh, Mat6::Zero()));
+        if(q==2)
+        {
+            // static equilibrium first: the actuator holds the blade, the integral takes over the torque
+            const static_result sr = static_solve(md, 0.0);
+            ini = sr.converged ? std::fabs(hd.pitch->angle(md, 0) - 5.0*deg) : 1.0;
+        }
+        timeint ti2(ts);
+        ti2.initialize(md, 0.0);
+        for(int i=0; i<2500; ++i)
+        {
+            ti2.step(md, i*dt, dt);
+            if(q==2) drift = std::max(drift, std::fabs(hd.pitch->angle(md, 0) - 5.0*deg));
+        }
+        if(q < 2) off[q] = hd.pitch->angle(md, 0) - 5.0*deg;
+        if(ti2.stats.failures) drift = 1.0;
+    }
+    check(std::fabs(std::fabs(off[0]) - 0.02) < 1e-5 && std::fabs(off[1]) < 1e-6,
+          fmt("steady pitch moment 0.02 k: off the command by %.4f deg without, %.2e deg with the integral action", off[0]/deg, off[1]/deg));
+    check(ini > 0.0 && ini < 1e-5 && drift < 1e-5, fmt("after the static equilibrium: %.2e deg off (the stiff hold), at most %.2e deg in 5 s", ini/deg, drift/deg));
 }
 
 // a uniform blade: mass 300 kg/m, EI flap 5e9, edge 1e10
