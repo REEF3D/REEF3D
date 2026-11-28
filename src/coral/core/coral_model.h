@@ -74,6 +74,9 @@ namespace coral
 
         void initialize(double t0);
         void commit(double t, double dt);
+        // static mode of the loads (load::static_mode) around evaluations of configurations at rest
+        void static_begin(double t);
+        void static_end(double t);
 
         // helpers for loads: force F (global) at the global point p of body i, moment M (global)
         void add_force(VecX &f, int i, const Vec3 &p, const Vec3 &F) const;

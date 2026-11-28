@@ -266,6 +266,10 @@ namespace coral
         coupling_kind coupling() const override {return coupling_kind::local;}
         void coupled_bodies(std::vector<int> &b) const override;
         void initialize(const model&, double t0) override;
+        // static mode: eval() puts the lines and points into their static equilibrium (equilibrium()) between the
+        // body ends of the configuration it is called with and adds the end forces of that shape (no inertia of the
+        // end nodes); the shape of the last evaluation is kept when the mode ends
+        void static_mode(const model&, double t, bool on) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
         void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
@@ -442,6 +446,8 @@ namespace coral
         double t_ = 0.0;
         long gen_ = 0;                 // changes with the converged state
         bool static_start_ = true;     // initialize(): static equilibrium first (once)
+        bool static_ = false;          // static mode (eval: the equilibrium of the lines at the configuration)
+        void eval_static(const model&, double t, VecX &f);
         bool started_ = false;
 
         // wave kinematics: per step at the converged nodes (slots: start, end of the step) or exact

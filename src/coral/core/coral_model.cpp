@@ -216,6 +216,18 @@ void model::initialize(double t0)
         l->initialize(*this, t0);
 }
 
+void model::static_begin(double t)
+{
+    for(auto &l : load_list)
+        l->static_mode(*this, t, true);
+}
+
+void model::static_end(double t)
+{
+    for(auto &l : load_list)
+        l->static_mode(*this, t, false);
+}
+
 void model::commit(double t, double dt)
 {
     for(auto &l : load_list)

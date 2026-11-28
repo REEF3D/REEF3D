@@ -70,6 +70,12 @@ namespace coral
         // converged step from t-dt to t
         virtual void commit(const model&, double /*t*/, double /*dt*/) {}
 
+        // static mode (model::static_begin, static_end; the static equilibrium and the stiffness of the linear
+        // analysis): while it is on, eval() gives the load of the configuration at rest. A load with a state of its
+        // own that follows the bodies (dynamic mooring lines) puts that state into its own equilibrium for every
+        // configuration it is evaluated at, instead of keeping it (a frozen line is a stiff spring)
+        virtual void static_mode(const model&, double /*t*/, bool /*on*/) {}
+
         // bodies whose state changes the forces of the load on each other
         virtual coupling_kind coupling() const {return coupling_kind::global;}
         virtual void coupled_bodies(std::vector<int>&) const {}

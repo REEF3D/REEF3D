@@ -629,8 +629,39 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
     vc_ = nullptr;
 }
 
+void mooring_system::static_mode(const model&, double, bool on)
+{
+    static_ = on;
+    cvalid_ = false;
+}
+
+// static mode: the system in its static equilibrium between the body ends of this configuration (started from the
+// shape of the last evaluation), the forces of that shape on the bodies
+void mooring_system::eval_static(const model &m, double t, VecX &f)
+{
+    equilibrium(m, t);
+    state s{r_, v_};
+    std::vector<Vec3> a;
+    accel(s, t, a, 0.0);
+    for(attach_t &at : att_)
+    {
+        const line_t &L = lines_[at.line];
+        at.F = L.F[at.end];
+        m.add_force(f, at.body, at.r, at.F);
+        if(clamped_ && !at.ds.isZero())
+            m.add_moment(f, at.body, L.Mb[at.end]);
+    }
+    keep_converged();
+}
+
 void mooring_system::eval(const model &m, double t, VecX &f) const
 {
+    if(static_)
+    {
+        // the load interface evaluates const; the static mode moves the lines (their state is the system's own)
+        const_cast<mooring_system*>(this)->eval_static(m, t, f);
+        return;
+    }
     const size_t na = att_.size();
     bool hit = cvalid_ && t==ct_;
     std::vector<Vec3> r1(na), v1(na);

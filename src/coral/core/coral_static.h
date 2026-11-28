@@ -27,7 +27,8 @@ Architect: Hans Bihs
 // first; if they diverge, Newton again from the start configuration with steps damped by the natural
 // monotonicity test (Deuflhard): a step is accepted when the simplified Newton increment shrinks.
 // Converged when the increments are below the tolerance. Strongly nonlinear problems (large rotations)
-// are solved in load steps by the caller (change the load, solve again).
+// are solved in load steps by the caller (change the load, solve again). The loads are in their static mode
+// (load::static_mode): dynamic mooring lines are in the equilibrium of their nodes at every trial configuration.
 
 #ifndef CORAL_STATIC_H_
 #define CORAL_STATIC_H_

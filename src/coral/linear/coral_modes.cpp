@@ -48,6 +48,9 @@ linear_model linearize(model &m, double t)
     const bool tang = m.has_tangents();
     VecX f, in, g;
     MatX G;
+    // the stiffness with the loads in their static mode (dynamic mooring lines in equilibrium at each perturbed
+    // configuration: the stiffness of the mooring, not that of the lines held in their shape)
+    m.static_begin(t);
     m.forces(t, f);
     m.constraints(g, G);
     // multipliers of the static balance in this configuration: G^T lambda = f (least squares)
@@ -83,6 +86,8 @@ linear_model linearize(model &m, double t)
     m.set_config(c0, zero);
     if(tang) m.tangents(t, -1.0, 0.0, 0.0, T);
     L.K = dense(T);
+    m.forces(t, f);          // the loads' states back at the unperturbed configuration
+    m.static_end(t);
     // velocities and accelerations
     auto rates = [&](bool acc)
     {

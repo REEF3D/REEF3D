@@ -133,6 +133,8 @@ static_result static_solve(model &m, double t, const static_settings &s)
     static_result res;
     const int n = m.ndof(), nc = m.ncon();
     m.zero_rates();
+    // loads with a state of their own (dynamic mooring lines) follow the trial configurations in their equilibrium
+    m.static_begin(t);
     double msum = 0.0;
     for(const auto &b : m.bodies) msum += b.mass;
     const double scale = std::max(1.0, m.nbody() ? msum/m.nbody() : 1.0);
@@ -151,6 +153,7 @@ static_result static_solve(model &m, double t, const static_settings &s)
     MatX G;
     residual(m, t, scale, mu, r, f, g, G);
     res.residual = n ? r.head(n).cwiseAbs().maxCoeff() : 0.0;
+    m.static_end(t);
     return res;
 }
 
