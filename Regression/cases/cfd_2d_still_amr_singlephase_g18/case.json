@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 120,
+ "description": "Still water in a closed tank 0.6 m x 0.6 m (dx 0.01 m), depth 0.3037 m (the surface inside a cell), a refined box over 3 levels (x 0.2-0.4, z 0.2-0.4) whose sides run through the surface; the single phase (F 41 1, F 66 0.05, F 67 2) with G 18 1: the coarse value at the fine cells of the patch edges from the water, with the ghost values of the ghost fluid method for the neighbours in the air (pr_weights). At rest within 1e-3 m/s over 3 s (0.2 m/s without G 18; validation CFD AMR speed/27).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "singlephase",
+  "still"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights with G 18: the ghost values of the neighbours in the air, a coarse cell in the air with the fine cell in the water; pr_hydro with the linear weights (sh)"
+ ],
+ "architect": "Hans Bihs"
+}

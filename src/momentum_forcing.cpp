@@ -64,8 +64,9 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
         
-        // flexible rod trees: sample, spread reaction, advance structure (final stage)
-        if(p->Z20>0)
+        // flexible rod trees: sample, spread reaction, advance structure (final stage); with the CFD
+        // mesh refinement on level 0 only (the patches: cfd_amr::rod_sample, rod_forces)
+        if(p->Z20>0 && p->amr_patch==0)
         {
             if(prodtree==nullptr)
             prodtree = new rodtree_coupling(p,pgc);

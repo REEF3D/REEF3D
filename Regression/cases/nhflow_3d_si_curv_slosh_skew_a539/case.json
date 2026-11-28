@@ -1,0 +1,20 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit step on a curvilinear grid sheared by 22 deg with A 539 1 (needs patch v49): the sloshing of nhflow_3d_si_nh_curv_slosh_skew, hydrostatic. The non-orthogonal part of the face gradient of eta^{n+1} from eta of the estimate pass; taken from eta^n for both time levels, the wave lost 77 % of its height in 34 periods (4 % now).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::si_assemble: cx0, cy0 from the estimate pass (cvE), ho_estimate on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}

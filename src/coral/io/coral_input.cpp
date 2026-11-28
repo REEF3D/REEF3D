@@ -35,6 +35,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_morison.h"
 #include"coral/hydro/coral_strip_hydro.h"
 #include"coral/hydro/coral_member_morison.h"
+#include"coral/hydro/coral_member_slam.h"
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
 #include"coral/pto/coral_joint_drive.h"
@@ -176,7 +177,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member", "beam_sensor"};
+        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member", "beam_sensor", "slam"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -243,6 +244,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             {
                 run.out_dt = it.get("dt", 0.0);
                 if(it.has("file")) run.out_file = it.word("file");
+                const int io = it.find("only");
+                if(io >= 0)
+                {
+                    for(int i=io+1; i<(int)it.t.size() && it.t[i]!="dt" && it.t[i]!="file"; ++i)
+                        run.out_only.push_back(it.t[i]);
+                    if(run.out_only.empty()) it.fail("only needs at least one column prefix");
+                }
             }
         }
         else if(k=="static")
@@ -1548,6 +1556,96 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
             m.add_load(std::make_unique<member_morison>(pts, elems, c, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
         }
+        else if(k=="slam")
+        {
+            // slamming of breaking waves on a frame or superelement member (coral_member_slam.h)
+            const std::string mem = it.word("member");
+            member_slam_coef c;
+            if(it.has("model"))
+            {
+                const std::string mo = it.word("model");
+                if(mo=="wo") c.model = slam_model::wo;
+                else if(mo=="goda") c.model = slam_model::goda;
+                else if(mo=="cw") c.model = slam_model::cw;
+                else if(mo=="custom") c.model = slam_model::custom;
+                else it.fail("model must be wo, goda, cw or custom");
+            }
+            c.lambda = it.get("lambda", c.lambda);
+            if(c.model == slam_model::custom)
+            {
+                c.cs0 = it.need("cs0");
+                c.tau_end = it.need("tau");
+                c.constant = it.has("constant");
+                if(c.tau_end <= 0.0) it.fail("'tau' must be > 0");
+            }
+            if(it.has("trigger"))
+            {
+                const std::string tr = it.word("trigger");
+                if(tr=="breaking") c.trigger = slam_trigger::breaking;
+                else if(tr=="kinematic") c.trigger = slam_trigger::kinematic;
+                else if(tr=="time") c.trigger = slam_trigger::time;
+                else it.fail("trigger must be breaking, kinematic or time");
+            }
+            if(c.trigger == slam_trigger::kinematic)
+                c.Bc = it.get("B", c.Bc);
+            c.period = it.get("period", -1.0);
+            c.depth = it.get("depth", -1.0);
+            if(c.trigger == slam_trigger::time)
+            {
+                const int i = it.find("at");
+                if(i < 0) it.fail("trigger time: 'at <t1> [<t2> ...]' is required");
+                for(int j=i+1; j<(int)it.t.size(); ++j)
+                {
+                    try {size_t n; const double v = std::stod(it.t[j], &n); if(n != it.t[j].size()) break; c.times.push_back(v);}
+                    catch(...) {break;}
+                }
+                if(c.times.empty()) it.fail("trigger time: no times after 'at'");
+                c.eta_b = it.get("eta", -1.0);
+            }
+            {
+                const int iv = it.find("velocity");
+                if(iv >= 0 && iv + 1 < (int)it.t.size() && it.t[iv+1] == "crest") c.crest_velocity = true;
+                else c.V = it.get("velocity", -1.0);
+            }
+            if(c.period <= 0.0 && (c.trigger == slam_trigger::kinematic || (c.V <= 0.0 && !c.crest_velocity)))
+                it.fail("'period' is required (the celerity of the kinematic trigger and of the impact velocity)");
+            if(c.period > 0.0 && c.depth <= 0.0)
+                sample_bed = true;
+            c.vfac = it.get("vfac", 1.0);
+            c.n = (int)it.get("n", 4);
+            if(c.lambda <= 0.0 || c.lambda > 1.0) it.fail("'lambda' must be in (0, 1]");
+            std::shared_ptr<const point_set> pts;
+            std::vector<std::pair<int,int>> elems;
+            const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
+            if(stations.count(mem))
+            {
+                const member_spec &ms = frame_specs[mem];
+                c.D = it.get("D", ms.s1.D);
+                auto bp = std::make_shared<body_points>();
+                const std::vector<int> &st = stations[mem];
+                const int n = (int)st.size() - 1;
+                for(int i=0; i<=n; ++i)
+                {
+                    bp->add(m, st[i], ms.p1 + (double)i/n*(ms.p2 - ms.p1));
+                    if(i > 0) elems.emplace_back(i-1, i);
+                }
+                pts = bp;
+            }
+            else if(super_of.count(mem))
+            {
+                superelement *se = super_of[mem];
+                c.D = it.get("D", se->member_diameter(mem));
+                pts = std::shared_ptr<const point_set>(std::shared_ptr<const point_set>(), se);     // owned by the model
+                const std::vector<int> nd = se->member_nodes(mem);
+                for(size_t i=1; i<nd.size(); ++i) elems.emplace_back(nd[i-1], nd[i]);
+            }
+            else
+                it.fail("unknown member '" + mem + "'");
+            if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
+            if(!kin && (c.trigger != slam_trigger::time || c.V <= 0.0 || c.eta_b <= 0.0))
+                it.fail("slam needs waves or fluid_kinematics (without them: trigger time with velocity and eta, along x)");
+            m.add_load(std::make_unique<member_slam>(pts, elems, c, kin, rho, g, it.word(1)));
+        }
         else if(k=="strip_member")
         {
             // strip theory with nonlinear hydrostatics for a rigid floater (coral_strip_hydro.h)
@@ -1789,10 +1887,14 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 rotor_def rd;
                 rd.B = sp.B; rd.R_hub = sp.R_hub; rd.R_tip = sp.stations.back().r; rd.stations = sp.stations; rd.airfoils = sp.airfoils;
                 const rotor_tuning tu = tune_rotor(rd, rho_air, Pr, Or, 25.0, sp.aero.bem);
-                if(tu.K*Or*Or*Or >= Pr)
+                // a tip-speed limited rotor (the k omega^2 curve at lambda_opt reaches the rated power below the rated speed)
+                // needs its own K below Pr/Omega_rated^3 (region 2 then runs above lambda_opt), given with K
+                if(tu.K*Or*Or*Or >= Pr && !it.has("K"))
                     it.fail("the k omega^2 curve reaches the rated power below the rated speed (K Omega_rated^3 = "
-                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated or raise P_rated "
-                            "(the NREL 5 MW: 0.82 of the rated power at the rated speed)");
+                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated, raise P_rated or give K "
+                            "(N m s^2 on the generator side; the NREL 5 MW: K Omega_rated^3 = 0.82 of the rated power)");
+                if(it.has("K") && it.need("K")*N*N*N*Or*Or*Or >= Pr)
+                    it.fail("K: K Omega_rated^3 must stay below P_rated (region 2.5 between them)");
                 if(it.has("write") && !tu.write(path(it.word("write")))) it.fail("cannot write " + it.word("write"));
                 const double wref = N*Or;
                 cs.w_ref = wref;

@@ -16,5 +16,8 @@
  "covers": [
   "met_forcing Coriolis (NHFLOW SI)",
   "f from met_frame::to_geo per cell"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

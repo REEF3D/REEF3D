@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit step (A 510 12, theta 0.55, N 47 0.4) with a static refined box (G 1 1, G 10 over 0.1 < x < 1.5 m): 2 m flume, dx 0.02 m and 0.01 m on the patch, 10 layers, h 0.109 m, U 0.42 m/s, log-law bed friction, a 3 mm bed step, 400 steps (t = 7 s). The estimate pass of the advecting transport over all grids (nhflow_amr::si_step, tp2): with one pass the short waves on the patch grew to 29 mm by t = 1.3 s.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "current"
+ ],
+ "covers": [
+  "nhflow_amr::si_step: the two passes (face_update, si_match_layers, si_corrector on every grid)"
+ ],
+ "architect": "Hans Bihs"
+}

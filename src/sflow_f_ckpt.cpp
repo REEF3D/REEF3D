@@ -52,6 +52,7 @@ Author: Hans Bihs
 #include"cfd_ckpt.h"
 #include"sediment.h"
 #include"hydro_sflow.h"
+#include"slide2D.h"
 #include"hydro_couple.h"
 
 using namespace std;
@@ -91,6 +92,9 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         // REEF3D::HYDRO: the cumulative infiltration
         if(b->hydro!=nullptr)
         b->hydro->ckpt_fields(fd,fi);
+        // the slide layer (W 150)
+        if(b->slide!=nullptr)
+        b->slide->ckpt_fields(fd,fi);
     };
 
     h.write = [this,p,b,pgc,fields](reefckpt &ck)

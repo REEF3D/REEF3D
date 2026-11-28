@@ -25,6 +25,9 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"geo_mesh.h"
+#include"lagoon_store.h"
+#include<cstdint>
+#include<vector>
 
 void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
 {
@@ -36,6 +39,7 @@ void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
     
     // solids of the grid file first: an inverted STL (S 9 2) complements the field so far
     grid_solids(p,pgc);
+    const int tri0 = tricount;   // the triangles of A 581 - A 590 from here (the grid file's are DIVEMesh's)
 	
 	for(qn=0;qn<box_num;++qn)
     {
@@ -93,6 +97,26 @@ void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0 && !amr_grid)
     print_vtp(p,1);
+
+    // the LAGOON store (P 18; SPEC 12, group "forcing"): the solids of A 581 - A 590, written when the store begins
+    if(p->mpirank==0 && !amr_grid && p->P18>0 && tricount>tri0)
+    {
+    std::vector<double> points;
+    std::vector<int32_t> triangles;
+    points.reserve((size_t)(tricount-tri0)*9);
+    triangles.reserve((size_t)(tricount-tri0)*3);
+
+        for(int m=tri0; m<tricount; ++m)
+        for(int q=0; q<3; ++q)
+        {
+        triangles.push_back((int32_t)(points.size()/3));
+        points.push_back(tri_x[m][q]);
+        points.push_back(tri_y[m][q]);
+        points.push_back(tri_z[m][q]);
+        }
+
+    lagoon_store::set_forcing_solids(std::move(points),std::move(triangles));
+    }
 
     if(p->mpirank==0 && !amr_grid)
 	cout<<"Surface triangles: "<<tricount<<endl;

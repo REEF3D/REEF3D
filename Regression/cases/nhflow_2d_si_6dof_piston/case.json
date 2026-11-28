@@ -1,0 +1,20 @@
+{
+ "description": "NHFLOW semi-implicit step (A 510 11, A 520 2, A 536 0.01) with a piston wavemaker over the whole depth (X 10 4, X 170, wavemaker.dat: stroke 4 cm, T 1.5 s, ramp of 3 periods): the columns of the paddle are walls of the solve, their faces to the water carry the discharge of the moving wall (NHFLOW_SI_6DOF v43).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves",
+  "6dof",
+  "wavemaker"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::fb_walls_set, fb_walls_assemble, fb_walls_faces",
+  "df_columns with the body (DF -2)"
+ ],
+ "architect": "Hans Bihs"
+}

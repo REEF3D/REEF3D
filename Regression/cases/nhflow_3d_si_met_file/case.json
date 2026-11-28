@@ -11,5 +11,8 @@
  ],
  "covers": [
   "met_file window of one rank"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

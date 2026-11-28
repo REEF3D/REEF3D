@@ -142,6 +142,7 @@ public:
     double xhead() const {return xhead_;}
     double xtail() const {return xtail_;}
     double frequency() const {return gait_on_ ? gcur_.f : f_;}
+    double phase() const {return gait_on_ ? gcur_.ph : 2.0*3.14159265358979323846*f_*t_;}   // of the undulation at the time [rad]
     double tail_amplitude() const {return L_*envelope(1.0)*gcur_.a;}     // peak-to-peak / 2 at the tail tip (r = 1)
     double ramp() const {return r_;}
     double recoil0() const {return c0_;}

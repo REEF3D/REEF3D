@@ -54,8 +54,10 @@ public:
     double A261,A262,A263,A264;
     double A222,A224,A247,A249,A244,A251_val;
     double A250;
+    int A233;               // SFLOW semi-implicit: solver of the eta system (ini.cpp)
+    int A234;               // SFLOW semi-implicit, coupled eta-P solve: steps a preconditioner is kept (ini.cpp)
     int A226,A229;          // SFLOW semi-implicit free surface (A226: from A 210 12 / 13, A229: from A 243; not read from ctrl.txt)
-    double A227,A228,A231,A232;
+    double A227,A228,A231,A232,A235;
 
     // FNPF
     int A302,A306,A309,A310,A311,A312,A313,A314,A316,A318,A320,A324,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348,A358;
@@ -87,10 +89,10 @@ public:
     double A526,A528;
     double A531;
     int A532,A533;
-    int A505,A507,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
+    int A505,A507,A508,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
     double A506,A535,A536,A538;
     int A540;
-    double A541,A544,A545,A546;
+    double A541,A542,A543,A544,A545,A546;
     int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller
     double A547_c,A547_nu0;      // NHFLOW semi-implicit: algebraic vertical eddy viscosity (A 547 c nu0)
     int A600,A602,A603,A609,A610;    // NHFLOW semi-implicit: tracers (salinity, temperature), A 600 - 610
@@ -101,7 +103,7 @@ public:
     double A601_s,A601_t,A602_x1,A602_y1,A602_c1,A602_x2,A602_y2,A602_c2,A603_x1,A603_y1,A603_c1,A603_x2,A603_y2,A603_c2;
     double A604,A605_sig,A605_k0,A606_s,A606_t,A607_s,A607_t,A608;
     int A550,A551,A552;
-    double A554,A555,A557,A558;
+    double A553,A554,A555,A556,A557,A558;
     double A501,A502,A503,A504;
     int A560;
     int A564,A565,A566,A567;
@@ -136,7 +138,7 @@ public:
 
     // Spectral
     int A700,A701,A703,A704,A707,A710,A711,A712_xm,A712_xp,A712_ym,A712_yp,A713,A714,A720;
-    double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe,A727_x0,A727_x1,A727_y0,A727_y1,A777,A779;
+    double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe,A727_x0,A727_x1,A727_y0,A727_y1,A777,A779,A782;
     int A728,A729,A730,A785,A732,A733,A740,A742,A744;
     double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
     int A737;
@@ -182,9 +184,8 @@ public:
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;
-    int B58,B60,B61,B62,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
-    int B136,B138,B138_1,B138_2,B139,B140,B141,B142,B143,B145,B146;
-    double B141_x,B141_y,B144;
+    int B58,B60,B61,B62,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B100,B101,B105,B106,B107;
+    int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
     double B91_1,B91_2,B93_1,B93_2,B94_wdt,B95,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
@@ -339,6 +340,8 @@ public:
     // Free Surface
     int F30,F35,F37,F40,F41,F44,F46,F47,F50,F150,F151;
     double F38,F42,F43,F45,F48;
+    int F67;                     // F 41 1: the layers of cells in the air next to the water whose extended velocities are made free of divergence
+    double F66;                  // F 41 1: a cell counts as water in the ghost fluid method from phi >= F 66 times the mean spacing
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
     double F57_1,F57_2,F57_3,F57_4;
@@ -354,8 +357,10 @@ public:
     int F71;
     double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
     int F72;
+    int F73;
+    int F74;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-    int F76,F77,F78,F80,F81,F83,F85,F86;
+    int F75,F76,F77,F78,F80,F81,F83,F85,F86;
     double F79,F82,F87;
 
     int F88,F90;
@@ -401,7 +406,7 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53,G55,G57,G58;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G60,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53,G55,G57,G58;
     int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out,
                                  // 3 discharge time series in, 4 level time series out)
     double *G54_v;               // discharge (m3/s), water level (m) or the id of the time series file (3, 4)
@@ -409,7 +414,10 @@ public:
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
     int G8;                      // CFD mesh refinement: the coarse value at a fine cell of a patch edge from the level set of the coarse column
+    int G14;                     // SFLOW mesh refinement: the rectangles of the marked tiles (0 row by row, 1 the largest rectangle first)
     int G9;                      // CFD mesh refinement: the density of the faces of a patch edge with the interface width of both levels (1 the mean, 2 that of the coarse level)
+    int G17;                     // CFD mesh refinement: 1 the hydrostatic columns of the patch edges start at the coarse cell above the patch (the free surface near the top of a patch)
+    int G18;                     // CFD mesh refinement with F 41 1: 1 the coarse value at a fine cell of a patch edge from the water cells, with the ghost values of the ghost fluid method for its neighbours in the air
     int G28;                     // CFD mesh refinement: one interface width of the fluid properties on all levels (1 that of level 0, 2 that of the finest level, 3 the mean of the levels)
     int G29;                     // CFD mesh refinement: 1 the pressure under the patches restricted relative to the discrete hydrostatic pressure of each grid
     double G24,G26,G27,G41,G42,G44,G46;
@@ -455,9 +463,9 @@ public:
     double N56;
 
     // Numerical Options
-    int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48,N59,N63,N65;
+    int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48,N59,N63,N64,N65,N67;
     int N20,N21,N22,N23,N25,N26;
-    double N41,N43,N44,N47,N49,N50,N52,N53,N54,N55,N57,N58,N61;
+    double N41,N43,N44,N47,N49,N50,N52,N53,N54,N55,N57,N58,N61,N66;
 
     // MPI Options
     int M10,M40,M41;
@@ -499,6 +507,7 @@ public:
     double P86_Tw,P86_Tp,P86_cb,P86_dt;                     // P 86: statistics window, Tp, backfilling factor, output interval
     double P87_amax,P87_beta,P87_k;                         // P 87: sediment balance amplification, decay, rate coefficient
     int P89;                                                // P 89: equilibrium scour of P 83, P 84: 0 Sumer & Fredsoe 2001, 1 Hoballah Jalloul et al. 2026
+    double P90_Sc,P90_u0;                                   // P 90: current-dominated limit of S_eq/D, 1.3 at Ucw = u0 rising to Sc at Ucw = 1
     double *P88_x,*P88_y;
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
@@ -617,7 +626,7 @@ public:
 
     // Sediment Transport
     int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S76,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59,S110,S115,S116,S118,S119,S120,S125,S127,S129,S134;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S98,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63,S111,S112,S113,S114,S117,S121,S122,S123,S124,S126,S128,S130,S131,S132,S133,S140,S141;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S98,S64,S65,S67,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63,S111,S112,S113,S114,S117,S121,S122,S123,S124,S126,S128,S130,S131,S132,S133,S135,S136,S137,S138,S139,S142,S143,S144,S140,S141;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
@@ -680,6 +689,26 @@ public:
     double W132;
     double W133_min,W133_max;
     double W134;
+    double W135_dw,W135_b;
+    double W136_S0,W136_v;
+    // three-phase slide model (CFD): slide fraction alpha_s, water/air level set, pore pressure
+    int W140;
+    double W141,W142;
+    int W143;
+    double W144_lambda,W144_k,W144_beta;
+    double W145_phi0,W145_K3,W145_phic;
+    double W146_J0,W146_aK;
+    int W147;
+    double *W147_xs,*W147_xe,*W147_ys,*W147_ye,*W147_zs,*W147_ze;
+    int W148;
+    double *W148_x1,*W148_z1,*W148_x2,*W148_z2,*W148_x3,*W148_z3;
+    int W149;
+    // two-layer landslide: depth-averaged slide layer under the water (SFLOW, slide2D)
+    int W150,W151,W152,W153,W159,W161,W163;
+    double *W151_xs,*W151_xe,*W151_ys,*W151_ye,*W151_z;
+    double *W152_xs,*W152_xe,*W152_ys,*W152_ye,*W152_d;
+    double *W153_xc,*W153_yc,*W153_Lx,*W153_Ly,*W153_T;
+    double W154,W155,W156,W157,W158,W160_u,W160_v,W162,W164;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;
@@ -760,6 +789,10 @@ public:
     double *X203_s;
     int X204,*X204_id;
     double *X204_t;
+    int X208,*X208_id;
+    double *X208_k;
+    int X209,*X209_id;
+    double *X209_c;
     int X194;
     int *X194_id,*X194_n;
     double *X194_d;

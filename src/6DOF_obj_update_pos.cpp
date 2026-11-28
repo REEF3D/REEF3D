@@ -71,6 +71,14 @@ bool sixdof_obj_cfd::fb_unchanged(lexer *p, fdm *a, ghostcell *pgc)
     const int n = amr_tricount();
     int same = (fbc_a==a && (int)fbc_v.size()==p->imax*p->jmax*p->kmax && (int)fbc_tri.size()==9*n) ? 1 : 0;
     
+    // G 42 (CFD mesh refinement): the level set of the last cast is kept until a vertex has moved
+    // more than G 42 times the cell size of this grid since that cast, as on the patches
+    // (cfd_amr_6dof::start_bodies).  The ship of a lock moves 0.6 % of a fine cell in a step; its
+    // ray cast and reinitialisation on level 0 at every stage were 11.5 % of the run (the mini lock
+    // of Ship Hydrodynamics validation 49, validation CFD AMR speed/22).  The forcing velocity is
+    // that of the stage.  G 42 0 and without refinement: the same triangles to the bit
+    const double tol = (p->G1>0 && p->G42>0.0) ? p->G42*p->DXM : 0.0;
+    
     size_t c = 0;
     for(int d=0; d<3 && same; ++d)
     {
@@ -78,7 +86,7 @@ bool sixdof_obj_cfd::fb_unchanged(lexer *p, fdm *a, ghostcell *pgc)
         for(int q=0; q<n && same; ++q)
         for(int e=0; e<3; ++e)
         {
-            if(fbc_tri[c]!=t[q][e])
+            if(tol>0.0 ? !(fabs(fbc_tri[c]-t[q][e])<=tol) : fbc_tri[c]!=t[q][e])
             same = 0;
             ++c;
         }

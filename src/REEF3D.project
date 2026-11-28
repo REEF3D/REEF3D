@@ -59,7 +59,9 @@
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_ckpt_fields.h"/>
         <File Name="nhflow_ckpt_fields.h"/>
+        <File Name="nhf_kcheck.h"/>
         <File Name="sflow_ckpt_fields.h"/>
+        <File Name="sflow_memory.h"/>
         <File Name="fnpf_amr_fill.h"/>
         <File Name="fnpf_amr.h"/>
       </VirtualDirectory>
@@ -291,6 +293,7 @@
           <File Name="freesurface.h"/>
           <VirtualDirectory Name="VOF PLIC">
             <File Name="VOF_void.h"/>
+            <File Name="plic_distance.h"/>
             <File Name="VOF_PLIC.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic"/>
@@ -300,6 +303,7 @@
             <File Name="reini_RK3.h"/>
             <File Name="reini_fsm.h"/>
             <File Name="levelset_band.h"/>
+            <File Name="step_repeat.h"/>
             <File Name="reini.h"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.h"/>
@@ -537,6 +541,7 @@
             <File Name="sflow_rheology_f.h"/>
             <File Name="sflow_rheology.h"/>
             <File Name="sflow_rheology_core.h"/>
+            <File Name="slide2D.h"/>
           </VirtualDirectory>
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Time">
@@ -546,7 +551,6 @@
             <File Name="sflow_timestep_SI.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_face_HJ.h"/>
             <File Name="sflow_flux_face_CDS.h"/>
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
@@ -563,9 +567,6 @@
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.h"/>
             <File Name="sflow_convection.h"/>
-            <File Name="sflow_weno_flux.h"/>
-            <File Name="sflow_iweno_hj.h"/>
-            <File Name="sflow_fou.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <File Name="river_ini.h"/>
@@ -832,7 +833,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <File Name="fnpf_hj_godunov.h"/>
           <File Name="fnpf_hires.h"/>
           <File Name="fnpf_weno5_wd.h"/>
           <File Name="fnpf_weno5.h"/>
@@ -922,6 +922,7 @@
           <File Name="coral/hydro/coral_hydro_load.h"/>
           <File Name="coral/hydro/coral_member_fluid_load.h"/>
           <File Name="coral/hydro/coral_member_morison.h"/>
+          <File Name="coral/hydro/coral_member_slam.h"/>
           <File Name="coral/hydro/coral_morison.h"/>
           <File Name="coral/hydro/coral_body_drag.h"/>
           <File Name="coral/hydro/coral_radiation.h"/>
@@ -1286,6 +1287,9 @@
         <File Name="rheology_f.h"/>
         <File Name="rheology_core.h"/>
         <File Name="rheology_cfd_core.h"/>
+        <File Name="rheology_cfd_wall.h"/>
+        <File Name="rheology_cfd_3phase.h"/>
+        <File Name="sflow_level_file.h"/>
         <File Name="rheology_v.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -1533,6 +1537,7 @@
         <File Name="sflow_amr_wave.cpp"/>
         <File Name="sflow_amr_hydro.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_bed.cpp"/>
         <File Name="sflow_amr_si.cpp"/>
         <File Name="sflow_amr_sinh.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>
@@ -1680,6 +1685,7 @@
           <File Name="seastate_coupling.cpp"/>
           <File Name="seastate_remote.cpp"/>
           <File Name="seastate_coupling_bed.cpp"/>
+          <File Name="seastate_coupling_grids.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
@@ -2024,6 +2030,7 @@
             <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
             <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
             <File Name="VOF_PLIC_normalVector.cpp"/>
+            <File Name="plic_distance.cpp"/>
             <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic"/>
@@ -2174,6 +2181,8 @@
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
             <File Name="sflow_rheology_core.cpp"/>
+            <File Name="slide2D.cpp"/>
+            <File Name="slide2D_flux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="sflow_fixtimestep.cpp"/>
@@ -2181,7 +2190,6 @@
             <File Name="sflow_timestep_SI.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_face_HJ.cpp"/>
             <File Name="sflow_flux_face_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
@@ -2193,9 +2201,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.cpp"/>
-            <File Name="sflow_weno_flux.cpp"/>
-            <File Name="sflow_iweno_hj.cpp"/>
-            <File Name="sflow_fou.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
@@ -2394,10 +2399,16 @@
           </VirtualDirectory>
           <File Name="nhflow_momentum_RK3.cpp"/>
           <File Name="nhflow_momentum_SI.cpp"/>
+          <File Name="nhflow_memory.cpp"/>
+          <File Name="nhflow_momentum_SI_6dof.cpp"/>
           <File Name="nhflow_momentum_SI_density.cpp"/>
           <File Name="nhflow_momentum_SI_elm.cpp"/>
+          <File Name="nhflow_momentum_SI_hdiff.cpp"/>
           <File Name="nhflow_momentum_SI_ho.cpp"/>
           <File Name="nhflow_momentum_SI_nh.cpp"/>
+          <File Name="nhflow_momentum_SI_nhcurv.cpp"/>
+          <File Name="nhflow_momentum_SI_vrans.cpp"/>
+          <File Name="nhflow_momentum_SI_wall.cpp"/>
           <File Name="nhflow_si_nhmg.cpp"/>
           <File Name="nhflow_stratification.cpp"/>
         </VirtualDirectory>
@@ -2630,6 +2641,7 @@
           <File Name="coral/hydro/coral_hydro_load.cpp"/>
           <File Name="coral/hydro/coral_member_fluid_load.cpp"/>
           <File Name="coral/hydro/coral_member_morison.cpp"/>
+          <File Name="coral/hydro/coral_member_slam.cpp"/>
           <File Name="coral/hydro/coral_morison.cpp"/>
           <File Name="coral/hydro/coral_body_drag.cpp"/>
           <File Name="coral/hydro/coral_radiation.cpp"/>
@@ -3096,6 +3108,7 @@
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_read.cpp"/>
             <File Name="6DOF_motion-file.cpp"/>
+            <File Name="6DOF_motionext_table.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface NHFLOW">
@@ -3344,6 +3357,9 @@
         <File Name="rheology_f.cpp"/>
         <File Name="rheology_core.cpp"/>
         <File Name="rheology_cfd_core.cpp"/>
+        <File Name="rheology_cfd_wall.cpp"/>
+        <File Name="rheology_cfd_3phase.cpp"/>
+        <File Name="sflow_level_file.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>
       </VirtualDirectory>
@@ -3593,15 +3609,11 @@
         <VirtualDirectory Name="Decomp">
           <File Name="dmpart_build.cpp"/>
           <File Name="dmpart_decomp.cpp"/>
-          <File Name="dmpart_decomp_analyse.cpp"/>
-          <File Name="dmpart_decomp_correction.cpp"/>
-          <File Name="dmpart_decomp_correction_x.cpp"/>
-          <File Name="dmpart_decomp_correction_y.cpp"/>
-          <File Name="dmpart_decomp_correction_z.cpp"/>
           <File Name="dmpart_decomp_costfunc.cpp"/>
           <File Name="dmpart_decomp_count.cpp"/>
           <File Name="dmpart_decomp_paraslice.cpp"/>
           <File Name="dmpart_decomp_partition.cpp"/>
+          <File Name="dmpart_decomp_partition_auto.cpp"/>
           <File Name="dmpart_decomp_partition_manual.cpp"/>
           <File Name="dmpart_decomp_partition_weighted.cpp"/>
           <File Name="dmpart_decomp_periodic.cpp"/>

@@ -79,6 +79,32 @@ void driver::logic_nhflow()
     
     p->phimean = p->wd = p->F60;
     
+    // two-layer landslide (W 150, slide2D): the explicit and the semi-implicit NHFLOW on one Cartesian grid
+    if(p->W150>0)
+    {
+        std::string why;
+        
+        if(p->S10>0)
+        why = "sediment transport (S 10): both move the bed";
+        
+        if(p->geo_curv==1)
+        why = "curvilinear grids (G 50)";
+        
+        if(p->G1>0 || p->geo_mb>0)
+        why = "mesh refinement and multi-block grids (G 1, G 50 1)";
+        
+        if(!why.empty())
+        {
+            if(p->mpirank==0)
+            cout<<"!!! NHFLOW slide layer (W 150): not available with "<<why<<" !!!"<<endl;
+            pgc->final(true);
+        }
+    }
+    
+    // P 112: the maxima of the run are fields of the free-surface output (nhflow_vtp_fsf)
+    if(p->P112>0 && p->P180!=1 && p->mpirank==0)
+    cout<<"!!! NHFLOW P 112: the maxima are written with the free-surface output, set P 180 1 (none without it) !!!"<<endl;
+    
     // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
     if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
     p->phimean = p->wd = p->F62;
@@ -265,6 +291,10 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
+    
+    // A 508 1 with the explicit schemes: fourth-order horizontal operators of the projection (nhflow_pjm_ho.h)
+    if(p->A508==1 && p->A534==0 && p->A520>0 && (p->geo_curv==1 || p->G1>0 || p->geo_mb>0 || p->X10>0) && p->mpirank==0)
+    cout<<"NHFLOW: A 508 1 (fourth-order horizontal operators of the projection) needs one uniform Cartesian grid without 6DOF, second order used"<<endl;
 
 //Turbulence
     // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later
@@ -550,7 +580,11 @@ void driver::logic_nhflow()
     
     // hydrostatic semi-implicit free surface (A 510 11/12/13, theta method)
     if(p->A534==1)
-	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+    {
+    nhflow_momentum_SI *psi = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+    psi->pBC = pBC;
+	pnhfmom = psi;
+    }
     
 
 // mesh refinement (G 1): patches on the NHFLOW grid

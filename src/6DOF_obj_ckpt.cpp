@@ -132,6 +132,9 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
         s.push_back(x);
         brain_->ckpt_state(s);
     });
+    
+    // the tail beats of a deforming body (patch 0038)
+    part([&](std::vector<double> &s){ if(fish_!=nullptr) fish_beats_state(s); });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -253,6 +256,10 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     });
     if(!brain_ok)
     return false;
+    
+    // the tail beats of a deforming body (absent in older checkpoints: the next beat starts afresh)
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&){ if(fish_!=nullptr) fish_beats_restore(s); });
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities);
     // a deforming body (X 195) at the time of the checkpoint

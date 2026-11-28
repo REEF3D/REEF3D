@@ -1,0 +1,14 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "The sloshing tank (0.6 x 0.6 m, the surface tilted 0.27-0.33 m) on a level 0 of 2 cm with three refined levels (G 1 3, down to 2.5 mm): a static band z 0.28-0.30 m on the finest level, the coarser levels nested around it, so the surface runs through the top of levels 3 and 2. One interface width on all levels (G 28 3) and G 17 1. To 1 s the largest velocity is 0.31 m/s (1.07 m/s without G 17; 0.29 m/s on one grid of 2.5 mm).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 17 1 with three refined levels: the start of the coarse column on every level"
+ ]
+}

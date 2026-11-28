@@ -57,7 +57,7 @@ void lexer::gridini2D()
     Iarray(IOSL,imax*jmax);
     
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     IOSL[(i-imin)*jmax + j-jmin] = 0;
 	
 }

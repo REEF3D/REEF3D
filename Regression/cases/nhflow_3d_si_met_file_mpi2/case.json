@@ -23,5 +23,8 @@
   "linear in time between records",
   "ramp W 204",
   "W 203"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

@@ -70,6 +70,47 @@ long long count_of(const ckpt_registry::entry &e, const lexer *q)
     const long long s = (long long)q->imax*q->jmax;
     return e.kind=='C' ? s*q->kmax : s;
 }
+
+// in memory: the blob of the patches of this rank as a checkpoint file has it, from the blob without
+// the arrays and the arrays kept one by one (cfd_amr::ckpt_write)
+vector<double> mem_patches(reefckpt &ck, int rank)
+{
+    const vector<double> S = ck.get_rank_blob("cfd_amr_patches",rank);
+    vector<double> B;
+    size_t k=0;
+    int np=-1;
+    while(k+19<=S.size())
+    {
+        ++np;
+        B.insert(B.end(),S.begin()+k,S.begin()+k+19);
+        const int ne = int(S[k+18]);
+        k += 19;
+        for(int na=0; na<ne && k+2<=S.size(); ++na)
+        {
+            const int code = int(S[k]);
+            const long long n = (long long)S[k+1];
+            B.push_back(S[k]);
+            B.push_back(S[k+1]);
+            k += 2;
+            const vector<char> *d = ck.mem_array("cfd_amr_p"+to_string(np)+"_"+to_string(na));
+            const bool isint = (code%2)==1;
+            if(d==nullptr || (long long)d->size()!=n*(long long)(isint ? sizeof(int) : sizeof(double)))
+            return vector<double>();
+            if(isint)
+            {
+                const int *v = (const int*)d->data();
+                for(long long m=0; m<n; ++m)
+                B.push_back(double(v[m]));
+            }
+            else
+            {
+                const double *v = (const double*)d->data();
+                B.insert(B.end(),v,v+n);
+            }
+        }
+    }
+    return B;
+}
 }
 
 void cfd_amr::ckpt_write(reefckpt &ck)
@@ -117,9 +158,14 @@ void cfd_amr::ckpt_write(reefckpt &ck)
     ck.blob("cfd_amr_layout",L);
 
     // ---- the arrays of the patches of this rank
+    // (in memory, the repeat of a time step N 66: the arrays one by one under the number of the patch
+    // and of the array, B without them; mem_patches puts them together for the read)
+    const bool inmem = ck.in_memory();
+    int np = -1;
     vector<double> B;
     for(r3patch *c : P)
     {
+        ++np;
         const lexer *q = c->pp;
         vector<ckpt_registry::entry> e;
         ckpt_registry::visit(q,[&](const ckpt_registry::entry &x){ e.push_back(x); });
@@ -132,12 +178,16 @@ void cfd_amr::ckpt_write(reefckpt &ck)
         B.push_back(c->shadow ? 0.0 : static_cast<cfd_amr_patch*>(c)->dt_l);
         B.push_back(q->dt); B.push_back(q->dt_old); B.push_back(q->simtime);
         B.push_back(double(e.size()));
+        int na = -1;
         for(const auto &x : e)
         {
+            ++na;
             const long long n = count_of(x,q);
             B.push_back(code_of(x));
             B.push_back(double(n));
-            if(x.isint)
+            if(inmem)
+            ck.mem_put("cfd_amr_p"+to_string(np)+"_"+to_string(na),x.V,n,x.isint ? sizeof(int) : sizeof(double));
+            else if(x.isint)
             for(long long m=0; m<n; ++m)
             B.push_back(double(((const int*)x.V)[m]));
             else
@@ -261,7 +311,7 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
 
     // ---- the arrays of the patches of all pieces
     vector<ckpatch> cp;
-    for(const auto &bl : ck.get_rank_blobs("cfd_amr_patches"))
+    for(const auto &bl : (ck.in_memory() ? vector<vector<double>>(1,mem_patches(ck,p0->mpirank)) : ck.get_rank_blobs("cfd_amr_patches")))
     {
         size_t q=0;
         while(q+21<=bl.size())

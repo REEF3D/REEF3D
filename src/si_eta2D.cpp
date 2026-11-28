@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"solver2D.h"
 
-si_eta2D::si_eta2D(lexer *p) : iter(0), time(0.0), M(p), xvec(p), rhsvec(p), pw(p), pw0(p), pr(p), rW(p), react(p), rhs(p)
+si_eta2D::si_eta2D(lexer *p) : iter(0), time(0.0), M(p), xvec(p), rhsvec(p), pw(p), pw0(p), pr(p), rW(p), react(p), rhs(p), eta0w(p)
 {
 }
 
@@ -143,13 +143,51 @@ int si_eta2D::solve_wetdry(lexer *p, ghostcell *pgc, solver2D *psolv, slice &ax,
 {
     int it_done=0;
     
+    // A Newton step of the wetting and drying gives a cell predicted dry no wet area (pw = 0): its row holds only
+    // its open faces. A group of such cells connected only among themselves (a flooded block whose links to the wet
+    // cells close in the same step) is a pure Neumann block: singular, the solver returned NaN and the run stopped
+    // ("solver broke down": the Sandy harbour grid at the peak of the flooding, 18_sandy_surge). Such a solve is
+    // repeated from the same guess with dry rows of a wet area pdry = 1e-6 of the cell, which makes the block
+    // regular (its level returns to the bed, eta + d -> 0, where it holds no water), and the iteration goes on
+    // with it. A regular system is solved as before.
+    double pdry = 0.0;
+    
     wd_start(p);
     
     for(int it=0; it<itmax; ++it)
     {
-    wd_rows(p,rhsW,depth,bdiag);
+    wd_rows(p,rhsW,depth,bdiag,pdry);
+    
+        if(pdry==0.0)
+        SLICELOOP4
+        eta0w(i,j) = eta(i,j);
     
     solve(p,pgc,psolv,ax,ay,rhs,eta,react);
+    
+        if(pdry==0.0)
+        {
+            int bad = 0;
+            
+            SLICELOOP4
+            if(!std::isfinite(eta(i,j)))
+            bad = 1;
+            
+            bad = pgc->globalimax(bad);
+            
+            if(bad)
+            {
+                SLICELOOP4
+                eta(i,j) = eta0w(i,j);
+                
+                pdry = 1.0e-6;
+                
+                if(p->mpirank==0)
+                cout<<"SI eta: singular wetting and drying system (dry cells connected only among themselves), solved again with regular dry rows"<<endl;
+                
+            wd_rows(p,rhsW,depth,bdiag,pdry);
+            solve(p,pgc,psolv,ax,ay,rhs,eta,react);
+            }
+        }
     
         if(p->mpi_size>1)
         {
@@ -203,13 +241,24 @@ void si_eta2D::wd_start(lexer *p)
     }
 }
 
-void si_eta2D::wd_rows(lexer *p, slice &rhsW, slice &depth, slice &bdiag)
+void si_eta2D::wd_rows(lexer *p, slice &rhsW, slice &depth, slice &bdiag, double pdry)
 {
+    // pdry: the wet area of a dry row (0: none, the Newton step of Casulli 2009; > 0: a singular system repeated)
     SLICELOOP4
     {
-    react(i,j) = pw(i,j) + bdiag(i,j);
-    rhs(i,j) = rhsW(i,j) - pw(i,j)*depth(i,j);
+    const double a = pw(i,j)>0.5 ? pw(i,j) : pdry;
+    
+    react(i,j) = a + bdiag(i,j);
+    rhs(i,j) = rhsW(i,j) - a*depth(i,j);
     rW(i,j) = rhsW(i,j);
+    }
+
+    // storage coefficient n_s (VRANS)
+    if(stor!=nullptr)
+    SLICELOOP4
+    {
+    react(i,j) = pw(i,j)*(*stor)(i,j) + bdiag(i,j);
+    rhs(i,j) = rhsW(i,j) - pw(i,j)*(*stor)(i,j)*depth(i,j);
     }
 }
 

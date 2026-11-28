@@ -31,6 +31,8 @@ Architect: Hans Bihs
 
 using namespace std;
 
+soil_stress *soil_stress::instance = nullptr;
+
 double soil_stress::DXN(int ii) const {return p->DXN[ii+p->marge];}
 double soil_stress::DYN(int jj) const {return p->DYN[jj+p->marge];}
 double soil_stress::DZN(int kk) const {return p->DZN[kk+p->marge];}
@@ -55,6 +57,15 @@ soil_stress::soil_stress(lexer *pp, fdm *a, ghostcell *pgc) : p(pp)
     const double mvh = p->S202_vh;
     const double om  = p->S203_O;
     const double den = (1.0+mhh)*(1.0 - mhh - 2.0*om*mvh*mvh);
+
+    // a porous bed with the pore flow in the CFD (S 10 2): the pore pressure would be there twice
+    if(p->S10==2)
+    {
+        if(p->mpirank==0)
+        cout<<"S 200: not with S 10 2 (the CFD resolves the pore flow of the porous bed)"<<endl;
+        pgc->final();
+        exit(1);
+    }
 
     if(den<=0.0 || Ev<=0.0 || om<=0.0)
     {
@@ -117,6 +128,8 @@ soil_stress::soil_stress(lexer *pp, fdm *a, ghostcell *pgc) : p(pp)
     mkdir("./REEF3D_CFD_Soil",0777);
 
     MPI_Comm_split(pgc->mpi_comm,p->origin_i*(p->gknoy+1)+p->origin_j,p->origin_k,&colcomm);
+
+    instance = this;
 
     // start now (the initial CFD pressure the reference) or at the first step after S 213
     if(p->simtime>=p->S213-1.0e-12)
@@ -203,10 +216,40 @@ void soil_stress::step(lexer *pp, fdm *a, ghostcell *pgc)
 void soil_stress::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     // the reference of the dynamic bed pressure: the CFD pressure at the start time
+    // (the fluid cells; in the bed and in solids the hydrostatic continuation of the fluid above, the
+    // pressure of the bed cells of the CFD being no fluid pressure; also the reference of a cell that the
+    // moving bed uncovers later)
+    const bool topo = p->toporead==1 || p->S10>0;
+    auto bedcell = [&](int i, int j, int k)
+    {
+        return (topo && a->topo(i,j,k)<0.0) || (p->solidread==1 && a->solid(i,j,k)<0.0);
+    };
+    std::vector<double> set(N,0.0);
     for(int i=0;i<knox;++i)
     for(int j=0;j<knoy;++j)
     for(int k=0;k<knoz;++k)
-    pref[id(i,j,k)] = a->press(i,j,k);
+    if(!bedcell(i,j,k))
+    {
+        pref[id(i,j,k)] = a->press(i,j,k);
+        set[id(i,j,k)] = 1.0;
+    }
+    for(int it=0; it<1000; ++it)
+    {
+        halo(pgc,pref.data());
+        halo(pgc,set.data());
+        int added = 0;
+        for(int i=0;i<knox;++i)
+        for(int j=0;j<knoy;++j)
+        for(int k=knoz-1;k>=0;--k)
+        if(set[id(i,j,k)]==0.0 && set[id(i,j,k+1)]>0.0)
+        {
+            pref[id(i,j,k)] = pref[id(i,j,k+1)] - p->W1*p->W22*DZP(k);
+            set[id(i,j,k)] = 1.0;
+            ++added;
+        }
+        if(pgc->globalisum(added)==0)
+        break;
+    }
     halo(pgc,pref.data());
 
     // storage n beta: Pw0 the absolute pore pressure, S 208 or local (atmosphere + CFD pressure)
@@ -292,13 +335,119 @@ void soil_stress::classify(lexer *p, fdm *a, ghostcell *pgc)
         }
         ctype[id(i,j,k)] = double(t);
     }
-    halo(pgc,ctype.data());
+    auto sync = [&]()
+    {
+        halo(pgc,ctype.data());
 
-    // 2D: the cells of the side rows are those of the row
-    if(!dim3)
-    for(int i=-1;i<=knox;++i)
-    for(int k=-1;k<=knoz;++k)
-    ctype[id(i,-1,k)] = ctype[id(i,1,k)] = ctype[id(i,0,k)];
+        // 2D: the cells of the side rows are those of the row
+        if(!dim3)
+        for(int i=-1;i<=knox;++i)
+        for(int k=-1;k<=knoz;++k)
+        ctype[id(i,-1,k)] = ctype[id(i,1,k)] = ctype[id(i,0,k)];
+    };
+    sync();
+
+    // the soil region must not have mechanisms: (1) cells with fluid on both sides in a direction (one cell
+    // wide or thick, a cell of a staircase bed sticking out) have no shear connection to their neighbours
+    // (the edges on a free face carry no shear): they go to the fluid side, repeatedly; (2) soil not connected
+    // through faces to a wall (bottom, solid) would float: likewise. Such cells are bed cells without soil
+    // stress, their bed pressure that of the fluid above (bed_pressure)
+    for(int it=0; it<1000; ++it)
+    {
+        int thin = 0;
+        for(int i=0;i<knox;++i)
+        for(int j=0;j<knoy;++j)
+        for(int k=0;k<knoz;++k)
+        if(type(i,j,k)==SOIL)
+        if((type(i-1,j,k)==FREE && type(i+1,j,k)==FREE) || (type(i,j,k-1)==FREE && type(i,j,k+1)==FREE)
+        || (dim3 && type(i,j-1,k)==FREE && type(i,j+1,k)==FREE))
+        {
+            ctype[id(i,j,k)] = double(FREE);
+            ++thin;
+        }
+        sync();
+        if(pgc->globalisum(thin)==0)
+        break;
+    }
+
+    std::vector<double> anchor(N,0.0);
+    std::vector<int> queue;
+    static const int nbx[6] = {-1,1,0,0,0,0};
+    static const int nby[6] = {0,0,-1,1,0,0};
+    static const int nbz[6] = {0,0,0,0,-1,1};
+    int anchored_last = -1;
+
+    for(int it=0; it<1000; ++it)
+    {
+        queue.clear();
+        for(int i=0;i<knox;++i)
+        for(int j=0;j<knoy;++j)
+        for(int k=0;k<knoz;++k)
+        if(type(i,j,k)==SOIL && anchor[id(i,j,k)]==0.0)
+        for(int dir=0;dir<6;++dir)
+        {
+            if(!dim3 && (dir==2 || dir==3))
+            continue;
+            const int ii=i+nbx[dir], jj=j+nby[dir], kk=k+nbz[dir];
+            if(type(ii,jj,kk)==WALL || (type(ii,jj,kk)==SOIL && anchor[id(ii,jj,kk)]>0.0))
+            {
+                anchor[id(i,j,k)] = 1.0;
+                queue.push_back(id(i,j,k));
+                break;
+            }
+        }
+
+        // through the soil of the rank
+        for(size_t n=0; n<queue.size(); ++n)
+        {
+            const int q = queue[n];
+            const int i = q/(NY*NZ) - 1, j = (q/NZ)%NY - 1, k = q%NZ - 1;
+            for(int dir=0;dir<6;++dir)
+            {
+                if(!dim3 && (dir==2 || dir==3))
+                continue;
+                const int ii=i+nbx[dir], jj=j+nby[dir], kk=k+nbz[dir];
+                if(ii<0 || ii>=knox || jj<0 || jj>=knoy || kk<0 || kk>=knoz)
+                continue;
+                const int qq = id(ii,jj,kk);
+                if(int(ctype[qq])==SOIL && anchor[qq]==0.0)
+                {
+                    anchor[qq] = 1.0;
+                    queue.push_back(qq);
+                }
+            }
+        }
+
+        halo(pgc,anchor.data());
+        if(!dim3)
+        for(int i=-1;i<=knox;++i)
+        for(int k=-1;k<=knoz;++k)
+        anchor[id(i,-1,k)] = anchor[id(i,1,k)] = anchor[id(i,0,k)];
+
+        int count = 0;
+        for(int i=0;i<knox;++i)
+        for(int j=0;j<knoy;++j)
+        for(int k=0;k<knoz;++k)
+        if(anchor[id(i,j,k)]>0.0)
+        ++count;
+        count = pgc->globalisum(count);
+        if(count==anchored_last)
+        break;
+        anchored_last = count;
+    }
+
+    soilcells = 0;
+    for(int i=0;i<knox;++i)
+    for(int j=0;j<knoy;++j)
+    for(int k=0;k<knoz;++k)
+    if(type(i,j,k)==SOIL)
+    {
+        if(anchor[id(i,j,k)]>0.0)
+        ++soilcells;
+        else
+        ctype[id(i,j,k)] = double(FREE);
+    }
+    sync();
 
     soilcells = int(pgc->globalsum(double(soilcells)));
 
@@ -384,7 +533,13 @@ void soil_stress::bed_pressure(lexer *p, fdm *a, ghostcell *pgc)
         if(wave)
         pb[q] = p->S217_p0*cos(wk*p->XP[i+p->marge] - ww*t);
         else
-        pb[q] = a->press(i,j,k) - pref[q];
+        {
+            // a bed cell taken out of the soil region (classify) or a solid: the first fluid cell above
+            int kk = k;
+            while(kk<knoz && (a->topo(i,j,kk)<0.0 || (p->solidread==1 && a->solid(i,j,kk)<0.0)))
+            ++kk;
+            pb[q] = a->press(i,j,kk) - pref[id(i,j,kk)];
+        }
     }
     halo(pgc,pb.data());
 

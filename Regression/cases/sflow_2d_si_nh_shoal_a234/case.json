@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_nh_shoal",
+ "ctrl_add": [
+  "A 234 8"
+ ],
+ "description": "sflow_2d_si_nh_shoal with A 234 8: the preconditioner of the coupled eta-P solve is kept for up to eight steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "solver"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_solve with a kept preconditioner (A 234)"
+ ],
+ "architect": "Hans Bihs"
+}

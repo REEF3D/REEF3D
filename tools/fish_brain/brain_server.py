@@ -6,7 +6,7 @@
 # REEF3D (rank 0) connects to 127.0.0.1:port and sends one line of JSON per decision (once per half
 # tail beat); the server answers with one line of JSON:
 #
-#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..,"s_sd":..,"tau_c":..}
+#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..,"s_sd":..,"tau_c":..,"kappa":..,"C_d":..}
 #          -> {"ok":1,"policy":"rules"}
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
@@ -15,6 +15,7 @@
 #           "target":[x,y,z],                       the target (X 192), if any
 #           "rays":[..],"ray_angles":[..],          vision: distances [m] at the angles to the axis [rad]
 #           "ll_p":[..],"ll_s":[..],"ll_side":[..], lateral line: mean pressure, s/L, side of each probe
+#           "ll_ua":[..],                           ... the mean flow along the axis relative to the hull at each probe (B1)
 #           "own":{"f","a","b","ts","mode","second","t2","f2","a2","b2","ts2"}}   the decision of the own brain
 #          -> {"f":..,"a":..,"b":..,"ts":..}       the gait targets from now: frequency [Hz], amplitude
 #                                                   factor, curvature bias, settling time [s] (0: half a beat)
@@ -41,6 +42,57 @@ UESC = 0.3                     # an escape: the pressures in units of q at this 
 C0, NOISE, CWALK, SWALK = 0.3, 0.07, 2.5e-3, 1.0e-4   # the filter: prior spread, noise [L f0], random walks
 TDEC, TT, REFR = 0.5, 1.0, 2.0                          # decisions at most TDEC apart, target velocity over TT, escape refractory [T]
 CSTART = (0.08, 0.15, 0.2, 0.4)                         # the C-start: bend in, held, release, next decision [T]
+# B1 (patch 0039): the speed through the water from the head probes (s/L < SNOUT) of the lateral line: their noise, the
+# noise across the axis (the slip), the error of the model of the speed for the stride, the slip's prior and random walk
+SNOUT, PNOISE, SLIP, SMODEL, BETA0, BWALK = 0.1, 0.03, 0.06, 0.1, 0.2, 1.0e-3
+
+
+def glide_speed(u0, dt, g, drag, L):
+    """the glide: exponential with the coasting time g, or the drag law dU/dt = -g U|U|/L (X 209, patch 0041)"""
+    return u0 / (1.0 + g * u0 * dt / L) if drag else u0 * math.exp(-dt / g)
+
+
+def glide_learn(u0, u1, dt, drag, L, tf, g0):
+    """the g that takes u0 to u1 in dt: the coasting time within 0.5-30 T, the drag coefficient within 0.1-10 g0"""
+    if not drag:
+        return min(30.0 * tf, max(0.5 * tf, dt / math.log(u0 / u1)))
+    return min(10.0 * g0, max(0.1 * g0, L * (1.0 / u1 - 1.0 / u0) / dt))
+
+
+def glide_dist(u0, u1, g, drag, L):
+    """the distance of the glide from u0 to u1"""
+    if u0 <= u1:
+        return 0.0
+    return L / g * math.log(u0 / u1) if drag else (u0 - u1) * g
+
+
+def glide_reach(u0, umin, g, L):
+    """the coasting distance with the drag law: to rest, the drag turning linear below umin"""
+    return L / g * math.log(1.0 + u0 / umin) if u0 > 0.0 else 0.0
+
+
+def _kf_walk(st, dt):
+    """The random walks over an interval with the probes (B1: also the slip; sixdof_brain::kf_walk)."""
+    P = st["kP"]
+    ssd, f0, uf = st.get("ssd", 0.0), st["f0"], st["uf"]
+    P[0][0] += SWALK * f0 * dt * ssd * ssd / 0.09 if ssd > 0.0 else SWALK * f0 * dt
+    P[1][1] += CWALK * uf * uf * f0 * dt
+    P[2][2] += CWALK * uf * uf * f0 * dt
+    P[3][3] += BWALK * f0 * dt
+
+
+def _kf_row(st, H, y, R):
+    """One scalar measurement of [s, c_p0, c_p1, beta] (sixdof_brain::kf_row)."""
+    x, P = st["kx"], st["kP"]
+    Ph = [P[i][0] * H[0] + P[i][1] * H[1] + P[i][2] * H[2] + P[i][3] * H[3] for i in range(4)]
+    S = H[0] * Ph[0] + H[1] * Ph[1] + H[2] * Ph[2] + H[3] * Ph[3] + R
+    K = [Ph[i] / S for i in range(4)]
+    e = y - (H[0] * x[0] + H[1] * x[1] + H[2] * x[2] + H[3] * x[3])
+    for i in range(4):
+        x[i] += K[i] * e
+    for i in range(4):
+        for j in range(4):
+            P[i][j] -= K[i] * Ph[j]
 
 
 def _kf_update(st, H, y, R, dt):
@@ -68,6 +120,7 @@ def rules(sv, st, pr):
     the stride and the current from the gait and the track, the velocity through the water for the target."""
     L, f0, rho = pr["L"], pr["f0"], pr["rho"]
     tf, uf = 1.0 / f0, L * f0                   # the units of the constants: T = 1/f0, L f0
+    cdg = max(0.0, pr.get("C_d", 0.0) or 0.0)     # the drag law of the glide (X 209, patch 0041; 0: exponential)
     Udes, bmax, Dvis, the = pr["U_des"], (pr["b_max"] if pr["b_max"] > 0 else 1.0), pr["D"], pr["th_esc"]
     s0 = pr.get("s0", 0.0) or S0                 # X 200: the prior of the stride and the turn rate of the bias
     kturn = pr.get("k_turn", 0.0) or KTURN
@@ -84,33 +137,71 @@ def rules(sv, st, pr):
 
     # 1. the speed of the gait since the last decision; the estimate of the stride and the current
     if "kx" not in st:
-        st["kx"], st["s0"] = [s0, 0.0, 0.0], s0
-        st["kP"] = [[(ssd * ssd * s0 * s0 if ssd > 0.0 else 0.09 * s0 * s0), 0.0, 0.0], [0.0, (C0 * uf) * (C0 * uf), 0.0],
-                    [0.0, 0.0, (C0 * uf) * (C0 * uf)]]
+        st["kx"], st["s0"] = [s0, 0.0, 0.0, 0.0], s0
+        st["kP"] = [[(ssd * ssd * s0 * s0 if ssd > 0.0 else 0.09 * s0 * s0), 0.0, 0.0, 0.0], [0.0, (C0 * uf) * (C0 * uf), 0.0, 0.0],
+                    [0.0, 0.0, (C0 * uf) * (C0 * uf), 0.0], [0.0, 0.0, 0.0, 0.0]]
         st["ssd"], st["f0"], st["uf"] = ssd, f0, uf
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
         st["tauc"] = pr.get("tau_c", 0.0) or TAUC0 / f0     # X 204: the prior of the coasting time
+        st["tstart"] = st["tauc"]                           # ... and of the decay of the water passing at the start
+        if cdg > 0.0:
+            st["tauc"] = cdg                                # X 209: the constant of the glide is the drag coefficient
         st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
         st["E0"] = 0.0
+        tstart = st["tstart"] if cdg > 0.0 else st["tauc"]
         if nu > 0.0:
             # X 202: the body at rest over the ground at t = 0; the speed of the gait from rest over the ramp, the
             # water that passed the body at rest decaying with the coasting time (sixdof_brain::decide)
             n = max(1, int(math.ceil(t / (0.01 * tf)))); h = t / n; u = 0.0
             for i in range(n):
                 u += h * f0 / nu * (f0 * L * min(1.0, (i + 0.5) * h / max(t, 1.0e-9)) - u)
-            st["ug"], st["E0"] = u, math.exp(-t / st["tauc"])
+            st["ug"], st["E0"] = u, math.exp(-t / tstart)
+    # the decay time of the water that passed the body at the start: the coasting time, or with X 209 the prior of X 204
+    tstart = st["tstart"] if cdg > 0.0 else st["tauc"]
     dt = t - st["tdec"]
+    # B1: the speed through the water along the axis from the head probes (the flow along the axis relative to the hull,
+    # the mean over the interval), kappa (X 208, 1; 0: not used); with it the slip beta as a fourth state
+    kap = pr.get("kappa", 1.0)
+    kap = 1.0 if kap is None else kap
+    lua, lsl = sv.get("ll_ua", []), sv.get("ll_s", [])
+    hw = [-lua[k] for k in range(len(lua)) if k < len(lsl) and lsl[k] < SNOUT] if (kap > 0.0 and lua and len(lua) == len(lsl)) else []
+    hasw = len(hw) > 0
+    wa = sum(hw) / (len(hw) * kap) if hasw else 0.0
+    if hasw and not st.get("wset", False):
+        st["kx"][3] = 0.0
+        for i in range(4):
+            st["kP"][i][3] = st["kP"][3][i] = 0.0
+        st["kP"][3][3] = BETA0 * BETA0
+        st["wset"] = True
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
+        ya = y[0] * ex[p0] + y[1] * ex[p1]
+        yl = y[0] * el[p0] + y[1] * el[p1]
         if st["ug"] < 0.0:
-            # the first interval: the speed of the gait from the track (no current assumed), no update
-            st["ug"] = min(f * a * L, max(0.0, y[0] * ex[p0] + y[1] * ex[p1]) / st["kx"][0])
+            # the first interval: the speed of the gait from the track (no current assumed), no update; with the probes
+            # from them
+            st["ug"] = min(f * a * L, max(0.0, wa if hasw else ya) / st["kx"][0])
+        elif hasw and min(a, st["adec"]) < 0.95:
+            # gliding with the probes: the speed of the gait from them; the current along the axis from the track less
+            # the speed through the water while the body is straight
+            E0 = st.get("E0", 0.0)
+            st["E0"] = E0 * math.exp(-dt / tstart)
+            u0 = st["ug"] * st["kx"][0]
+            straight = max(abs(b), abs(st["bdec"])) < 0.05
+            if straight:
+                _kf_walk(st, dt)
+                _kf_row(st, [0.0, ex[p0], ex[p1], 0.0], ya - wa, (NOISE * uf) ** 2 + (PNOISE * uf) ** 2)
+            st["ug"] = max(0.0, wa) / st["kx"][0]
+            cm = math.sqrt(st["kx"][1] ** 2 + st["kx"][2] ** 2)
+            if max(a, st["adec"]) < 0.05 and straight and wa > 3.0 * cm + 0.05 * uf and wa < u0:
+                tm = glide_learn(u0, wa, dt, True, L, tf, cdg) if cdg > 0.0 else min(30.0 * tf, max(0.5 * tf, dt / math.log(u0 / wa)))
+                st["tauc"] = 0.7 * st["tauc"] + 0.3 * tm
         elif min(a, st["adec"]) < 0.95:
             # gliding: no update of the estimate, the speed of the gait from the track
             E0 = st.get("E0", 0.0)
-            Em = E0 * st["tauc"] / dt * (1.0 - math.exp(-dt / st["tauc"])) if E0 > 0.0 else 0.0
-            st["E0"] = E0 * math.exp(-dt / st["tauc"])
+            Em = E0 * tstart / dt * (1.0 - math.exp(-dt / tstart)) if E0 > 0.0 else 0.0
+            st["E0"] = E0 * math.exp(-dt / tstart)
             uw = (y[0] - (1.0 - Em) * st["kx"][1]) * ex[p0] + (y[1] - (1.0 - Em) * st["kx"][2]) * ex[p1]
             u0 = st["ug"] * st["kx"][0]
             # a coasting body does not move backwards through the water: drifting back faster than the current
@@ -123,7 +214,7 @@ def rules(sv, st, pr):
             # the coasting time from the slowing down of the glide (both decisions gliding)
             cm = math.sqrt(st["kx"][1] ** 2 + st["kx"][2] ** 2)
             if max(a, st["adec"]) < 0.05 and max(abs(b), abs(st["bdec"])) < 0.05 and uw > 3.0 * cm + 0.05 * uf and uw < u0:
-                tm = min(30.0 * tf, max(0.5 * tf, dt / math.log(u0 / uw)))
+                tm = glide_learn(u0, uw, dt, True, L, tf, cdg) if cdg > 0.0 else min(30.0 * tf, max(0.5 * tf, dt / math.log(u0 / uw)))
                 st["tauc"] = 0.7 * st["tauc"] + 0.3 * tm
         else:
             fal = f * a * L
@@ -138,11 +229,20 @@ def rules(sv, st, pr):
             bm = 0.5 * (b + st["bdec"])
             R = (NOISE * uf) * (NOISE * uf) * (1.0 + 4.0 * bm * bm)
             E0 = st.get("E0", 0.0)                                 # the water that passed the body at the start
-            Em = E0 * st["tauc"] / dt * (1.0 - math.exp(-dt / st["tauc"])) if E0 > 0.0 else 0.0
-            st["E0"] = E0 * math.exp(-dt / st["tauc"])
+            Em = E0 * tstart / dt * (1.0 - math.exp(-dt / tstart)) if E0 > 0.0 else 0.0
+            st["E0"] = E0 * math.exp(-dt / tstart)
             H = [[ugm * ex[p0], 1.0 - Em * ex[p0] * ex[p0], -Em * ex[p1] * ex[p0]],
                  [ugm * ex[p1], -Em * ex[p0] * ex[p1], 1.0 - Em * ex[p1] * ex[p1]]]
-            _kf_update(st, H, y, R, dt)
+            if not hasw:
+                _kf_update(st, H, y, R, dt)
+            else:
+                # the current along the axis from the track less w_a, across it c.el + beta w_a, the stride from w_a
+                _kf_walk(st, dt)
+                Rp = (PNOISE * uf) ** 2
+                _kf_row(st, [0.0, ex[p0], ex[p1], 0.0], ya - wa, R + Rp)
+                _kf_row(st, [0.0, el[p0], el[p1], wa], yl, R + (SLIP * uf) ** 2)
+                _kf_row(st, [ugm, -Em * ex[p0], -Em * ex[p1], 0.0], wa, Rp + (SMODEL * wa) ** 2)
+                st["kx"][0] = min(1.6 * st["s0"], max(0.5 * st["s0"], st["kx"][0]))
             st["nkf"] = st.get("nkf", 0) + 1
     s = st["kx"][0]
     cur = [0.0, 0.0, 0.0]
@@ -224,8 +324,11 @@ def rules(sv, st, pr):
     at = 1.0
     Umin = 0.3 * f0 * s * L
     # coasting: the distance it carries the fish (its speed through the water along the axis times the
-    # coasting time); the target ahead on the axis (within 30 deg)
-    dstop = max(0.0, st["ug"]) * s * st["tauc"]
+    # coasting time; with the drag law of X 209, its coefficient learnt, the distance to rest with the drag turning
+    # linear below the slowest swimming speed, and that over the speed as the time); the target ahead on the axis
+    u0 = max(0.0, st["ug"]) * s
+    dstop = glide_reach(u0, Umin, st["tauc"], L) if cdg > 0.0 else u0 * st["tauc"]
+    tcoast = (dstop / u0 if u0 > 0.0 else 0.0) if cdg > 0.0 else st["tauc"]
     rx, ry = sum(r[k] * ex[k] for k in range(3)), sum(r[k] * el[k] for k in range(3))
     onaxis = has_t and rx > 0.0 and abs(math.atan2(ry, rx)) < 0.5236
     cm = math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1])
@@ -233,7 +336,7 @@ def rules(sv, st, pr):
     # an early glide needs the current known and its drift over the coasting time small
     # at the target: the current learnt over NKNOWN updates (a glide stops the estimate)
     cvar = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * uf) ** 2
-    known = cvar and cm * st["tauc"] < CDRIFT * L
+    known = cvar and cm * tcoast < CDRIFT * L
     learnt = cvar and st.get("nkf", 0) >= NKNOWN
     if not has_t or threat > 0.0 or not calm:
         st["glide"] = False

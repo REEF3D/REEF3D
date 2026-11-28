@@ -226,11 +226,14 @@ private:
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     
-    // seepage flow in the bed (Q 69): piezometric pore pressure p* = p - rho_f g.x (Darcy, Laplace in the bed)
+    // seepage flow in the bed (Q 69): piezometric pore pressure p* = p - rho_f g.x (Darcy, Laplace in the bed;
+    // Q 69 2: p* at the start of the soil stress model plus its excess pore pressure, S 200)
     void seepage_update(lexer*, fdm*, ghostcell*);
+    void seepage_gradient(lexer*, fdm*, ghostcell*, double);
     bool seep_bed(lexer*, fdm*, int, int, int);
     double pstar_fluid(lexer*, fdm*, int, int, int);
     field4a Pse,Gsz,Pnos;   // p* (bed: pore pressure, fluid: fluid), vertical gradient of p* in the bed, overburden without the seepage
+    field4a Pse0;           // Q 69 2: p* of the bed at the start of the soil stress model
     int seep_ini=0;
     
     turbulence *pturb_=nullptr;   // turbulence model of the last call of move (bed shear stress of the layer, Q 68)

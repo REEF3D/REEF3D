@@ -132,6 +132,16 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
             if(single ? (f0<wet && f1<wet) : (0.5*(f0+f1) < 0.0))
             continue;
 
+            // F 75 1 (single phase): a face at the free surface (one cell in the air) keeps the
+            // velocity of the grid, from the projection of the step before. The particles there have
+            // the water on one side only; their velocity on these faces damped the sloshing tank
+            // (2 cells per wave height, CFL 0.25) by 1.1 % of its energy per period, without it
+            // 0.0 %. These faces then get no convection (none on the grid with F 81 1): the
+            // spilling breaker overshoots (H at breaking 0.191 m against 0.177 m, measured 0.163 m)
+            // and the dam break gains twice as many particles from the reseeding (F 86)
+            if(single && p->F75==1 && (f0<wet || f1<wet))
+            continue;
+
             f(i,j,k) = sv[g]/sw[g];
         }
 

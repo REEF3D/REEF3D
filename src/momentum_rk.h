@@ -138,6 +138,8 @@ diffusion are added.
 class pic;
 
 class cfd_singlephase;
+class rheology_cfd_wall;
+
 class momentum_rk final : public momentum, public momentum_forcing, public bcmom
 {
 public:
@@ -282,8 +284,11 @@ private:
     // N 40 5 with N 59: the mass transport of the momentum starts from the level set before its last
     // transport (frk1), kept by amr_ls_transport; phiold_valid: kept in the last step of this grid (1),
     // a double for the checkpoints (ckpt_registry)
+    rheology_cfd_wall *pwall = nullptr;   // W 135: side-wall friction of the rheology (point-implicit, after the VRANS drag)
     cfd_singlephase *psingle = nullptr;   // F 41 1: the velocity of the water extended into the air after the projections
     bool phiold;
+    bool pgold;         // N 67 1 (N 40 5): the pressure gradient of the momentum step with the face density of frk1
+    bool keepold;       // phiold or pgold: frk1 kept
     double phiold_valid;
     unsigned long long ckid_phiold;
 

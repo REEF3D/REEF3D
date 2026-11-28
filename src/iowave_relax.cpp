@@ -88,9 +88,14 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
 		// Numerical Beach
         if(p->B99==1||p->B99==2||beach_relax==1)
 		{
-            // Zone 2
+            // Zone 2; B 97 1: waves on a current, the water relaxed to the inflow current Ui instead of to rest
             if(db<1.0e19)
+            {
+            if(p->B97==1)
+            uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k) + (1.0-relax1_nb(i,j))*ramp(p)*p->Ui*H;
+            else
             uvel(i,j,k) = relax1_nb(i,j)*uvel(i,j,k);
+            }
         }
     
     }
@@ -289,8 +294,8 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
             }
         }
             
-        // Numerical Beach    
-        if(p->B99==1||p->B99==2)
+        // Numerical Beach: every beach zone (B 99 1 / 2, B 107, B 520 method 2), as the velocities
+        if(p->B99==1||p->B99==2||beach_relax==1)
         {
             // Zone 2
             if(db<1.0e20)
@@ -305,14 +310,24 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
     
     starttime=pgc->timer();
+    
+    // free surface height of each column, absolute z (as eta + phimean): the top face of the
+    // highest fluid cell minus the air of the fluid cells below it. Before, sum(f dz) from k = 0
+    // was the water depth above the bottom of the domain, wrong with z_min != 0 and when solid
+    // cells (bed, structure) below the surface held vof. Solid cells are skipped; air above a
+    // solid (a deck in the zone) is not expected. Local to the rank: a rank below the surface
+    // gets its top face, one above it its bottom face, both give f = 1 / 0 there as they should.
     SLICELOOP4
     {
-        vofheight(i,j)=0.0;
+        double ztop=-1.0e20, air=0.0;
         genheight(i,j)=0.0;
         KLOOP
-        {   
-            vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
+        PCHECK
+        {
+            ztop = MAX(ztop, p->pos_z()+0.5*p->DZN[KP]);
+            air += (1.0-f(i,j,k))*p->DZN[KP];
         }
+        vofheight(i,j) = ztop>-1.0e19 ? ztop-air : p->phimean;
     }
     count=0;
     
@@ -367,8 +382,8 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     // difference to the relaxed height is added or taken away: added from the bed upwards into the
     // cells with room, taken away from the top downwards. Writing the whole column anew from its height
     // moved the water of a broken wave within one time step at the start of the beach, where the
-    // relaxation factor is 1.
-    if(p->B99==1||p->B99==2)
+    // relaxation factor is 1. Every beach zone (B 99 1 / 2, B 107, B 520 method 2), as the velocities.
+    if(p->B99==1||p->B99==2||beach_relax==1)
     SLICELOOP4
     {
         db = distbeach(p);

@@ -30,8 +30,11 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"lagoon_output.h"
+#include"slide2D.h"
 #include"vtp_piece_buffer.h"
 #include<sstream>
+#include<cmath>
+#include<limits>
 
 namespace
 {
@@ -71,6 +74,72 @@ nhflow_vtp_fsf::nhflow_vtp_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         pgc->gcsl_start4Vint(p,wetmax,50);
     }
+    
+    if(p->P112>0)
+    {
+        const size_t nn = size_t(p->imax)*p->jmax;
+        mxeta.assign(nn,-1.0e30);
+        mxteta.assign(nn,-1.0e30);
+        mxdepth.assign(nn,0.0);
+        mxspeed.assign(nn,0.0);
+        mxwet.assign(nn,0);
+    }
+}
+
+void nhflow_vtp_fsf::max_update(lexer *p, fdm_nhf *d)
+{
+    if(p->simtime<p->P113)
+    return;
+    
+    k = p->knoz-1;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        const double e = d->eta(i,j);
+        
+        if(e>mxeta[IJ])
+        {
+        mxeta[IJ] = e;
+        mxteta[IJ] = p->simtime;
+        }
+        
+        mxdepth[IJ] = MAX(mxdepth[IJ], d->WL(i,j));
+        
+        // the speed of the top layer (as the velocity of this output)
+        const double u = d->U[IJK], v = p->j_dir==1 ? d->V[IJK] : 0.0;
+        mxspeed[IJ] = MAX(mxspeed[IJ], sqrt(u*u + v*v));
+        
+        mxwet[IJ] = 1;
+    }
+}
+
+double nhflow_vtp_fsf::max_node(lexer *p, const std::vector<double> &f) const
+{
+    // the cells around the node (i,j): (i,j), (i+1,j), (i,j+1), (i+1,j+1) of the loop TPSLICELOOP; only the ones that
+    // were wet; NaN where none was
+    double m = -1.0e30;
+    bool any = false;
+    
+    const int ii[4] = {0,1,0,1}, jj4[4] = {0,0,1,1};
+    
+    for(int q=0; q<4; ++q)
+    {
+        const int ic = i + ii[q], jc = p->j_dir==1 ? j + jj4[q] : 0;
+        
+        if(ic<0 || ic>=p->knox || jc<0 || jc>=p->knoy)
+        continue;
+        
+        const int n = (ic-p->imin)*p->jmax + (jc-p->jmin);
+        
+        if(p->flagslice4[n]>0 && mxwet[n]==1)
+        {
+        m = MAX(m, f[n]);
+        any = true;
+        }
+    }
+    
+    return any ? m : std::numeric_limits<double>::quiet_NaN();
 }
 
 void nhflow_vtp_fsf::initialize_avg_arrays(lexer *p)
@@ -279,9 +348,21 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         ++n;
     }
 
+    // the maxima of the run (P 112)
+    if(p->P112>0)
+    for(int q=0; q<4; ++q)
+    {
+        offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)+sizeof(int);
+        ++n;
+    }
+
     // atmospheric forcing (W 200)
     if(d->met!=nullptr)
         d->met->offset_vtp(p,offset,n);
+
+    // slide layer (W 150)
+    if(d->slide!=nullptr)
+        d->slide->offset_vtp(p,offset,n);
 
     // eddyv, kin, epsilon/omega of the top layer (k-epsilon, k-omega; none otherwise)
     pnhfturb->offset_ParaView_2D(p,offset,n);
@@ -337,8 +418,19 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
+    if(p->P112>0)
+    {
+        const char *mxn[4] = {"max_eta","time_max_eta","max_depth","max_speed"};
+        for(int q=0; q<4; ++q)
+        {
+        result<<"<DataArray type=\"Float32\" Name=\""<<mxn[q]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        ++n;
+        }
+    }
     if(d->met!=nullptr)
         d->met->name_vtp(result,offset,n);
+    if(d->slide!=nullptr)
+        d->slide->name_vtp(result,offset,n);
 
     pnhfturb->name_vtp(p,d,pgc,result,offset,n);
     result<<"</PointData>\n";
@@ -503,9 +595,29 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         }
     }
 
+    //  the maxima of the run (P 112)
+    if(p->P112>0)
+    {
+        const std::vector<double> *mxf[4] = {&mxeta,&mxteta,&mxdepth,&mxspeed};
+        for(int q=0; q<4; ++q)
+        {
+        iin=sizeof(float)*p->pointnum2D;
+        bin.write((char*)&iin, sizeof(int));
+        TPSLICELOOP
+        {
+            ffn = float(max_node(p,*mxf[q]));
+            bin.write((char*)&ffn, sizeof(float));
+        }
+        }
+    }
+
     //  wind10, air_pressure, wind_stress (W 200)
     if(d->met!=nullptr)
         {std::ostringstream part(std::ios::out | std::ios::binary); d->met->print_vtp(p,part); bin.s += part.str();}
+
+    //  slide_h, slide_velocity, slide_lambda (W 150)
+    if(d->slide!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); d->slide->print_vtp(p,part); bin.s += part.str();}
 
     //  eddyv, kin, epsilon/omega of the top layer
     {std::ostringstream part(std::ios::out | std::ios::binary); pnhfturb->print_2D(p,d,pgc,part,1); bin.s += part.str();}
@@ -704,6 +816,9 @@ void nhflow_vtp_fsf::print2D_avg(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment 
 
 void nhflow_vtp_fsf::preproc(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
+    if(p->P112>0)
+    max_update(p,d);
+
     if(p->P131==1)
     {
         SLICELOOP4

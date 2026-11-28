@@ -38,6 +38,28 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     if(p->X198>0)
     momentum_loads(p,iter);
     
+    // the time of the loads of this stage, the state it starts from (p->simtime is the start of the
+    // step), for the stabilised coupling X 197 (cfd_added_mass).  SSP-RK2: t, t+dt; SSP-RK3: t, t+dt,
+    // t+dt/2; low-storage RK3: t, t+8/15 dt, t+2/3 dt; N 40 6: t, t+dt/2; N 40 5: t
+    {
+        double c = 0.0;
+        
+        if(p->N40==2 || p->N40==12 || p->N40==22)
+        c = (iter==0) ? 0.0 : 1.0;
+        
+        if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
+        c = (iter==0) ? 0.0 : (iter==1 ? 1.0 : 0.5);
+        
+        if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
+        c = (iter==0) ? 0.0 : (iter==1 ? 8.0/15.0 : 2.0/3.0);
+        
+        if(p->N40==6)
+        c = (iter==0) ? 0.0 : 0.5;
+        
+        am_tnow_ = p->simtime + c*p->dt;
+        am_iter_ = iter;
+    }
+    
     // load models (ship module) sample the CFD velocity
     sixdof_fluid_cfd fluid(p,a,pgc);
     pfluid = &fluid;
@@ -118,6 +140,22 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     if(p->X16==1)
     porous_damping_nhflow(p,iter);
     
+    // the semi-implicit NHFLOW (A 510 11/12/13, nhflow_momentum_SI::fb_step): one step per time step at its start, the
+    // semi-implicit Euler step of the CFD one-step scheme (N 40 5): the momenta with the loads of t^n, the pose with
+    // the new momenta, which the fluid sees over the step
+    if(p->A534==1)
+    {
+    motion_stage_begin(p,1.0);
+    
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.step_symplectic(p->dt);
+    
+    motion_stage_end(p);
+    return;
+    }
+    
     if(p->A510==2)
     rk2(p,pgc,iter);
     
@@ -138,6 +176,13 @@ void sixdof_obj_2D::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter, boo
 
 void sixdof_obj_nhflow::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
+    // the semi-implicit NHFLOW (A 510 11/12/13): one step to t^{n+1} per time step
+    if(p->A534==1)
+    {
+    solve_eqmotion_oneway_onestep(p,pgc,finalize);
+    return;
+    }
+    
     if(p->A510==2)
     rk2(p,pgc,iter);
     
@@ -266,20 +311,22 @@ void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
     motion_stage_end(p);
 }
 
-// Prescribed motion from a file (X 240 1): the velocity and the position of the body at the time the stage of
-// its integrator ends, the time of the fluid state that sees the body next.  The body moves before the fluid
+// Prescribed motion from a file (X 240 1, X 240 11): the velocity and the pose of the body at the time the stage
+// of its integrator ends, the time of the fluid state that sees the body next.  The body moves before the fluid
 // stage (CFD, NHFLOW, SFLOW: the forcing of the stage; FNPF: the body boundary of the next Laplace solve).
 // The velocity of the file interval at p->simtime, the start of the step, in every stage was a step function
 // in time and the same target for stages that end at different times.  Other motions ignore the time.
+// The translations, and the orientation of a body without free rotation, are taken from the file after the
+// stage (6DOF_motionext_table.cpp).
 void sixdof_obj::motion_stage_begin(lexer *p, double cend)
 {
     if(pmotion!=nullptr)
-    pmotion->stage_begin(p, p->simtime + cend*p->dt, rb.c);
+    pmotion->stage_begin(p, p->simtime + cend*p->dt, rb.c, rb.e, rb.twoD);
 }
 
 void sixdof_obj::motion_stage_end(lexer *p)
 {
     if(pmotion!=nullptr)
-    pmotion->stage_position(p,rb.c);
+    pmotion->stage_position(p,rb.c,rb.e);
 }
 

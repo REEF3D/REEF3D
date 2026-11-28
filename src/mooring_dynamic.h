@@ -68,6 +68,10 @@ private:
     void updateFields(lexer*, ghostcell*);
     void updateFluidVel(lexer*, ghostcell*, int);
     void saveMooringPoint(lexer*);
+    // at the beam's output times: the line as the other mooring lines have it,
+    // REEF3D_<SOLVER>_6DOF_Mooring/REEF3D-Mooring-<line>-<output>.vtk with its
+    // Tension, and in the LAGOON store (P 18, lagoon_moorings)
+    void print_line(lexer*);
 
 	// ------ 
 	

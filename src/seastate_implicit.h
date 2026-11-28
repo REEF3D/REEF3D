@@ -237,6 +237,10 @@ sweep; at the fixed point they are the same. The first quadrant sees the
 terms as before (bitwise). Not in residual mode (FAS), with the surfbeat
 model or in the composite sweep; a cell scaled to the maximum energy
 (A 737 1) evaluates its terms again.
+Phase 29: A 767 1 also with A 769 2: the conservative DIA of a cell once
+per iteration for all its bins, its loss rates and gains (ratios 1) kept
+with P and D, no second pass (cell). A 782: the settled cells of an
+iteration are not solved again (active_set).
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -365,6 +369,33 @@ public:
     void ranges_get(lexer*, int ci, int cj, double *v);
     void ranges_put(lexer*, int ci, int cj, const double *v);
 
+    // Phase 29 (A 782): the settled cells of an iteration are not solved again. Every solve of a cell adds the change of
+    // its spectrum, sum |N_new - N_old| sig dsig over the bins of the quadrant, and its energy; after the four sweeps of
+    // an iteration (iterate) a cell is marked as changed if the sum exceeds A 782 times its energy (at least 1e-4 of
+    // the largest energy of the grid, the floor of the convergence tests on Hs). The marks of the cells next to a rank
+    // boundary are exchanged. In the next iteration a cell is solved only if it or one of its four neighbours is
+    // marked; a cell that is not solved keeps its spectrum and is not marked. active_reset(): the next iteration
+    // solves all cells (the first iteration of a time step or of a stationary run: new old time level, wind, boundary
+    // spectra). Uniform grids, not the surfbeat model
+    void active_set(double tol, lexer *p);
+    void active_reset() {sact->use = false;}
+    // Phase 30: the steps of active_end one by one, for the grids of the mesh refinement (seastate_amr::active_end): the
+    // changes of an iteration zeroed; the energies of the cells solved (returns the largest); the marks with the floor
+    // of all grids; the marks of level 0 across the ranks; the cells to solve next. active_flag: the mark of a cell (a
+    // covered cell takes those of its children, a ring cell that of its source); active_settled: not solved now
+    void active_begin();
+    double active_energy(lexer*, fdm_seastate*);
+    void active_flags(lexer*, fdm_seastate*, double efloor);
+    void active_halo(lexer*, ghostcell*);
+    void active_need(lexer*);
+    bool active_on() const {return sact->on;}
+    uint8_t &active_flag(int ci, int cj) {return sact->flag[size_t(ci-sact->imin)*sact->nj + (cj-sact->jmin)];}
+    bool active_settled(int ci, int cj) const
+    {return sact->on && sact->use && !sact->need[size_t(ci-sact->imin)*sact->nj + (cj-sact->jmin)];}
+    // the cells solved and the cells of all iterations so far (this rank)
+    double active_solved() const {return sact->nsolved;}
+    double active_cells() const {return sact->ncells;}
+
     // Phase 23 (A 768 1, nonstationary, A 732 3 and 4): ecWAM's state of the wind input per cell, the wave stress,
     // its direction and u* of the last time step: every evaluation of the cell in a time step starts from the state
     // of the time step before (lag_key: the time the step solves for, set by seastate_f before every step), the last
@@ -389,6 +420,20 @@ private:
                const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
     slice *wfld = nullptr;
     kba_stats kst;                      // Phase 19
+
+    // Phase 29 (A 782): shared with the copies of the solver that work the threads (each cell is written by the thread
+    // that solves it)
+    struct shared_active
+    {
+    bool on = false, use = false;
+    double tol = 0.0, nsolved = 0.0, ncells = 0.0;
+    int ni = 0, nj = 0, imin = 0, jmin = 0;
+    std::vector<float> dE, Ea, Et;      // change of the iteration, its energy per quadrant (4 per cell), the energy of the last solve
+    std::vector<uint8_t> flag, need;    // changed in the last iteration (halo included); to be solved in the next
+    };
+    std::shared_ptr<shared_active> sact = std::make_shared<shared_active>();
+    vector<float> actN;                 // the bins of the quadrant before the solve
+    void active_end(lexer*, ghostcell*, fdm_seastate*);
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
@@ -480,6 +525,7 @@ private:
     std::vector<int16_t> tail;          // per slot: the first bin of the diagnostic tail (A 732 3, 4), nsig none
     std::vector<float> hj;              // per slot: u* f_ref of the limiter of Hersbach and Janssen (A 769 1), 0 none
     std::vector<long> gen;              // per slot: the iteration of the evaluation (sgen), -1 none
+    std::vector<float> ns;              // per slot (A 769 2, Phase 29): N* of the last evaluation for all bins, -1 none
     int slot_of(int ci, int cj) const
     {
     if(!ready || ci<imin || ci>=imin+ni || cj<jmin || cj>=jmin+nj)

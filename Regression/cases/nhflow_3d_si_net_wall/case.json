@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_3d_net_wall in the semi-implicit step (A 510 11, A 536 0.02): the fixed quasi-static wall net (X 320 3, sixdof_void) once per step at its start with the velocities of t^n, its forces (Fext) in the predictor (NHFLOW_SI_6DOF v47), 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "net",
+  "current",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::net_step, net_save, net_restore",
+  "net_interface::dlm_nhflow with the semi-implicit step"
+ ],
+ "architect": "Hans Bihs"
+}

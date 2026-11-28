@@ -292,6 +292,10 @@ private:
     std::vector<double> nmaxk;          // prm.flmax: N_max per frequency (as seastate_st4)
     mutable std::vector<int> mpW;       // A 769 2: the bin direction of each padded direction, -1 none
     mutable std::vector<double> mpR, mpG, mpL, mpA;   // A 769 2: padded rows of the ratios, gains and loss rates; rates
+    // Phase 29: the rates |d|/E+ and |d|/E- of all rows of the first pass of dia_mp(), taken by the second pass (the
+    // same values, not computed twice); mp_pok: they belong to the last dia()
+    mutable std::vector<double> mpP;
+    mutable bool mp_pok = false;
     void hj_limits(int la, int lb);     // A 769 1: dNmax of the frequencies la..lb from hjs
     void moments(const float *N, double depth, const float *k);
     void dia(const float *N, double depth);

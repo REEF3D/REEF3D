@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_3d_net_wall with the dynamic bar net (X 320 13) in the semi-implicit step with the SSP-RK2 predictor (A 510 12, A 536 0.02): the forces of the net of the step in both predictor stages (net_restore; NHFLOW_SI_6DOF v47), 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "net",
+  "current",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::net_restore (every predictor stage)",
+  "net_barDyn with the semi-implicit step"
+ ],
+ "architect": "Hans Bihs"
+}

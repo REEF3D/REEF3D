@@ -1,0 +1,20 @@
+{
+ "description": "As nhflow_1d_si_nh_vrans_wave_submerged with a porous block through the free surface (x 7-7.4 m, to 0.2 m above the still water level) and the SSP-RK2 predictor (A 510 12): the storage n_s of the continuity with the surface inside the block (reflection, transmission; on the finer grid of the validation run the wave heights in front, inside and behind are within 4 % of the explicit RK2).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "vrans",
+  "waves"
+ ],
+ "covers": [
+  "storage n_s (d->PORS) in the mass rows of the coupled system and in eta_update with a moving surface in the porous block",
+  "vr_adv",
+  "vr_predictor with SSP-RK2"
+ ],
+ "architect": "Hans Bihs"
+}

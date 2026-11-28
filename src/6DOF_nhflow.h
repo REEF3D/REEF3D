@@ -69,6 +69,10 @@ public:
     void ckpt_state(lexer*, std::vector<double>&) override final;
     bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
     double* ckpt_slice() override final {return press.V;}
+    bool nhflow_press(lexer*, slice&) override final;
+    void nhflow_mark_advanced(lexer*, int) override final;
+    void porous_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*,
+                               slice&) override final;
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;

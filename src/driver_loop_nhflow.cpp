@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"seastate_nhflow.h"
 #include"nhflow_amr.h"
 #include"nhflow_longrun.h"
@@ -93,6 +94,12 @@ void driver::loop_nhflow()
 		// Sediment Computation
         psed->start_susp_nhflow(p,d,pgc,pflow,psolv);
         psed->start_nhflow(p,d,pgc,pflow);
+        
+        // two-layer landslide (W 150): the slide over the step with the water of t^n, then the bed z_b + h_s; the
+        // water column is kept (the surface moves with the bed)
+        if(d->slide!=nullptr)
+        d->slide->start(p,d,pgc);
+        
         pnhfsf->depth_update(p,d,pgc,pflow);
         
         // Lagrangian particles: release, velocity at t^n

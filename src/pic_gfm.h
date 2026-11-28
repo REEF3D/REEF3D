@@ -48,6 +48,17 @@ const double PIC_GFM_WET = 0.01;
 
 bool pic_gfm_water(lexer*, fdm*, int, int, int);
 
+// the level set from which a cell counts as water in the ghost fluid method of grid p: F 81 1
+// PIC_GFM_WET h, F 41 1 F 66 h (h the mean spacing of the grid; 0 by default)
+double pic_gfm_wet_level(lexer*);
+
+// F 66: set once by driver_logic_cfd for the single-phase level set (F 41 1)
+void pic_gfm_wet41(double);
+
+// the same level for the sign tests of the single-phase level set outside pic_gfm (the extension of
+// cfd_singlephase, the faces of the patch edges): F 66 h, 0 with F 81 1 (as before there)
+double pic_gfm_wet41_level(lexer*);
+
 // the single phase with p = 0 at the free surface by the ghost fluid method: PIC single phase (F 81 1)
 // or the single-phase level set (F 41 1, cfd_singlephase.h)
 bool gfm_single(lexer*);

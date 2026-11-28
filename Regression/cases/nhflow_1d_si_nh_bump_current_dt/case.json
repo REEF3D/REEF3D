@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step at a large time step in a current: 2 m flume over a 3 mm step of the bed (200 x 10 cells, dx 0.01 m), q 0.046 m^2/s on h 0.109 m (U 0.42 m/s), theta 0.55, A 510 11, fixed dt 0.0143 s (flow Courant number 0.6, (U + sqrt(gh)) dt/dx 2.1), 420 steps (t = 6 s). The interface slopes in the [u grad z] terms of the constraint with the geometry of t^{n+1} from the solve (eta^{n+1} implicit): with the geometry extrapolated to t^{n+1} (2 WL^{n+1/2} - WL^n) the short waves on the current grew by 6-8 % per step and the run stopped at t = 3.4 s (N 61).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 420,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_residual: [u grad z] with the interface slopes of t^{n+1} (eta^{n+1} of the solve)",
+  "nhflow_momentum_SI::nh_assemble: d/d eta of the [u grad z] terms (band LU)",
+  "nhflow_momentum_SI::nh_prepare: slopes of WL^n, slope-limiter flags NSFx/NSFy"
+ ],
+ "architect": "Hans Bihs"
+}

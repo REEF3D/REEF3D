@@ -103,6 +103,8 @@ namespace coral
         // largest entry of an increment of the generalized coordinates (6 per body, then coordinates),
         // the coordinates weighted with cscale
         double increment_norm(const VecX &d) const;
+        // name of degree of freedom i: <body> x|y|z|rx|ry|rz, or <coordinate block>[k] (messages)
+        std::string dof_name(int i) const;
 
         double kinetic_energy() const;
         // restart from a checkpoint: the state of the bodies (and their mass and inertia, which the

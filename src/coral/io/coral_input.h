@@ -28,7 +28,7 @@ Architect: Hans Bihs
 //   gravity <gx> <gy> <gz>                        default 0 0 -9.81 (gravity on all bodies)
 //   rho <rho>                                     water density for Morison and mooring (1025)
 //   time dt <h> end <t> [start <t0>] [rho_inf <r>] [tol <tol>] [full_newton]
-//   output dt <h> [file <name>]
+//   output dt <h> [file <name>] [only <prefix> ...]   (only: the columns whose names start with one of the prefixes)
 //   body <name> mass <m> [inertia <Ixx Iyy Izz> [<Ixy Ixz Iyz>]] [cog <x y z>] [rpy <r p y>]
 //        [velocity <vx vy vz>] [omega <wx wy wz>] [offset <dx dy dz>]
 //        (inertia about the CoG, body axes; the joints and loads are set up in the configuration given by
@@ -208,6 +208,18 @@ Architect: Hans Bihs
 //        Faltinsen's scattering force at z = 0; step: the stencil of a sampled fluid's gradients (D/2), plane:
 //        a 2D fluid; channels <name>_Fx .. _Mz and for rainey, kf _Fpx _Fpy _Fpz, the point force;
 //        coral/hydro/coral_member_morison.h)
+//   slam <name> member <m> [D <D>] [model <wo|goda|cw|custom>] [lambda <l>] [cs0 <c> tau <t> [constant]]
+//        [trigger <breaking|kinematic|time>] [B <Bc>] [period <T>] [depth <h>] [at <t1> [<t2> ...]] [eta <eta_b>]
+//        [velocity <V|crest>] [vfac <f>] [n <n>]
+//        (slamming of breaking waves on a frame or superelement member, besides its morison loads: the line force
+//        rho R V^2 Cs(V t/R) uniformly from (1 - lambda) eta_b to the crest eta_b (lambda 0.46), in the direction of
+//        the crest velocity; Cs of Wienke and Oumeraci (wo, default), Goda / von Karman (goda), Campbell and
+//        Weynberg / DNV (cw) or custom (cs0 decaying linearly to 0 at tau = V t/R, constant: cs0 throughout);
+//        trigger: the fluid's breaking flag at the member (default; REEF3D::FNPF A 350), the kinematic criterion
+//        |u_h|/c >= B (0.85) or the given times 'at' (eta: eta_b, else the elevation then); the impact starts after
+//        the crest passed the member, once per crest; V: vfac c (c: the celerity of period at depth, the sampled bed
+//        or the waves' depth; period is required) unless given, velocity crest: vfac |u_h| at the crest; channels <name>_Fx .. _Mz, _eta (at the member), _B (breaking flag or
+//        index), _n (impacts so far); coral/hydro/coral_member_slam.h)
 //   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
 //   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
 //   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
@@ -334,7 +346,8 @@ Architect: Hans Bihs
 //        (0.6 rad/s) and zeta (0.7) with the rotor's and generator's inertia, theta_K from the fit of dP/dtheta,
 //        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
 //        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
-//        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
+//        reaches the rated power at the rated speed, not before; a tip-speed limited rotor whose K at lambda_opt would
+//        reach it earlier, as the IEA 15 and 22 MW, takes a given K below P_rated/Omega_rated^3), given values override; write: the steady operating curve and the
 //        tuning; floating: the platform's part of the speed out of the pitch loop's error (parallel compensation of
 //        the negative damping of platform pitch, the hub's velocity along the shaft through a first-order drivetrain
 //        model; with tune from CORAL's BEM at U_float, 1.25 U_rated by default, else float_A and float_B given;
@@ -371,6 +384,7 @@ namespace coral
         double dt = 0.01;
         double out_dt = 0.0;          // 0: every step
         std::string out_file = "coral_results.dat";
+        std::vector<std::string> out_only;    // output ... only: column name prefixes (empty: all)
         double vtp_dt = -1.0;         // < 0: no VTP output of the structure
         bool static_ini = false;      // static equilibrium before the time integration
         int modes = 0;                // number of modes of the linear analysis (0: none)
@@ -402,6 +416,7 @@ namespace coral
         fluid_load *fluid = nullptr;
         std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics
         bool fluid_bed = false;                             // bathymetry fluid: the mooring lines on the fluid's bed
+        bool sample_bed = false;                            // the fluid's bed under the points (slam: the depth of the celerity)
         struct fluid_member_spec {member_fluid_load *load = nullptr; int n = 0;};
         std::vector<fluid_member_spec> fluid_members;       // fluid_member
         Vec3 fluid_origin = Vec3::Zero();

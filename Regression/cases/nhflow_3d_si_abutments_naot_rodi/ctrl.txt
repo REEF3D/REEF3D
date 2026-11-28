@@ -1,0 +1,26 @@
+A 10 5
+A 510 11
+A 535 0.55
+A 536 0.05
+A 541 1.0
+A 512 2
+A 519 1
+A 520 2
+A 560 2
+A 564 0
+A 567 5 //free-surface omega of Naot & Rodi 1982: y' = 0.07 h and the distance to the nearest side wall
+B 50 0.000005
+B 60 1
+B 61 2
+F 50 2
+F 60 0.109
+I 10 1
+M 10 1
+N 41 1000.0
+N 47 0.3
+P 51 0.5 0.18
+P 51 0.85 0.18
+P 51 1.2 0.18
+P 51 1.9 0.18
+W 10 0.016
+W 22 -9.81

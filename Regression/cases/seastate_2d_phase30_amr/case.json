@@ -1,0 +1,20 @@
+{
+ "base": "seastate_2d_phase17_composite_ns",
+ "ctrl_set": {
+  "A 707": "8",
+  "A 797": "0"
+ },
+ "ctrl_add": [
+  "A 782 0.01"
+ ],
+ "description": "the nonstationary island case with refinement (seastate_2d_amr_mpi2 on one rank: G 1 1, wind, DIA, 6 steps of 300 s) with 8 iterations per step, level by level (A 797 0), and the settled cells left out on level 0 and on the patches (A 782 0.01, Phase 30): a covered cell takes the marks of its children, the ring cells of the patches those of their source cells; 65 % of the cell solves remain. Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr::active_set, active_begin, active_end (A 782 on refined grids)",
+  "seastate_implicit::active_energy, active_flags, active_need on the range of a patch"
+ ]
+}

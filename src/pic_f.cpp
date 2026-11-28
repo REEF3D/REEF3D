@@ -77,6 +77,7 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     single = (p->F81==1);
     rkstages = flipmode && p->F76==1;
     staged = false;
+    redist_clock = 0.0;
     apic = flipmode && (p->F77==1 || p->F77==2);
     relaxzones = surface && p->B90>0 && (p->B98==2 || p->B99==1 || p->B99==2);
     inflowsrc = surface && p->B60>0;
@@ -225,9 +226,21 @@ void pic_f::start(lexer *p, fdm *a, ghostcell *pgc)
     }
     staged = false;
 
-    // F 78: the redistribution against the rows and gaps of the particles
-    if(surface && p->F78>0 && p->count%p->F78==0)
-    redistribute(p,a,pgc);
+    // F 78: the redistribution against the rows and gaps of the particles, every F 78 steps at
+    // CFL 0.25. With the adaptive time step (dt in proportion to N 47) every F 78 0.25/N 47 steps:
+    // the same interval in time whatever N 47. Every 30 steps at CFL 0.08 the sloshing tank lost
+    // 1.51 % (F 81 1) and 0.73 % (F 81 2) of its energy per period, every 94 steps 1.23 % and 0.51 %
+    // (at CFL 0.25 1.11 % and 0.54 %)
+    if(surface && p->F78>0)
+    {
+        redist_clock += p->N48>0 ? p->N47/0.25 : 1.0;
+
+        if(redist_clock >= double(p->F78) - 1.0e-9)
+        {
+        redistribute(p,a,pgc);
+        redist_clock -= double(p->F78);
+        }
+    }
 
     if(surface)
     {

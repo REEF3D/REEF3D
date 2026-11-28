@@ -1,0 +1,29 @@
+{
+ "base": "seastate_nhflow_vortex_si_remote_mb",
+ "np": 2,
+ "ctrl_add": [
+  "G 55 2"
+ ],
+ "same_as": "seastate_nhflow_vortex_si_remote_mb",
+ "same_as_rtol": 0.0001,
+ "description": "seastate_nhflow_vortex_si_remote_mb on 2 ranks with the blocks cut into pieces (G 55 2): the sums of the pieces reduced over the ranks.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex",
+  "curvilinear",
+  "multiblock",
+  "mpi"
+ ],
+ "covers": [
+  "remote_step_grids on several ranks (MPI_Reduce of the wave-cell sums)"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ }
+}

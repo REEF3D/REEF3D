@@ -248,7 +248,43 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // free-surface value in the top sigma layer (A 567 > 0), turbulence length scale y' (Celik & Rodi 1984):
     //   A567 1: y' = T37 (legacy k-omega meaning),  2: y' = T37,  3: y' = T37 h (h local water depth)
     //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
+    //   A567 4: in every layer with y = T37 + the distance of the cell centre below the surface, (1 - sigma) h: the
+    //           length scale near the surface is bounded by kappa y over a depth that does not depend on the layers
+    //           (A567 1-3 act on the top layer only, whose thickness changes with the number of layers)
+    //   A567 5: Naot & Rodi (1982), Eq. 31, in the top layer: omega_s = cmu^-1/4 k^1/2/kappa (1/y' + 1/y*), y' = T37 h (0.07 h,
+    //           Hossain), y* the horizontal distance to the nearest side wall (wall boundaries, solids, dry land above the
+    //           water, whatever A 519; walldist_s): where the surface meets a side wall, the value goes over into
+    //           that of the wall
     // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
+    if(p->A567==5)
+    {
+    walldist_s(p,d,pgc);
+    
+    k=p->knoz-1;
+    
+	SLICELOOP4
+	if(p->DF[IJK]>0)
+	{
+    const double ly = p->T37*d->WL(i,j);
+    const double inv = (ly>1.0e-20 ? 1.0/ly : 1.0e20) + (WDS[IJK]<1.0e19 ? 1.0/MAX(WDS[IJK],1.0e-20) : 0.0);
+    
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*inv);
+	}
+    return;
+    }
+    
+    if(p->A567==4)
+    {
+    LOOP
+    if(p->DF[IJK]>0)
+    {
+    const double y = p->T37 + (1.0-p->ZP[KP])*MAX(d->WL(i,j),0.0);
+    
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(y>1.0e-20?y:1.0e-20));
+    }
+    return;
+    }
+    
     k=p->knoz-1;
     
 	if(p->A567>=1 && p->A567<=3)

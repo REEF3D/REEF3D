@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-// patch boundary conditions ::SFLOW (cell centred velocities)
+// patch boundary conditions ::SFLOW (cell centred velocities) and ::NHFLOW semi-implicit (the faces of the columns)
 class patchBC_2D final : public patchBC_core
 {
 public:
@@ -47,6 +47,9 @@ public:
     void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+
+    // BC update ::NHFLOW semi-implicit (the faces of gcbsl4 as for SFLOW, the layers of the columns)
+    void patchBC_discharge_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     
 private:
     // ghost cell q (1..3) of the face (i,j,cs)
@@ -55,6 +58,10 @@ private:
     // code of the patch face matching a staggered slice entry (same side, same tangential index,
     // normal index within one cell), 0 if none
     int staggered_flag(int ii, int jj, int cs);
+
+    // curvilinear grid (G 50): the normal of the side face cs of cell (i,j) towards +i / +j, the inlet velocity
+    void face_normal(lexer*, int cs, double &nx, double &ny, double &len);
+    void curv_velocity(lexer*, patch_obj*, int cs, double Un, double &uval, double &vval);
 };
 
 #endif

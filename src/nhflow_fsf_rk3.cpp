@@ -160,7 +160,9 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     d->wave->mass_source(p,d,K);
     
     SLICELOOP4
-    d->WL(i,j) = (1.0/3.0)*d->WL(i,j) + (2.0/3.0)*WLRK2(i,j) + (2.0/3.0)*p->dt*K(i,j);
+    // = 1/3 WL + 2/3 (WLRK2 + dt K), as an increment on WLRK2: fl(1/3) + fl(2/3) = 1 - 2^-54, so the convex form
+    // scaled WL by 1 - 5.5e-17 every step and a lake at rest lost water (see sflow_eta::update)
+    d->WL(i,j) = WLRK2(i,j) + ((1.0/3.0)*(d->WL(i,j) - WLRK2(i,j)) + (2.0/3.0)*p->dt*K(i,j));
 
 
     pflow->WL_relax(p,pgc,d->WL,d->depth);

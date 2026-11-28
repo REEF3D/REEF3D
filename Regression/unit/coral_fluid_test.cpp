@@ -640,6 +640,82 @@ static void test_replay()
     fs::remove_all(d1); fs::remove_all(d2);
 }
 
+// a load that gives NaN at the end of the step from 0 to 0.1 until a sub-step of h/4 has been evaluated: the
+// step of h and the second sub-step of h/2 fail, the sub-steps of h/4 go through
+class nan_trap : public load
+{
+public:
+    std::string name() const override {return "trap";}
+    void eval(const model&, double t, VecX &f) const override
+    {
+        if(t > 0.02 && t < 0.03)
+            armed_ = false;
+        if(armed_ && t > 0.1 - 1.0e-9)
+            f(0) = std::nan("");
+    }
+    mutable bool armed_ = true;
+};
+
+static void test_failed_step()
+{
+    std::cout<<"failed steps: sub-steps from the state of t, the message"<<std::endl;
+    {
+        coral_case c;
+        c.read_string("time dt 0.1 end 1\nbody b mass 2 inertia 1 1 1 cog 0 0 0\n");
+        c.m.add_load(std::make_unique<nan_trap>());
+        std::ostringstream log;
+        coupling cp(c, log, false);
+        cp.ini(0.0, ".");
+        cp.step_to(0.1);
+        const double z = c.m.bodies[0].x(2), ze = -0.5*9.81*0.1*0.1;
+        check(std::fabs(z - ze) < 1.0e-9*std::fabs(ze) && std::fabs(cp.time() - 0.1) < 1.0e-15,
+              fmt("free fall over a step that needed sub-steps of h/4: z %.9g (exact %.9g; from the state of h/2: -0.110)", z, ze));
+    }
+    {
+        coral_case c;
+        c.read_string("time dt 0.01 end 1\nbody f mass 1 cog 0 0 0\nfluid_body f n 0\n");
+        std::ostringstream log;
+        std::filesystem::create_directories("coral_fluid_test_fail");
+        coupling cp(c, log, true);
+        cp.ini(0.0, "coral_fluid_test_fail");
+        cp.connect(0, 100.0, Vec3::Zero(), Mat3::Identity(), 10.0*Mat3::Identity());
+        std::vector<Vec6> F(1, Vec6::Zero());
+        F[0](2) = 981.0;
+        Mat6 A = Mat6::Zero();
+        A.diagonal() << 20.0, 20.0, 50.0, 1.0, 1.0, 1.0;
+        cp.fluid_loads(0.0, F, {A}, false);
+        Mat6 Ab = A;
+        Ab(2,2) = -150.0;
+        cp.fluid_loads(0.01, F, {Ab}, true);
+        const bool warn_am = log.str().find("WARNING the added mass") != std::string::npos
+                          && log.str().find("not positive definite") != std::string::npos;
+        F[0](0) = 3.0e9;
+        cp.fluid_loads(0.01, F, {A}, true);
+        const bool warn_jump = log.str().find("WARNING a jump in the fluid load of f") != std::string::npos;
+        F[0](0) = std::nan("");
+        cp.fluid_loads(0.01, F, {}, true);
+        const bool warn_nan = log.str().find("WARNING non-finite fluid load of f at t = 0.01 s (provisional") != std::string::npos;
+        std::string err;
+        try
+        {
+            cp.advance(0.0, 0.01);
+        }
+        catch(const std::exception &e)
+        {
+            err = e.what();
+        }
+        const std::string l = log.str();
+        check(warn_am && warn_jump && warn_nan, "warnings at once: indefinite mass matrix with the added mass, a jump, a NaN in a sample");
+        check(err.find("time step failed at t = 0.0") == 0 && l.find("the step from t = 0 s failed") != std::string::npos
+              && l.find("non-finite residual at f x") != std::string::npos && l.find("provisional f (nan") != std::string::npos
+              && l.find("fluid at t = 0.01: NON-FINITE at f x") != std::string::npos,
+              "the failed step: Newton's reason with the degree of freedom, the load and the sample that are not finite");
+        if(nfail)
+            std::cout<<l;
+        std::filesystem::remove_all("coral_fluid_test_fail");
+    }
+}
+
 int main()
 {
     test_track();
@@ -650,6 +726,7 @@ int main()
     test_sampled();
     test_one_way();
     test_replay();
+    test_failed_step();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

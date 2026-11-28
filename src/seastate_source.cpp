@@ -845,6 +845,7 @@ void seastate_source::dia(const float *N, double depth)
     mp_l1 = l1;
     mp_m0 = s0;
     mp_m1 = s1;
+    mp_pok = false;
     if(prm.dia_mp)
     return;
 
@@ -944,6 +945,15 @@ void seastate_source::dia_mp(const float *N, const double *r, double *G, double 
     }
     const int *__restrict wi = mpW.data();
 
+    // Phase 29: the rates |d|/E+ and |d|/E- of every row and side, from the first pass of this dia() if there was one
+    const size_t npr = size_t(mp_l1-mp_l0+1)*4*size_t(nc);
+    const bool kept = gains_only && mp_pok && mpP.size()==npr;
+    if(!kept)
+    {
+    mpP.resize(npr);
+    mp_pok = !gains_only;
+    }
+
     // the ratios of the bins with the padding of the directions (0 beyond a compact sector)
     mpR.assign(size_t(nsig)*pw,0.0);
     mpG.assign(size_t(nsig)*pw,0.0);
@@ -997,8 +1007,9 @@ void seastate_source::dia_mp(const float *N, const double *r, double *G, double 
     double *gc = top ? nullptr : &mpG[size_t(l)*pw + c0+po];
     double *lc = (top || gains_only) ? nullptr : &mpL[size_t(l)*pw + c0+po];
 
-        mpA.resize(size_t(3*nc));
-        double *__restrict ap = mpA.data(), *__restrict am = ap + nc, *__restrict dq = am + nc;
+        mpA.resize(size_t(nc));
+        double *__restrict dq = mpA.data();
+        double *__restrict ap = &mpP[(size_t(l-mp_l0)*2+q)*2*nc], *__restrict am = ap + nc;
 
         // d > 0: the centre gives, the sides take (d r of the centre first)
         if(!top)
@@ -1025,6 +1036,7 @@ void seastate_source::dia_mp(const float *N, const double *r, double *G, double 
 
         // d < 0: the sides give in proportion to their weight of E+ (E-), the centre takes their action (vectorised over
         // the directions: the rates |d|/E+ and |d|/E- first)
+            if(!kept)
             #pragma GCC ivdep
             for(int n=0; n<nc; ++n)
             {

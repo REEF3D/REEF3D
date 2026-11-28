@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "np": 1,
+ "steps": 20,
+ "ctrl_add": [
+  "G 42 0.2"
+ ],
+ "description": "cfd_2d_heave_amr with G 42 0.2: the body is cast again on a grid when a vertex has moved more than 0.2 cells of that grid since its last cast, on the patches (cfd_amr_6dof::start_bodies) and on level 0 (sixdof_obj_cfd::fb_unchanged with the tolerance of G 42, patch AMR/0185); in between both keep the level set of that cast. The body lies inside the patch: the result is that of the cast on the patch alone, the ray cast and the reinitialisation on level 0 are left out at most stages (the 6DOF time of the run a third).",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "sixdof_obj_cfd::fb_unchanged: the tolerance of G 42 on level 0",
+  "cfd_amr_6dof::start_bodies: G 42 on the patches"
+ ]
+}

@@ -26,20 +26,34 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 #include <type_traits>
+#include <cstdlib>
+#include <new>
+#ifdef NHF_KCHECK
+#include"nhf_kcheck.h"
+#endif
 
 template<typename T>
 class slice_base
 {
 public:
+    // the zeros of a new slice from calloc: its pages take memory only when written (a slice an option never uses
+    // costs nothing)
     slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
     {
-        V = new T[imax*jmax] {};
+        V = zeros();
+        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
+    }
+    // on = false: the slice of an option that is not used; no array (V = nullptr), not in the checkpoints
+    slice_base(lexer* p, bool on) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    {
+        V = on ? zeros() : nullptr;
+        if(on)
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
     virtual ~slice_base()
     {
         ckpt_registry::remove(ckid);
-        delete [] V;
+        free(V);
         V = nullptr;
     }
 
@@ -48,11 +62,29 @@ public:
     slice_base(slice_base&&) = delete;
     slice_base& operator=(slice_base&&) = delete;
 
+#ifdef NHF_KCHECK
+    // check build (nhf_kcheck.h): a row outside the slice is reported with the address of the caller
+    __attribute__((noinline)) T& operator()(int ii, int jj) noexcept
+    {
+        if(jmin>-3 && (jj<jmin || jj>=jmin+jmax))
+        nhf_jslice(__builtin_return_address(0),jj,jmin,jmax);
+        return V[(ii-imin)*jmax + (jj-jmin)];
+    }
+#else
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
+#endif
     inline T& operator[](int n) noexcept {return V[n];};
 
     T *V;
 protected:
+    T* zeros() const
+    {
+        T *v = static_cast<T*>(calloc(size_t(imax)*size_t(jmax),sizeof(T)));
+        if(v==nullptr)
+        throw std::bad_alloc();
+        return v;
+    }
+
     const int imin,imax,jmin,jmax;
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };

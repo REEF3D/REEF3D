@@ -109,7 +109,8 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     double wsfout=p->phimean;
     double f=1.0;
     
-    if(p->F62>1.0e-20)
+    // F 62 given (any level, also zero or below the datum; not given: -1.0e20)
+    if(p->F62>-1.0e19)
     {
         if(p->F64==0)
         wsfout=p->F62;

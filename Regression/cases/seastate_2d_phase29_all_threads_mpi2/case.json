@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase29_all",
+ "np": 2,
+ "same_as": "seastate_2d_phase29_all",
+ "ctrl_add": [
+  "A 798 2"
+ ],
+ "description": "seastate_2d_phase29_all on 2 ranks with 2 threads each (A 798 2): bitwise the result of one rank and one thread.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 767 1 with A 769 2 and A 782 with threads and ranks"
+ ]
+}

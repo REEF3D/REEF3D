@@ -48,6 +48,9 @@ Architect: Hans Bihs
 #include<string>
 #include<sys/stat.h>
 #include<sys/types.h>
+#ifdef __linux__
+#include<sched.h>
+#endif
 
 namespace
 {
@@ -157,6 +160,26 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     psolv->geographic_order(p->A796);
     psolv->threads(p->A798);
 
+    // Phase 31: the threads of A 798 need as many cores as threads. A launcher that binds each rank to one core (Open MPI
+    // with one or two ranks) lets them share that core: no gain, nothing else shows it. The cores this rank may run on
+    // (Linux: sched_getaffinity; elsewhere not known), the fewest of all ranks; the binding itself is left to the
+    // launcher, which knows the cores of the other ranks
+    if(p->A798>1 && p->A770!=1)
+    {
+    int cores = 1<<30;
+#ifdef __linux__
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    if(sched_getaffinity(0,sizeof(set),&set)==0)
+    cores = CPU_COUNT(&set);
+#endif
+    cores = pgc->globalimin(cores);
+        if(p->mpirank==0 && cores<p->A798)
+        cout<<endl<<"!!! SEASTATE: A 798 "<<p->A798<<" threads per rank, but a rank may run on "<<cores<<" core"<<(cores==1 ? "" : "s")
+            <<" only (the binding of the launcher): the threads share "<<(cores==1 ? "it" : "them")<<". Start with e.g. mpirun --map-by slot:PE="<<p->A798
+            <<" (Open MPI; one rank: --bind-to none) or --cpus-per-task="<<p->A798<<" (Slurm) !!!"<<endl<<endl;
+    }
+
     // Phase 18: the measured work of the cells for the load map (G 45) and the rebalance (G 46)
     if(!coupled && (p->G45>0 || p->G46>0.0))
     {
@@ -167,6 +190,12 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
     psolv->source_once(p->A767==1);
+    // Phase 29 (A 782, default 0.001): the settled cells, in nonstationary runs; Phase 30: also on refined grids (G 1,
+    // seastate_amr::active_set). Off by itself in stationary runs (with the pseudo time step of the wind sea a cell
+    // changes little per iteration long before it has converged, and no new step solves it again), with the surfbeat
+    // model, the spectral sparsity and the FAS correction (their sweeps do not keep the marks)
+    active = (p->A782>0.0 && p->A700==1 && p->A770!=1 && !(p->A795>0.0) && p->A758_n<=0);
+    psolv->active_set(active ? p->A782 : 0.0,p);
     psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
     if(sb!=nullptr)
@@ -290,6 +319,8 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     pamr = new seastate_amr(p,pgc);
     seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wmet,tref,pobs,vegr};
     pamr->ini(p,pgc,l0);
+    if(active)
+    pamr->active_set(p->A782);
 
         if(wk0!=nullptr)
         pamr->work_fields();
@@ -449,8 +480,11 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 769 2: the limiter-free integration is for the Komen and van der Westhuysen physics with the DIA (A 732 1, 2; A 733 1)";
     else if(p->A769==2 && p->A700!=1)
     msg = "A 769 2: the limiter-free integration needs a nonstationary run (A 700 1); stationary runs keep the limiter";
-    else if(p->A769==2 && (p->A795>0.0 || p->A767==1))
-    msg = "A 769 2: not with the spectral sparsity (A 795) or the source terms once per iteration (A 767 1)";
+    else if(p->A769==2 && p->A795>0.0)
+    msg = "A 769 2: not with the spectral sparsity (A 795)";
+    else if(p->A782<0.0 || p->A782>=1.0)
+    msg = "A 782: the tolerance of the settled cells must be >= 0 (off) and below 1";
+
     else if(p->A769==2 && (p->A716_w>0.0 || p->A715_k>1))
     msg = "A 769 2: not with the non-uniform direction grids (A 715, A 716)";
     else if(p->A769==1 && p->A700!=1)
@@ -832,7 +866,8 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
     if(p->A700==1 && p->A779>0.0)
-    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
+    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)
+        <<(p->A709<100.0 ? ", or that of "+fmt(p->A709)+" % of the wet cells (A 709)" : std::string(""))<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
     if(p->A776>0)
     cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
         <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
@@ -852,6 +887,10 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;
     }
+    if(p->A782>0.0 && !active)
+    cout<<"SEASTATE solver (Phase 29): the settled cells (A 782) are off in stationary runs (A 700 2) and with A 770 1, A 795 or A 758: every cell is solved in every iteration"<<endl;
+    if(active)
+    cout<<"SEASTATE solver (Phase 29): settled cells are not solved again within a step (A 782 "<<defaultfloat<<setprecision(6)<<p->A782<<" of the energy of a cell)"<<endl;
     if(p->A767==1)
     {
     const bool ws = (p->A730==1 || p->A730==2 || (p->A732>=1 && p->A733==1));
@@ -1010,7 +1049,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.dia)
     cout<<" quadruplets (DIA),";
     if(sp.dia_mp)
-    cout<<" no limiter: the DIA conservative in action (modified Patankar, two passes), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
+    cout<<" no limiter: the DIA conservative in action ("<<(p->A767==1 ? "Patankar, once per iteration with A 767 1" : "modified Patankar, two passes")<<"), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
     else if(sp.komen && sp.limiter>0.0 && sp.limiter_type==1)
     cout<<" limiter of Hersbach and Janssen (A 769 1, dt "<<sp.limiter_dt<<" s),";
     else if(sp.komen)

@@ -86,7 +86,7 @@ Architect: Hans Bihs
 //  of the sill and spread along the bed (3 cm/s in the lock of validation 27): a layer of part-air
 //  density under the water, which rose in plumes of 1 m/s.
 //
-//  X 48 2 (the default); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
+//  X 48 2 (the default without 6DOF bodies); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
 //  into the ghost cells of the flagged solids (G 505 1, ghostcell::solid_forcing_lsm).
 //
 //  X 48 3: as 2, and inside the 6DOF bodies of the direct forcing as well (X 10, the level set a->fb
@@ -96,6 +96,10 @@ Architect: Hans Bihs
 //  above, the level set loses it), 0.12 m in 7 s at 0.32 m head (validation 26_cfd_ship_lock).  The
 //  layers of the body follow the level set of their own side; with fewer than about four cells across
 //  the body the two sides meet in the middle.
+//  The default with 6DOF bodies (2026-11): a floating body holds a water column of its own as well and
+//  carries it along, the free surface has a step at the hull and the body radiates too small a wave.
+//  Forced heave of a half-submerged sphere, 12 and 15 cells per diameter: radiation damping 77 and
+//  78 % of Hulme (1982) with X 48 2, 103 and 97 % with X 48 3, the added mass 23 and 6 % high.
 //
 //  With the gravity along -z (W 22 < 0) the solids take the level of the nearest fluid that sees the
 //  free surface (in levelset_solid_extend below, 2026-11): fluid that reaches the free surface only
@@ -124,8 +128,11 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
 {
     // with a free surface (F 30): solids of the direct forcing (G 505 0; X 48 2, 3), the 6DOF bodies
     // (X 10; X 48 3) with the level set a->fb of all bodies
-    const bool solids = (p->X48==2 || p->X48==3 || p->X48==4) && p->solidread>0 && p->G505==0;
-    const bool bodies = (p->X48==3 || p->X48==4) && p->X10>0;
+    // X 48 not set (-1): 3 with 6DOF bodies, else 2
+    const int x48 = (p->X48<0) ? (p->X10>0 ? 3 : 2) : p->X48;
+    
+    const bool solids = (x48==2 || x48==3 || x48==4) && p->solidread>0 && p->G505==0;
+    const bool bodies = (x48==3 || x48==4) && p->X10>0;
     
     if(p->F30==0 || (!solids && !bodies))
     return;

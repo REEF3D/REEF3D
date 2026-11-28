@@ -1,0 +1,31 @@
+{
+ "base": "sflow_2d_amr_shelf_sub_ckpt",
+ "same_as": "sflow_2d_amr_shelf_sub_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_shelf_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "10"
+ },
+ "description": "the restart of sflow_2d_amr_shelf_sub_ckpt from step 10 (I 45 10): the steps per level chosen for the next step and the regrid count continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement subcycled with steps per level other than two"
+ ],
+ "architect": "Hans Bihs"
+}

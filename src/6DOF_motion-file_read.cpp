@@ -46,11 +46,12 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
         pgc->final(EXIT_FAILURE);
     }
     
-    ts = data[0][0];
-    te = data[ptnum-1][0];
-
 // add deltas
     for(qn=0;qn<ptnum;++qn)
     data[qn][0] += p->X241;
+    
+    // the time range of the shifted file (taken before the shift, X 241 moved the samples but not the range)
+    ts = data[0][0];
+    te = data[ptnum-1][0];
     
 }

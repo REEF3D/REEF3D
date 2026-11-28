@@ -86,7 +86,86 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
         if(reefckpt_open(printfish,str,p->I45))
         printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"
                  <<(fish_->gait_on() ? " \t f [Hz] \t a \t b" : "")<<endl;
+        
+        snprintf(str,sizeof(str),"%s/REEF3D_6DOF_fish_beats_%i.dat",sixdof_output_dir(p),n6DOF);
+        
+        if(reefckpt_open(printbeats,str,p->I45))
+        printbeats<<"# the tail beats of body "<<n6DOF<<" (one line per beat, the phase of the undulation through a multiple of 2 pi):"
+                  <<" the mean frequency and amplitude factor of the gait, the speed along the axis and over the ground, the"
+                  <<" tail amplitude (half its excursion over the beat), the mean power of the deformation into the water, the"
+                  <<" energy of the beat, the cost of transport P/(m U), St = 2 f A/U, Re = U L/nu, Sw = 2 pi f A L/nu (U over"
+                  <<" the ground; m the mass of the body, in 2D per its thickness)"<<endl
+                  <<"beat \t t_start \t t_end \t f [Hz] \t a \t U_axis [m/s] \t U_ground [m/s] \t A_tail [m] \t P_def [W]"
+                  <<" \t E_beat [J] \t CoT [J/(kg m)] \t St \t Re \t Sw"<<endl;
     }
+}
+
+void sixdof_obj::fish_beats(lexer *p, double t)
+{
+    // every step on every rank (the state goes into the checkpoint); rank 0 writes a line at the end of a beat
+    if(fish_==nullptr || p->dt<=0.0)
+    return;
+    
+    const double k = std::floor(fish_->phase()/(2.0*PI));
+    double dxt, dlt;
+    fish_->displacement(fish_->xtail(),0.0,dxt,dlt);
+    
+    if(fb_on_ && k>fb_k_ && fb_T_>0.0)
+    {
+        // the beat ends: its means
+        const double T = fb_T_, f = fb_f_/T, a = fb_a_/T, Ux = fb_Ux_/T, P = fb_E_/T;
+        const double Ug = (c_ - fb_c0_).norm()/T, A = 0.5*(fb_tmax_ - fb_tmin_);
+        const double m = Mass_fb, L = fish_->length(), nu = p->W2;
+        const double cot = (m>0.0 && Ug>1.0e-12) ? P/(m*Ug) : 0.0;
+        const double St = (Ug>1.0e-12) ? 2.0*f*A/Ug : 0.0;
+        
+        if(p->mpirank==0 && printbeats.is_open())
+        printbeats<<fb_n_+1<<" \t "<<fb_t0_<<" \t "<<t<<" \t "<<f<<" \t "<<a<<" \t "<<Ux<<" \t "<<Ug<<" \t "<<A<<" \t "<<P
+                  <<" \t "<<fb_E_<<" \t "<<cot<<" \t "<<St<<" \t "<<Ug*L/nu<<" \t "<<2.0*PI*f*A*L/nu<<endl;
+        ++fb_n_;
+        fb_on_ = false;
+    }
+    
+    if(!fb_on_)
+    {
+        // a new beat: from this step
+        fb_on_ = true;
+        fb_k_ = k;
+        fb_t0_ = t;
+        fb_T_ = fb_E_ = fb_Ux_ = fb_f_ = fb_a_ = 0.0;
+        fb_tmin_ = fb_tmax_ = dlt;
+        fb_c0_ = c_;
+        return;
+    }
+    
+    // the step: the power of the deformation, the speed along the axis, the gait, the tail
+    const double dt = p->dt;
+    const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
+    fb_T_ += dt;
+    fb_E_ += dt*fish_power_;
+    fb_Ux_ += dt*U.dot(R_.col(0));
+    fb_f_ += dt*fish_->frequency();
+    fb_a_ += dt*fish_->amp_factor();
+    fb_tmin_ = std::min(fb_tmin_, dlt);
+    fb_tmax_ = std::max(fb_tmax_, dlt);
+}
+
+void sixdof_obj::fish_beats_state(std::vector<double> &s) const
+{
+    for(double x : {double(fb_n_), fb_on_ ? 1.0 : 0.0, fb_k_, fb_t0_, fb_T_, fb_E_, fb_Ux_, fb_f_, fb_a_, fb_tmin_, fb_tmax_,
+                    fb_c0_(0), fb_c0_(1), fb_c0_(2)})
+    s.push_back(x);
+}
+
+void sixdof_obj::fish_beats_restore(const std::vector<double> &s)
+{
+    if(s.size()<14)
+    return;
+    size_t j = 0;
+    fb_n_ = int(s[j++]); fb_on_ = (s[j++]!=0.0); fb_k_ = s[j++]; fb_t0_ = s[j++]; fb_T_ = s[j++]; fb_E_ = s[j++];
+    fb_Ux_ = s[j++]; fb_f_ = s[j++]; fb_a_ = s[j++]; fb_tmin_ = s[j++]; fb_tmax_ = s[j++];
+    for(int q=0; q<3; ++q)
+    fb_c0_(q) = s[j++];
 }
 
 void sixdof_obj::deform_time(double t)
@@ -289,12 +368,24 @@ void sixdof_obj::brain_setup(lexer *p)
     if(p->X204_id[n]==n6DOF)
     tc = p->X204_t[n];
     
+    // the factor of the speed through the water at the head probes of the lateral line (X 208 id kappa; 1, 0: off)
+    double kap = 1.0;
+    for(int n=0; n<p->X208; ++n)
+    if(p->X208_id[n]==n6DOF)
+    kap = p->X208_k[n];
+    
+    // the drag law of its glide (X 209 id C_d; 0: exponential)
+    double cdg = 0.0;
+    for(int n=0; n<p->X209; ++n)
+    if(p->X209_id[n]==n6DOF)
+    cdg = p->X209_c[n];
+    
     // the brain starts at the end of the ramp of the gait (X 195), after half a tail beat at least (until patch
     // 0027 a tail beat later: a fish started below its station in a current was carried past it by the start-up
     // gait and had to turn round, validations 18, 19, 21)
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud, nu, nd, ssd, tc);
+                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud, nu, nd, ssd, tc, kap, cdg);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -320,11 +411,11 @@ void sixdof_obj::brain_setup(lexer *p)
         }
         
         char hello[1024];
-        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g,\"n_u\":%.17g,\"n_d\":%.17g,\"s_sd\":%.17g,\"tau_c\":%.17g}",
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g,\"n_u\":%.17g,\"n_d\":%.17g,\"s_sd\":%.17g,\"tau_c\":%.17g,\"kappa\":%.17g,\"C_d\":%.17g}",
                  n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], std::max(tramp, 0.5/f0), fish_->lateral()==2 ? 1 : 0,
                  brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down(),
                  brain_->speed_beats_up(), brain_->speed_beats_down(), brain_->stride_spread(),
-                 brain_->coast_prior());
+                 brain_->coast_prior(), brain_->probe_factor(), brain_->glide_drag());
         
         if(!brain_link_->exchange(hello, in, 60.0))
         {
@@ -340,7 +431,13 @@ void sixdof_obj::brain_setup(lexer *p)
         cout<<"6DOF body "<<n6DOF<<": brain (X 193), U_des "<<p->X193_U[nb]<<" m/s, b_max "<<p->X193_b[nb]
             <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"
             <<"; stride prior "<<brain_->stride_prior()<<" L, turn rate "<<brain_->turn_rate()<<" b U/L (X 200)"
-            <<"; speed time of the gait "<<brain_->speed_time_up()<<" s up, "<<brain_->speed_time_down()<<" s down (X 201)"<<endl;
+            <<"; speed time of the gait "<<brain_->speed_time_up()<<" s up, "<<brain_->speed_time_down()<<" s down (X 201)";
+        if(brain_->speed_beats_up()>0.0)
+        cout<<"; speed in tail beats "<<brain_->speed_beats_up()<<" up, "<<brain_->speed_beats_down()<<" down (X 202)";
+        cout<<"; coasting time "<<brain_->coast_prior()<<" s (X 204)";
+        if(brain_->glide_drag()>0.0)
+        cout<<"; the glide by the drag law, C_d "<<brain_->glide_drag()<<" (X 209)";
+        cout<<endl;
         
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_brain_%i.dat",sixdof_output_dir(p),n6DOF);
@@ -348,7 +445,8 @@ void sixdof_obj::brain_setup(lexer *p)
         if(reefckpt_open(printbrain,str,p->I45))
         printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
                   <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target, 4 external, 5 glide, 6 brake)"
-                  <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"<<endl;
+                  <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"
+                  <<" \t U_probe [m/s] (the head probes, B1; 0: none) \t slip"<<endl;
     }
 }
 
@@ -357,7 +455,8 @@ bool sixdof_obj::brain_due(lexer *p) const
     return brain_!=nullptr && brain_->due(p->simtime + p->dt);
 }
 
-void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double> *pr, const std::vector<double> *vis)
+void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double> *pr, const std::vector<double> *vis,
+                              const std::vector<double> *ua)
 {
     if(brain_==nullptr)
     return;
@@ -366,7 +465,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
     const int la = fish_->lateral();
     const Eigen::Vector3d ax = R_.col(0), lat = R_.col(la);
     const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
-    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
+    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_, ua);
     
     const double tn = p->simtime + p->dt;
     
@@ -415,6 +514,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
             vec("rays",q.rays.data(),q.rays.size());
             vec("ray_angles",sixdof_brain::rays().data(),sixdof_brain::rays().size());
             vec("ll_p",q.llp.data(),q.llp.size());
+            vec("ll_ua",q.llua.data(),q.llua.size());
             vec("ll_s",brain_->ll_s().data(),brain_->ll_s().size());
             std::vector<double> sd(brain_->ll_side().begin(), brain_->ll_side().end());
             vec("ll_side",sd.data(),sd.size());
@@ -484,6 +584,6 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
         const sixdof_brain::record &r = brain_->last();
         printbrain<<r.t<<" \t "<<r.tx<<" \t "<<r.ty<<" \t "<<r.tz<<" \t "<<r.dist<<" \t "<<r.psi*(180.0/PI)<<" \t "<<r.U
                   <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode
-                  <<" \t "<<r.s<<" \t "<<r.cx<<" \t "<<r.cy<<" \t "<<r.cz<<" \t "<<r.Uw<<endl;
+                  <<" \t "<<r.s<<" \t "<<r.cx<<" \t "<<r.cy<<" \t "<<r.cz<<" \t "<<r.Uw<<" \t "<<r.wa<<" \t "<<r.slip<<endl;
     }
 }

@@ -48,7 +48,7 @@ void sediment_f::prep_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
 {    
     fill_PQ_nhflow(p,d,pgc);
     
-    // S 37 2: bed shear stress (S 16 1) and transport direction (P, Q) from the phase-lead velocity
+    // S 37 2: bed shear stress (S 16 1, log-law part of S 16 2) and transport direction (P, Q) from the phase-lead velocity
     if(p->S37==2 && p->geo_curv==0)
     phase_lead_nhflow(p,d,pgc);
 }

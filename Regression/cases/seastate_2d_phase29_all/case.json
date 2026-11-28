@@ -1,0 +1,19 @@
+{
+ "base": "seastate_2d_phase26_mp_komen_dt900",
+ "ctrl_set": {
+  "A 707": "8"
+ },
+ "ctrl_add": [
+  "A 767 1",
+  "A 782 0.01"
+ ],
+ "description": "seastate_2d_phase26_mp_komen_dt900 with A 707 8, the DIA once per iteration (A 767 1) and the settled cells left out (A 782 0.01) together (Phase 29). Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 769 2 with A 767 1 and A 782"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit step with VRANS (B 200): two reservoirs (1 m each, d 0.5 m, levels +-1 cm) joined by a porous block over the whole depth (0.5 m, n 0.4, d50 1 mm, alpha 6.93: Darcy drag A = 39 1/s, no Forchheimer part, B 260 0), 125 x 4 cells, dt 0.02 s, A 510 11. The level difference decays as exp(-t/tau), tau = A Lp Lr/(2 g h) = 1.99 s (within 4 % of it at 1, 2 and 3 s; the explicit RK2 within 5 %). The drag is implicit on the diagonal of the column operators of the faces and of the cells, the storage n_s in the eta system.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "vrans",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_vrans.cpp: vr_begin, vr_faces, vr_col (drag in the column operator)",
+  "si_eta2D::wd_rows with the storage coefficient (stor)",
+  "nhflow_momentum_SI::eta_update with n_s",
+  "vrans_nhflow_f::si_coeff"
+ ],
+ "architect": "Hans Bihs"
+}

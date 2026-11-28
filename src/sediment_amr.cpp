@@ -78,6 +78,7 @@ void sediment_f::amr_physics_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     pbedshear->taucritbed(p,b,pgc,s);
 
     pbed->start(p,pgc,s);
+    shallow_bedload(p,pgc);
     pbeddir->start(p,pgc,s);
 
 	prelax->start(p,pgc,s);

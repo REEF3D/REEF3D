@@ -423,27 +423,24 @@ void nhflow_rans_io::strat_limit(lexer *p, fdm_nhf *d)
 // horizontal wall distance for the SST F2 (A 564 2): distance of the cell centre, along its sigma layer, to the nearest
 // x or y wall face with a wall function, i.e. side walls with A 519 2 (solid cells and wall boundaries as in
 // nhflow_wall_faces). Seeded with half a cell at the wall cells and spread by d = min(d, d_nb + dx_nb) over the wet
-// fluid cells, with the MPI exchange in every sweep. Computed once at the first call, so it holds the walls of the
-// initial geometry (moving 6DOF bodies and thin bodies are covered locally in sst_walldist). 1e20 without side walls.
-// On curvilinear grids (G 50) the distance is taken along the computational spacing DXP/DYP.
+// fluid cells, with the MPI exchange in every sweep (walldist_sweep). Computed once at the first call, so it holds the
+// walls of the initial geometry (moving 6DOF bodies and thin bodies are covered locally in sst_walldist). 1e20 without
+// side walls. On curvilinear grids (G 50) the distance is taken along the computational spacing DXP/DYP.
 void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(WDH!=nullptr)
     return;
     
-    const double big = 1.0e20;
     const int size = p->imax*p->jmax*(p->kmax+2);
     int w[6];
     
     p->Darray(WDH,size);
     
     for(int n=0; n<size; ++n)
-    WDH[n] = big;
+    WDH[n] = 1.0e20;
     
     if(p->A519!=2)
     return;
-    
-    double seeded = 0.0;
     
     LOOP
     if(p->flag4[IJK]>0 && p->DF[IJK]>0)
@@ -455,10 +452,53 @@ void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         if(w[2] || w[3])
         WDH[IJK] = MIN(WDH[IJK], 0.5*p->DYN[JP]);
-        
-        if(WDH[IJK]<big)
-        seeded = 1.0;
     }
+    
+    walldist_sweep(p,d,pgc,WDH);
+}
+
+// horizontal distance to the nearest side wall of any kind for the free-surface value of Naot & Rodi (1982) (A 567 5,
+// epsfsf): the wall boundaries and solid cells of nhflow_wall_faces whatever A 519, and the dry land above the water
+// level of a deep column (A 541, nhflow_turb_solid). As walldist_h: computed once, the walls of the initial geometry;
+// 1e20 without side walls
+void nhflow_rans_io::walldist_s(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(WDS!=nullptr)
+    return;
+    
+    const int size = p->imax*p->jmax*(p->kmax+2);
+    int w[6],sw[4];
+    
+    p->Darray(WDS,size);
+    
+    for(int n=0; n<size; ++n)
+    WDS[n] = 1.0e20;
+    
+    LOOP
+    if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+    {
+        nhflow_wall_faces(p,i,j,k,w);
+        nhflow_turb_solid(p,d,i,j,k,sw);
+        
+        if(w[0] || w[1] || sw[0] || sw[1])
+        WDS[IJK] = MIN(WDS[IJK], 0.5*p->DXN[IP]);
+        
+        if(w[2] || w[3] || sw[2] || sw[3])
+        WDS[IJK] = MIN(WDS[IJK], 0.5*p->DYN[JP]);
+    }
+    
+    walldist_sweep(p,d,pgc,WDS);
+}
+
+// spreads the seeds of W (the wall cells, 1e20 elsewhere) by d = min(d, d_nb + dx_nb) over the fluid cells
+void nhflow_rans_io::walldist_sweep(lexer *p, fdm_nhf *d, ghostcell *pgc, double *W)
+{
+    const double big = 1.0e20;
+    double seeded = 0.0;
+    
+    LOOP
+    if(W[IJK]<big)
+    seeded = 1.0;
     
     if(pgc->globalmax(seeded)<0.5)
     return;
@@ -467,31 +507,31 @@ void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     for(int it=0; it<maxit; ++it)
     {
-        pgc->start4V_par(p,WDH,24);
+        pgc->start4V_par(p,W,24);
         
         double change = 0.0;
         
         LOOP
         if(p->flag4[IJK]>0 && p->DF[IJK]>0)
         {
-            double dn = WDH[IJK];
+            double dn = W[IJK];
             
             if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0)
-            dn = MIN(dn, WDH[Im1JK] + p->DXP[IM1]);
+            dn = MIN(dn, W[Im1JK] + p->DXP[IM1]);
             
             if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0)
-            dn = MIN(dn, WDH[Ip1JK] + p->DXP[IP]);
+            dn = MIN(dn, W[Ip1JK] + p->DXP[IP]);
             
             if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0)
-            dn = MIN(dn, WDH[IJm1K] + p->DYP[JM1]);
+            dn = MIN(dn, W[IJm1K] + p->DYP[JM1]);
             
             if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0)
-            dn = MIN(dn, WDH[IJp1K] + p->DYP[JP]);
+            dn = MIN(dn, W[IJp1K] + p->DYP[JP]);
             
-            if(dn<WDH[IJK])
+            if(dn<W[IJK])
             {
-            change = MAX(change, WDH[IJK]<0.5*big ? WDH[IJK]-dn : 1.0);   // first value: 1
-            WDH[IJK] = dn;
+            change = MAX(change, W[IJK]<0.5*big ? W[IJK]-dn : 1.0);   // first value: 1
+            W[IJK] = dn;
             }
         }
         
@@ -499,7 +539,7 @@ void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
         break;
     }
     
-    pgc->start4V_par(p,WDH,24);
+    pgc->start4V_par(p,W,24);
 }
 
 // wall distance for F2: bed, solids (SOLID), side walls (WDH), top walls in the same column (A 519 2) and the

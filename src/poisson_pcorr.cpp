@@ -86,27 +86,44 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 {
     a->M.reset();
 
+    // the density of every face of the cell once (it was taken twice, for the diagonal and for the
+    // coefficient of the face: 12 calls per cell, each with the level set at the face and, in the
+    // interface band, the interface width and the smoothed step); 2D: the y faces not at all, their
+    // coefficients are -0.0 as before (the product with y_dir = 0)
+    const bool ydir = (p->y_dir!=0.0);
+
     n=0;
     LOOP
 	{
-	a->M.p[n]  =  (CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP])
-                + (CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP])
-                
-                + (CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                + (CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                
-                + (CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP])
-                + (CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
+    const double ron = pd->roface(p,a,1,0,0);
+    const double ros = pd->roface(p,a,-1,0,0);
+    const double rot = pd->roface(p,a,0,0,1);
+    const double rob = pd->roface(p,a,0,0,-1);
 
+    const double cn = (CPOR1*PORVAL1)/(ron*p->DXP[IP]*p->DXN[IP]);
+    const double cs = (CPOR1m*PORVAL1m)/(ros*p->DXP[IM1]*p->DXN[IP]);
+    const double ct = (CPOR3*PORVAL3)/(rot*p->DZP[KP]*p->DZN[KP]);
+    const double cb = (CPOR3m*PORVAL3m)/(rob*p->DZP[KM1]*p->DZN[KP]);
 
-   	a->M.n[n] = -(CPOR1*PORVAL1)/(pd->roface(p,a,1,0,0)*p->DXP[IP]*p->DXN[IP]);
-	a->M.s[n] = -(CPOR1m*PORVAL1m)/(pd->roface(p,a,-1,0,0)*p->DXP[IM1]*p->DXN[IP]);
+    double cw = 0.0, ce = 0.0;
+    if(ydir)
+    {
+    const double row = pd->roface(p,a,0,1,0);
+    const double roe = pd->roface(p,a,0,-1,0);
+    cw = (CPOR2*PORVAL2)/(row*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+    ce = (CPOR2m*PORVAL2m)/(roe*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+    }
 
-	a->M.w[n] = -(CPOR2*PORVAL2)/(pd->roface(p,a,0,1,0)*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	a->M.e[n] = -(CPOR2m*PORVAL2m)/(pd->roface(p,a,0,-1,0)*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+	a->M.p[n]  =  cn + cs + cw + ce + ct + cb;
 
-	a->M.t[n] = -(CPOR3*PORVAL3)/(pd->roface(p,a,0,0,1)*p->DZP[KP]*p->DZN[KP]);
-	a->M.b[n] = -(CPOR3m*PORVAL3m)/(pd->roface(p,a,0,0,-1)*p->DZP[KM1]*p->DZN[KP]);
+   	a->M.n[n] = -cn;
+	a->M.s[n] = -cs;
+
+	a->M.w[n] = -cw;
+	a->M.e[n] = -ce;
+
+	a->M.t[n] = -ct;
+	a->M.b[n] = -cb;
 	
 	++n;
 	}

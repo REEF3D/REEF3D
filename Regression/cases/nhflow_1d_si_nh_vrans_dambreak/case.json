@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step with VRANS: dam break through a porous dam of crushed rock (Lin 1998: reservoir 0.29 m long and 0.35 m deep, 25 mm of water downstream, dam x 0.30-0.59 m, n 0.49, d50 15.9 mm, alpha 500, beta 2), 178 x 8 cells, dt up to 2 ms, A 510 11, 400 steps (0.75 s). A front through the dam: the Forchheimer drag with large velocities, the storage with a steep surface in the dam, wetting of the thin layer behind it (A 546 0.005).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "vrans"
+ ],
+ "covers": [
+  "VRANS in the semi-implicit step with a bore: Forchheimer drag, storage n_s, thin water"
+ ],
+ "architect": "Hans Bihs"
+}

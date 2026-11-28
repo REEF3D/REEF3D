@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_phase29_default",
+ "np": 2,
+ "same_as": "seastate_2d_phase29_default",
+ "chain": [
+  {
+   "case": "seastate_2d_phase29_default",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "description": "the restart (I 45 1) of seastate_2d_phase29_default after step 10 on 2 ranks: bitwise the full run on one rank. The first iteration of every step solves all cells, so the marks of the settled cells need not be in the checkpoint.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 782 across a restart"
+ ]
+}

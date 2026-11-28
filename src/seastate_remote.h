@@ -90,7 +90,12 @@ private:
     // the host fields at the wave cells: the area mean over the host cells inside a wave cell (eta, U, V over the wet ones,
     // WL over all), bilinear where the host grid is coarser; cells outside the host grid keep the own still water
     void map_host(lexer*);
+    // a curvilinear or multi-block host (it sends -1 cells): the sums of its cells per wave cell
+    // (seastate_coupling_grids.cpp): the area mean where host centres fall into the wave cell, else the host cell at the
+    // wave centre, else the own still water
+    void map_host_grids(lexer*);
     bool ic_null() const;
+    bool hscat = false;
 
     slice4 etaW, WLW, UW, VW, wetd;
     std::vector<double> hwx, hwy;           // widths of the host cells (area weights of the box mean)

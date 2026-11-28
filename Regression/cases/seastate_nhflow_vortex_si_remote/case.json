@@ -1,0 +1,25 @@
+{
+ "description": "REEF3D::SEASTATE remote waves (A 750 2) with the hydrostatic semi-implicit NHFLOW (A 510 11, one layer) as host: the GAHM vortex of seastate_sflow_vortex_mpi2 drives the surge (W 200 3) and the waves (seastate_remote_waves_vortex, 20 x 20 cells of 20 km, folder waves); NHFLOW on 40 x 40 Cartesian cells of 10 km, 50 m deep, closed basin; radiation stress (A 751 1) to NHFLOW, water level and currents to the waves (A 753 2). The reference of the curvilinear and multi-block hosts (_curv, _mb).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "remote": {
+  "case": "seastate_remote_waves_vortex",
+  "dir": "waves"
+ },
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "seastate",
+  "mpmd",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "SEASTATE remote waves with an NHFLOW SI host on a Cartesian grid (seastate_coupling::remote_ini, remote_step)"
+ ]
+}

@@ -3,7 +3,7 @@
  "ctrl_set": {
   "A 510": "11"
  },
- "description": "nhflow_1d_si_nh_bar with the one-step predictor (A 510 11): one stage, the momentum advection by the BCG scheme (Basilisk's advect, layered/hydro.h: the upwind cell extrapolated to the face and to t^{n+1/2}, generalised minmod 1.3), the transport extrapolated to t^{n+1/2}; on the bar as accurate as A 510 12.",
+ "description": "nhflow_1d_si_nh_bar with the one-step predictor (A 510 11): one stage, the momentum advection by the BCG scheme (Basilisk's advect, layered/hydro.h: the upwind cell extrapolated to the face and to t^{n+1/2}, generalised minmod 1.3), the transport extrapolated to t^{n+1/2}; on the bar as accurate as A 510 11.",
  "tags": [
   "1d",
   "nhflow",

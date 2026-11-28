@@ -79,7 +79,8 @@ void lexer_scalars(lexer *q, F &&f)
 void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
 {
     std::set<const void*> listed;
-    auto fd = [&](const char *n, char k, double *V){ listed.insert(V); v(n,k,V,nullptr); };
+    // a slice without an array (sflow_memory.h) is not kept
+    auto fd = [&](const char *n, char k, double *V){ if(V==nullptr) return; listed.insert(V); v(n,k,V,nullptr); };
     auto fi = [&](const char *n, char k, int *V){ listed.insert(V); v(n,k,nullptr,V); };
     sflow_ckpt_fields(c->pp,c->b,fd,fi);
     // REEF3D::HYDRO: the cumulative infiltration and rain
@@ -142,6 +143,22 @@ void sflow_amr::ckpt_write(reefckpt &ck)
     // the output counters (the same on all ranks)
     ck.blob("sflow_amr_print",vector<double>{printtime_amr,double(printcount_amr)});
 
+    // G 7 1: the steps per level of the next level-0 step and the steps of the finest level since the last regrid
+    {
+        vector<double> sb{double(sub_acc)};
+        for(int l=0; l<8; ++l)
+        sb.push_back(double(msub[l]));
+        // A 220 1-3: the choice of the level-0 part of the preconditioner of the level solves and its counters
+        for(int l=0; l<8; ++l)
+        {
+            sb.push_back(double(nh_c0[l]));
+            sb.push_back(double(nh_cn[l]));
+            sb.push_back(double(nh_ci[l][0]));
+            sb.push_back(double(nh_ci[l][1]));
+        }
+        ck.blob("sflow_amr_sub",sb);
+    }
+
     // the scalars of every patch of this rank: level, box, the code of its arrays, the run scalars of its
     // lexer, the length and the values of sediment_f::ckpt_state (S 10)
     vector<double> b;
@@ -199,6 +216,25 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
     for(auto q : P)
     if(SP(q)->psim!=nullptr)
     SP(q)->psim->ckpt_restored();
+
+    if(ck.has("sflow_amr_sub"))
+    {
+        const vector<double> sb = ck.get_blob("sflow_amr_sub");
+        if(sb.size()>=9)
+        {
+            sub_acc = long(sb[0]);
+            for(int l=0; l<8; ++l)
+            msub[l] = int(sb[1+l]);
+        }
+        if(sb.size()==41)
+        for(int l=0; l<8; ++l)
+        {
+            nh_c0[l] = int(sb[9+4*l]);
+            nh_cn[l] = int(sb[10+4*l]);
+            nh_ci[l][0] = int(sb[11+4*l]);
+            nh_ci[l][1] = int(sb[12+4*l]);
+        }
+    }
 
     if(ck.has("sflow_amr_print"))
     {

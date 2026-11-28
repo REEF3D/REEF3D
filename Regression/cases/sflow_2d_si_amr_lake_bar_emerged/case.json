@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_si_lake_bar_emerged",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 60.0 100.0 20.0 80.0"
+ ],
+ "description": "sflow_2d_si_lake_bar_emerged with a patch whose edges cross the shoreline (x 60-100, y 20-80): at rest to the eta solve tolerance (1e-8 m/s; before 0.04-0.09 m/s): no film in the dry cells around the patch, interpolation without slopes across closed faces, covered cells from their children with an open face, the eta^n gradient of the coarse faces next to the patch from the fine faces.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "reefamr::rsi_interp, rsi_restrict at the shoreline",
+  "sflow_amr::si_match gx0/gy0"
+ ],
+ "architect": "Hans Bihs"
+}

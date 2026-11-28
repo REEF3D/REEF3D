@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_wetdry_island",
+ "ctrl_add": [
+  "A 213 2"
+ ],
+ "description": "sflow_2d_si_wetdry_island (semi-implicit, A 210 11, A 220 3) with the TENO5 weights of the WENO reconstruction (A 213 2).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "wetdry",
+  "nonhydrostatic",
+  "teno"
+ ],
+ "covers": [
+  "sflow_momentum_SI advection with the TENO5 reconstruction"
+ ],
+ "architect": "Hans Bihs"
+}

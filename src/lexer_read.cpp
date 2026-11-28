@@ -31,10 +31,16 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
     control::read_control(this);
 
-    // SFLOW: A 212 not given in ctrl.txt -> explicit horizontal diffusion when a turbulence model is on (A 260 > 0),
-    // so that the eddy viscosity reaches the momentum equations; no diffusion otherwise (the previous default)
+    // SFLOW: A 212 not given in ctrl.txt -> horizontal diffusion when a turbulence model is on (A 260 > 0), so that the
+    // eddy viscosity reaches the momentum equations: explicit (A 212 1) with the explicit step A 210 2/3, implicit
+    // (A 212 2) with the semi-implicit step A 210 11/12/13 (the explicit limit 0.2/(nu (1/dx^2+1/dy^2)) would set its
+    // time step: C6 bend with k-epsilon 1e-4 s instead of 2.6e-3 s; the algebraic models A 260 3/4 stay explicit, they
+    // are computed by each grid in its explicit diffusion on curvilinear and refined grids); no diffusion otherwise
     if(mpirank==0 && A212<0)
-    A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
+    {
+    const bool si = (A210==11 || A210==12 || A210==13);
+    A212 = (A260>0) ? ((si && (A260==1 || A260==2)) ? 2 : 1) : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
+    }
 
     // FNPF: A 316 not given -> the first-order wet-dry gradient fallback only with the moving wet-dry front
     // (A 343 2/3); with the static coastline (A 343 0/1) the legacy zero gradient: the fallback lowered the
@@ -71,6 +77,16 @@ void lexer::lexer_read(ghostcell *pgc)
     // reefmg::start_solver5, cfd_amr::pr_setup).  FNPF and NHFLOW have the Dirichlet free surface and do not need it
     if(mpirank==0 && N15<0)
     N15 = (A10==6) ? 1 : 0;
+
+    // SFLOW semi-implicit with the rheology core (W 120): the gravity wave Courant number 2 when A 228 is not given (10
+    // otherwise). The friction factor of the step comes from eta^n; at Courant number 10 the slope relaxes within the
+    // step and the yield stress no longer holds the material (the Carbopol deposit of Validation/rheology 02 ran 25 %
+    // too far), at 2 the deposit, the arrest and the accelerations equal the explicit runs (case 10)
+    if(mpirank==0 && A10==2 && A226==1 && W120>0 && A228==0.0)
+    {
+    A228 = -2.0;
+    cout<<"SFLOW A 210 11/12/13 with W 120: A 228 -2 (gravity wave Courant number 2 for the friction of the step)"<<endl;
+    }
 
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
@@ -116,17 +132,34 @@ void lexer::lexer_read(ghostcell *pgc)
         }
     }
     
-    // CFD: the dynamic form of the implicit momentum diffusion (D 24) for the rheology core: across the density jump
-    // between a viscous material and air or water the kinematic form div(nu (grad u + grad u^T)) gets the stress wrong
-    // by the density ratio. Harmonic shear viscosities (D 24 2): the HB film under air within 1.1 % of the exact profile
-    // (arithmetic 2.2 %, kinematic 92 %, Validation/rheology 11), and the explicit cross terms of the air next to a
-    // viscous material stay small (arithmetic: mu of the material / rho of the air)
+    // CFD rheology: the effective pressure W 131, by default 3 (the interface band holds) with the three-phase model
+    // and with the rheology core in two phases (W 130): with W 131 2 a mu(I) wedge at 15 deg (friction angle 20.9 deg)
+    // did not stay at rest, its band flowed down the surface, the toe advanced 70 mm in 2 s and drove a jet of air at
+    // 0.8 m/s (W 131 3: 0, 0.05 m/s); the two-phase collapses slumped after the arrest and kept their deposit slopes
+    // 4-6 deg below the friction angle (Validation/rheology 07: with W 131 3 and the side walls of the channel 20.8 deg
+    // at a = 0.5, repose 22 deg); 2 otherwise (the legacy model W 90)
+    if(mpirank==0 && W131<0)
+    W131 = (A10==6 && (W140>0 || W130>0)) ? 3 : 2;
+
+    // CFD three-phase slide model (W 140): the slide phase takes its rheology from the core (W 130)
+    if(mpirank==0 && A10==6 && W140>0 && W130<=0)
+    {
+    cout<<"!!! ctrl.txt: W 140 (three-phase slide) needs the rheology of the slide, W 130 1 - 5 (W 130 1 with W 125 0 K 1 is Newtonian) !!!"<<endl;
+    exit(1);
+    }
+
+    // CFD: the dynamic form of the implicit momentum diffusion (D 24) for the rheology core and the three-phase
+    // model: across the density jump between a viscous material and air or water the kinematic form
+    // div(nu (grad u + grad u^T)) gets the stress wrong by the density ratio
     if(mpirank==0 && D24<0)
     {
-    D24 = (A10==6 && W130>0) ? 2 : 0;
+    // harmonic shear viscosities (D 24 2): the HB film under air within 1.1 % of the exact profile (arithmetic 2.2 %,
+    // kinematic 92 %, Validation/rheology 11), and the explicit cross terms of the air next to a viscous material
+    // stay small (arithmetic: mu of the material / rho of the air)
+    D24 = (A10==6 && (W130>0 || W140>0)) ? 2 : 0;
 
         if(D24>0)
-        cout<<"W 130: D 24 2 (dynamic form of the implicit momentum diffusion, harmonic shear viscosities)"<<endl;
+        cout<<"W 130/W 140: D 24 2 (dynamic form of the implicit momentum diffusion, harmonic shear viscosities)"<<endl;
     }
 
     if(mpirank==0 && A10==6 && D24>0 && D20!=2)

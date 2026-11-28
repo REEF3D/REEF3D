@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_linsolve.h"
 #include<algorithm>
 #include<cmath>
+#include<cstdio>
 
 namespace coral
 {
@@ -317,6 +318,7 @@ bool timeint::step(model &m, double t, double h)
 
     if(jac_h_!=h)
         jac_ok_ = false;
+    fail_.clear();
 
     // attempt 0: modified Newton (Jacobian kept while it converges fast), attempt 1: full Newton
     for(int attempt=0; attempt<2; ++attempt)
@@ -334,17 +336,33 @@ bool timeint::step(model &m, double t, double h)
 
         bool conv = false;
         double dprev = 0.0;
+        // for the message of a failed step: the increments, the reason and the degree of freedom
+        std::vector<double> hist;
+        const char *why = nullptr;
+        int bad = -1;
         for(int it=0; it<set_.max_iter; ++it)
         {
             residual(m, t1, h, u, r);
+            if(!r.allFinite())
+            {
+                why = "non-finite residual";
+                for(int i=0; i<r.size() && bad<0; ++i)
+                    if(!std::isfinite(r(i)))
+                        bad = i;
+                break;
+            }
             if(!jac_ok_ || full)
                 build_jacobian(m, t1, h, u, r, false, c);
             du = -lu_.solve(r);
             if(!du.allFinite())
+            {
+                why = "non-finite increment (singular Jacobian)";
                 break;
+            }
             u += du;
             ++stats.iterations;
             const double dn = m.increment_norm(du.head(n));
+            hist.push_back(dn);
             if(converged(m, dn, h))
             {
                 conv = true;
@@ -363,7 +381,43 @@ bool timeint::step(model &m, double t, double h)
             dprev = dn;
         }
         if(!conv)
+        {
+            // the thresholds of converged() and stagnated() on the increment of dnu, at the last trial state
+            const double cf = (1.0 - af_)/(1.0 - am_);
+            double xmax = 0.0, vmax = 0.0;
+            for(const auto &b : m.bodies)
+            {
+                xmax = std::max(xmax, b.x.cwiseAbs().maxCoeff());
+                vmax = std::max(vmax, std::max(b.v.cwiseAbs().maxCoeff(), b.w.cwiseAbs().maxCoeff()));
+            }
+            const double dconv = std::min(set_.tol*(1.0 + xmax)/(beta_*h*h*cf), set_.tol*(1.0 + vmax)/(gam_*h*cf));
+            const double dstag = 1.0e-9*(1.0 + xmax)/(beta_*h*h*cf);
+            char b[256];
+            std::snprintf(b, sizeof(b), "    attempt %d (%s Newton): %d iterations, ", attempt+1, full ? "full" : "modified",
+                          (int)hist.size());
+            fail_ += b;
+            if(why)
+            {
+                fail_ += why;
+                if(bad >= 0)
+                    fail_ += " at " + (bad < n ? m.dof_name(bad) : "constraint " + std::to_string(bad - n));
+            }
+            else
+                fail_ += "no convergence";
+            fail_ += "\n      max |increment of dnu|:";
+            const size_t i0 = hist.size() > 8 ? hist.size() - 8 : 0;
+            if(i0) fail_ += " ...";
+            for(size_t i=i0; i<hist.size(); ++i)
+            {
+                std::snprintf(b, sizeof(b), " %.3g", hist[i]);
+                fail_ += b;
+            }
+            if(hist.empty()) fail_ += " -";
+            std::snprintf(b, sizeof(b), "\n      converged below %.3g, stagnation accepted below %.3g (from the 4th iteration)\n",
+                          dconv, dstag);
+            fail_ += b;
             continue;
+        }
 
         trial(m, u.head(n), h);
         const VecX dnu1 = u.head(n);
@@ -380,6 +434,7 @@ bool timeint::step(model &m, double t, double h)
             m.constraints(g_, G_);
             stats.max_constraint = std::max(stats.max_constraint, g_.cwiseAbs().maxCoeff());
         }
+        fail_.clear();
         return true;
     }
     restore(m);

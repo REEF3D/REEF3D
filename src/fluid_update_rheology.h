@@ -30,6 +30,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class rheology;
+class rheology_cfd_core;
 
 class fluid_update_rheology : public fluid_update, increment
 {
@@ -40,7 +41,10 @@ public:
     void start(lexer*, fdm*, ghostcell*, field&, field&, field&);
 
 private:
+    void start_3phase(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
     rheology *prheo;
+    rheology_cfd_core *pcore;   // the rheology core (W 130 > 0), else nullptr
     int iter;
     const double ro1,ro2;
     const double visc2;

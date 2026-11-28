@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"pic_f.h"
 #include"pic_void.h"
+#include"pic_gfm.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -672,8 +673,12 @@ void driver::logic_cfd()
     // There the closed projection gave the added mass of the fine grid (a square oscillating in a
     // closed box: 54.3 kg/m at dx 0.02, 53.2 at dx 0.01); with the stages of N 40 3 and N 40 6 it is
     // 20 and 10 % too high, they keep the open projection
-    // Not with the subcycled mesh refinement (G 1 with G 7 1): there the heave of a box differed
-    // from the run with one time step for all levels (9 mm after 0.6 s), not understood yet
+    // One body, no mesh refinement: what the closed projection has been run with over long times.
+    // Not with the mesh refinement (G 1): with G 7 1 the heave of a box differed from the run with one
+    // time step for all levels (9 mm after 0.6 s); with G 7 0, G 12 and G 40 1 on 12 ranks a lock with
+    // a ship, four gate leaves and two valves stopped at 7.1 s, in the step of a regrid, with 14 m/s
+    // near the downstream gates, where the open projection had run to 62 s.  Neither is understood
+    // yet.  Not with several bodies (X 20 > 1) until then: X 49 1 in the control file switches it on
     // X 14 11: the forcing of X 14 1 with the added mass of the hull on the grid in the coupling (one Poisson solve
     // per free degree of freedom with the matrix of the closed projection, 6DOF_obj_cfd_addedmass.cpp) instead of
     // the artificial one of X 197. One body, the one-step scheme, the loads on the triangles, the closed
@@ -687,7 +692,7 @@ void driver::logic_cfd()
     }
     
     if(p->X49<0)
-    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && !(p->G1>0 && p->G7!=0)) ? 1 : 0;
+    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && p->G1==0 && p->X20<=1) ? 1 : 0;
 
     if(p->X46<0)
     p->X46 = (p->X49>0) ? 1 : 0;
@@ -698,6 +703,17 @@ void driver::logic_cfd()
     // with its consistent added mass on both sides is switched on with it (not with X 198)
     if(p->X49>0 && p->X10>0 && p->X197<=0.0 && p->X198==0)
     p->X197 = 1.0;
+
+    // X 10 2 (prescribed body), 3 (ship pressure) and 4 (wavemaker) are options of NHFLOW, SFLOW and FNPF; the CFD
+    // module has the body X 10 1, a prescribed motion with X 11 2 (X 210, X 211 or the motion file X 240). Any other
+    // X 10 left p6dof unset and the run stopped with a segmentation fault in driver_ini_cfd
+    if(p->X10<0 || p->X10>1)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! CFD: X 10 "<<p->X10<<" is not available; a body with a prescribed motion is X 10 1 with X 11 2 (X 210, X 211 or X 240) !!!"<<endl<<endl;
+
+    pgc->final(true);
+    }
 
     if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
@@ -722,6 +738,7 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
     removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
     removed_option(p,pgc,picfsf && p->B90>0 && ((p->B98!=0 && p->B98!=2) || (p->B99!=0 && p->B99!=1 && p->B99!=2)),"F 81 1/2: waves only with the relaxation zones (B 98 2, B 99 1 or 2) with the free surface from the particles yet; the Dirichlet wave generation and the active absorption bring no particles in.");
+    removed_option(p,pgc,p->F81==1 && p->F75!=0 && p->F75!=1,"F 75: the faces at the free surface of F 81 1 take the velocity of the particles (0, the default) or keep that of the grid (1).");
     removed_option(p,pgc,picfsf && p->F76!=0 && p->F76!=1,"F 76: the particles of F 81 1, 2 move in the stages of the SSP-RK3 step (1, the default) or once per step (0).");
     removed_option(p,pgc,picfsf && (p->F77<0 || p->F77>2),"F 77: the velocity transfer of the particles is 0 (FLIP/PIC, F 82), 1 (APIC) or 2 (FLIP/PIC with the affine velocities of APIC).");
     removed_option(p,pgc,picfsf && (p->N40==0 || p->N40==33),"F 81 1/2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
@@ -737,6 +754,15 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->G1>0 && p->G7!=0,"F 41 1: the single-phase level set with the mesh refinement (G 1) needs one time step for all levels (G 7 0) yet.");
     removed_option(p,pgc,p->F41==2 && p->G1>0 && p->G40!=0,"F 41 2: the closed air pockets with the mesh refinement need the patches on the ranks of their level-0 cells (G 40 0) yet.");
     removed_option(p,pgc,p->H10>0 || p->C10>0 || p->F300>0 || p->W90>0 || p->X10>0 || p->Z10>0,"F 41 1: the single-phase level set works without heat (H 10), concentration (C 10), multiphase (F 300), rheology (W 90), floating bodies (X 10) or FSI (Z 10) yet.");
+
+        // F 66: the level set from which a cell counts as water in the ghost fluid method
+        removed_option(p,pgc,p->F66<0.0 || p->F66>0.5,"F 66: the cells of the water of the single phase from phi >= F 66 h, F 66 in [0, 0.5].");
+        removed_option(p,pgc,p->F66>0.0 && p->F41!=1,"F 66 works with F 41 1 (the closed air pockets of F 41 2 not yet).");
+        pic_gfm_wet41(p->F66);
+
+        // F 67: the band of the extended velocities free of divergence
+        removed_option(p,pgc,p->F67<0 || p->F67>2,"F 67: the layers of the band free of divergence of the single phase are 0, 1 or 2.");
+        removed_option(p,pgc,p->F67>0 && p->F41!=1,"F 67 works with F 41 1 (the closed air pockets of F 41 2 not yet).");
 
         // the air takes the density and viscosity of the water: the faces of the water at the surface
         // have the density of the water (the smoothed Heaviside of density_f would give them less)
@@ -942,6 +968,10 @@ void driver::logic_cfd()
         }
     }
 
+    // N 67 (the face density of the pressure gradient p(n) in the momentum step): the one-step scheme N 40 5
+    if(p->N67>0 && p->mpirank==0 && !(p->N40==5 && p->F30>0))
+    cout<<"N 67 needs the one-step scheme N 40 5 with the level set (F 30): not used"<<endl;
+
     // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
     // and in cfd_amr::timestep (the patches of the mesh refinement)
     if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->N48==0))
@@ -985,6 +1015,19 @@ void driver::patchBC_logic()
     if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==6)
     pBC = new patchBC(p,pgc);
 
-    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=6))
+    // NHFLOW: the semi-implicit step (A 510 11/12/13) only, on the slice faces as SFLOW (nhflow_momentum_SI::bc_setup)
+    if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==5)
+    {
+        if(p->A534!=1)
+        {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW: patch boundary conditions (B 411-422 on B 440-442) only with the semi-implicit step (A 510 11/12/13) !!!"<<endl;
+        exit(1);
+        }
+
+    pBC = new patchBC_2D(p,pgc);
+    }
+
+    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=5 && p->A10!=6))
     pBC = new patchBC_void(p);
 }

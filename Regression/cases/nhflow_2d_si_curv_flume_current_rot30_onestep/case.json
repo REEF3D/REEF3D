@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_si_curv_flume_current_rot30",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "`nhflow_2d_si_curv_flume_current_rot30` with the one-step predictor (A 510 11, BCG advection): one pass before, 2 mm noise after 2 s; with the estimate pass clean.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "current"
+ ],
+ "covers": [
+  "the estimate pass (tp2) with A 510 11"
+ ],
+ "architect": "Hans Bihs"
+}

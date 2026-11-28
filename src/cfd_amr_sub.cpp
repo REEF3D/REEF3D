@@ -40,6 +40,8 @@ Architect: Hans Bihs
 #include<cmath>
 #include<iostream>
 #include<iomanip>
+#include<fstream>
+#include<cstdlib>
 #include<algorithm>
 
 //  Subcycling in time (G 7 1) and the composite volume correction of the level set (F 46 2, 3).
@@ -767,6 +769,7 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     if(bodies)
     body_end();
 
+    volume_edge(p);
     volume_correct(p,pgc);
 
     if(adapt && p->G2>0 && p->count%p->G2==0)
@@ -954,6 +957,89 @@ void cfd_amr::volume_correct(lexer *p, ghostcell *pgc)
     }
 
     rovisc_all();
+}
+
+// REEF3D_AMR_VOLEDGE=1 in the environment (a diagnostic, G 40 0): the water volume that crosses the
+// faces between a patch and the coarser level, as the patch and as the coarser level see it, at the
+// end of the step before the volume correction.  Per face (the fine face, area A, dir = +1: the
+// coarse cell at +d) the flux dir u H A with
+//   fine:    u of the fine face, H of the level set at the fine face (the fine cell and the cell
+//            around the patch) with the interface width of the patch
+//   coarse:  u of the coarse face, H of the level set at the coarse face (the coarse leaf cell and
+//            the covered parent) with the interface width of the coarser grid
+// A flux register of the volume (as the one of heat and concentration, sc_reflux) would give the
+// coarse cell the difference.  Written per step to REEF3D_CFD_AMR_voledge.dat:
+//   count  simtime  dt  V  V-V(start of step)  dt Qf  dt Qc  dt (Qf-Qc): the part of u, the part of
+//   H at the faces normal to x and y, the part of H at the faces normal to z, dt sum |u dH A|,
+//   dt sum |u H A| (the fine side), the number of faces in the interface band
+void cfd_amr::volume_edge(lexer *p)
+{
+    static const bool on = (getenv("REEF3D_AMR_VOLEDGE")!=nullptr && atoi(getenv("REEF3D_AMR_VOLEDGE"))==1);
+    if(!on || place)
+    return;
+
+    // sums: Qf, Qc, u part, H part (x, y), H part (z), |u dH A|, |u H A|, faces in the band
+    double s[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    for(size_t n=0; n<cf.size(); ++n)
+    {
+        const cfd_amr_cf &F = cf[n];
+        lexer *qf = CP(F.pid)->pp;
+        fdm *af = CP(F.pid)->a;
+        lexer *qc = glex(F.gc);
+        fdm *ac = gfd(F.gc);
+
+        const double *dn[3] = {qf->DXN,qf->DYN,qf->DZN};
+        double A = F.ap;
+        for(int t=0; t<3; ++t)
+        if(t!=F.d)
+        A *= dn[t][F.fi[t]+marge];
+
+        field &uf = (F.d==0) ? static_cast<field&>(af->u) : ((F.d==1) ? static_cast<field&>(af->v) : static_cast<field&>(af->w));
+        fdm *ag = gfd(F.gface);
+        field &uc = (F.d==0) ? static_cast<field&>(ag->u) : ((F.d==1) ? static_cast<field&>(ag->v) : static_cast<field&>(ag->w));
+        const double vf = uf(F.ff[0],F.ff[1],F.ff[2]);
+        const double vc = uc(F.cf[0],F.cf[1],F.cf[2]);
+
+        const double ef = interface_width(qf,af->phi,F.fi[0],F.fi[1],F.fi[2]);
+        const double ec = interface_width(qc,ac->phi,F.ci[0],F.ci[1],F.ci[2]);
+        const double pf = 0.5*(af->phi.V[F.qf] + af->phi.V[F.qm]);
+        const double pc = 0.5*(ac->phi.V[F.qc] + gfd(F.gp)->phi.V[F.qp]);
+        const double Hf = heaviside(pf,ef);
+        const double Hc = heaviside(pc,ec);
+
+        const double d = double(F.dir);
+        s[0] += d*vf*Hf*A;
+        s[1] += d*vc*Hc*A;
+        s[2] += d*(vf-vc)*Hf*A;
+        s[(F.d==2) ? 4 : 3] += d*vc*(Hf-Hc)*A;
+        s[5] += fabs(vc*(Hf-Hc)*A);
+        s[6] += fabs(vf*Hf*A);
+        if(fabs(pf)<ef || fabs(pc)<ec)
+        s[7] += 1.0;
+    }
+    MPI_Allreduce(MPI_IN_PLACE,s,8,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+
+    double V, dV;
+    volume(V,dV);
+
+    static double Vold = -1.0;
+    static bool first = true;
+    if(p->mpirank==0)
+    {
+        ofstream out("REEF3D_CFD_AMR_voledge.dat", first ? ios::trunc : ios::app);
+        if(first)
+        out<<"# count simtime dt V dV_step dtQf dtQc dQ_u dQ_H_xy dQ_H_z abs_dQ_H abs_Qf nband"<<endl;
+        out<<setprecision(12)<<p->count<<" "<<p->simtime<<" "<<p->dt<<" "<<V<<" "<<(Vold<0.0 ? 0.0 : V-Vold)<<" "
+           <<p->dt*s[0]<<" "<<p->dt*s[1]<<" "<<p->dt*s[2]<<" "<<p->dt*s[3]<<" "<<p->dt*s[4]<<" "<<p->dt*s[5]<<" "<<p->dt*s[6]<<" "<<s[7]<<endl;
+    }
+    first = false;
+
+    // the volume the next step starts with: after the volume correction, if any
+    Vold = V;
+    if(p->F46==2)
+    Vold = vol_step;
+    if(p->F46==3)
+    Vold = vol_net + p->Qi*p->dt - p->Qo*p->dt;
 }
 
 // density and viscosity of all grids from the level set (as fluid_update_fsf)

@@ -175,6 +175,7 @@ struct reefamr_param
     int nest = 3;               // proper nesting width in coarse cells
     int keep = 0;               // regrids a refined tile is kept after its last flag (<= 250)
     int ext = 2;                // computed cells beyond the patch box on every side
+    int rects = 0;              // rectangles of the marked tiles (tile_rects): 0 row by row, 1 the largest rectangle first
     vector<int> vref;           // vertical refinement (1 or 2) of level l over l-1, index l; empty: 1
     vector<double> rbox;        // refinement boxes: xs,xe,ys,ye
     vector<double> fbox;        // no-refinement boxes: xs,xe,ys,ye
@@ -964,6 +965,13 @@ protected:
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
+    long plan_gen = 0;              // counts the builds of the fill plans (build_plans, the plans of the blocks)
+    // profile of a run (REEF3D_AMR_PROFILE=1 prints it): time in the parts of the regrid [s] (0 the hierarchy before it,
+    // 1 flags, tile maps, layout and the objects of the new patches, 2 their time-independent data, 3 the plans,
+    // 4 their state, 5 the levels consistent again), patches made new and kept
+    bool prof = false;
+    double rgt[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+    long rg_fresh = 0, rg_kept = 0;
     long cells_local = 0;           // refined columns of the patches on this rank
 
     // rank boxes of level 0 (global cell indices), all ranks
@@ -1026,7 +1034,9 @@ protected:
     void rsi_free();
     void rsi_fillv(int v, bool all=true);       // Krylov vector v of all grids (all: the levels as well)
     void rsi_restrict(int tag, const std::function<slice&(int)> &F);
+    double rsi_interp(int g, slice&, int, int, int, int);
     double rsi_interp(lexer*, slice&, int, int, int, int);
+    vector<int> rsi_ix;                         // [g+1]: the position of grid g in rsg, -1 none
     void rsi_rows0(int x, int y);               // y = A x on the own rows of the level-0 grids (level-0 fill)
     void rsi_ras(int, int);
     void rsi_cs_build();

@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_patch_lateral",
+ "np": 2,
+ "description": "nhflow_3d_si_patch_lateral on two ranks (the cut at x = 500 m through the patch): the global sums of the wetted area and the discharge of the patch (patchBC_discharge_nhflow), the patch faces of both ranks. Equal to the one-rank run within the tolerance of the eta solve (regression.py ranks, rtol 1e-5).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "patchbc",
+  "mpi"
+ ],
+ "covers": [
+  "patchBC_discharge_nhflow across ranks"
+ ],
+ "architect": "Hans Bihs",
+ "same_as": "nhflow_3d_si_patch_lateral",
+ "same_as_rtol": 1e-05
+}

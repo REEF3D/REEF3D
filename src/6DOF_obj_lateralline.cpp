@@ -229,11 +229,15 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     // the pressure across the flanks and along a tilted body differs by rho g times the distance, many times q
     // (the 2D swimmer in the x-z plane: about 8 q across the body at 0.5 m/s), and the brain would read it as a
     // stimulus; waves and a free surface add only their dynamic part. The log of the lateral line keeps the pressure
-    std::vector<double> pr(n);
+    std::vector<double> pr(n), ua(n);
     for(int q=0; q<n; ++q)
     pr[q] = val[4*q] - hyd[q];
     
-    brain_update(p,pgc,&pr,pv);
+    // ... and the fluid velocity along the body axis relative to the hull (B1, patch 0039: the speed through the water)
+    for(int q=0; q<n; ++q)
+    ua[q] = R_(0,0)*val[4*q+1] + R_(1,0)*val[4*q+2] + R_(2,0)*val[4*q+3];
+    
+    brain_update(p,pgc,&pr,pv,&ua);
     
     if(!out || p->mpirank!=0 || !printll.is_open())
     return;

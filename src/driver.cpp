@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"nhflow_memory.h"
 #include"regression_dump.h"
 #include"ghostcell.h"
 #include"fdm.h"
@@ -48,7 +49,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261116");
+    sprintf(version,"v_261128");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -160,6 +161,7 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
 
         nhflow_driver();
     }
@@ -189,6 +191,9 @@ void driver::sflow_driver()
     psflow = new sflow_f(p,b,pgc,pBC);
 
     makegrid2D_cds(p,pgc,b);
+
+    // the boundary lists of the 3D grid and the sigma heights are read by the grid set-up only (lexer_gridini.cpp)
+    p->gridfree_sflow();
 
     // Start SFLOW
 	psflow->start(p,b,pgc);
@@ -276,6 +281,18 @@ void driver::nhflow_driver()
     preg->nhflow_ini(p,d,pgc);
 
     coral_ini();
+
+    // the semi-implicit NHFLOW (A 510 11-13) after the initialisation: with the one-step predictor (A 510 11) on one
+    // Cartesian grid, without mesh refinement, CORAL, floating bodies, sediment and DEM, the 3D flags only the grid
+    // set-up reads are given back (lexer::flagfree_nhflow_si); always the zero pages of the fields (nhflow_memory.h)
+    if(p->A534==1)
+    {
+        if(p->A510==1 && !nhflow_hll_faces(p) && pnhfamr==nullptr && pcoral==nullptr && p->X10==0 && p->S10==0
+        && p->E10==0)
+        p->flagfree_nhflow_si();
+
+        nhflow_memory_trim(p,d,pgc);
+    }
 
     // Start MAINLOOP
     loop_nhflow();

@@ -39,7 +39,7 @@ Architect: Hans Bihs
 //
 // X 46 and X 49: 1 the 6DOF bodies, 2 the bodies and the solids and the bed (the solids not tested yet).
 // Not set in the control file: on (1) for bodies with the one-step scheme N 40 5 and the loads X 60 1
-// (not with X 198 or the subcycled mesh refinement G 7 1),
+// (one body; not with X 198 or the mesh refinement G 1),
 // together with the loads from probe points off the hull (X 42 1.5, X 34 2) and the stabilised coupling
 // X 197 1 (driver_logic_cfd); X 49 0 keeps the open projection.
 //

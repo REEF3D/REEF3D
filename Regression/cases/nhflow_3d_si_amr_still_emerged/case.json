@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_si_amr_still",
+ "ctrl_set": {
+  "F 60": "0.15"
+ },
+ "description": "nhflow_3d_si_amr_still with the crest of the bump above the water (F 60 0.15, crest 0.2 m) and the patch over both shorelines (G 30 1: patches over dry cells): the NHFLOW semi-implicit step on the levels at rest with dry cells.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "reefamr_si at the shoreline (NHFLOW)"
+ ],
+ "architect": "Hans Bihs",
+ "ctrl_add": [
+  "G 30 1"
+ ]
+}

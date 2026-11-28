@@ -67,8 +67,6 @@ private:
     int rowcount,colcount;
     int colnum;
     double val;
-    std::vector<std::vector<double>> data;
-    double ts,te;
     int timecount,timecount_old;
     int id;     // body number (6DOF_motion-<id>.dat)
     

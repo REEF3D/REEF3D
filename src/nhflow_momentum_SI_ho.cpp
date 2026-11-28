@@ -38,8 +38,8 @@ Architect: Hans Bihs
 //  - the face gradient of eta and the face term of phi get the part -delta^2/12 of the compact one (ho_gradient,
 //    ho_phi_corr): with the compact divergence of the faces, which stays as it is (the volume is exact), the Laplacian
 //    is fourth order. This part is explicit, so the matrices of the eta system and of the coupled eta-phi system keep
-//    their compact stencil: for eta^{n+1} it takes eta of the estimate pass (A 505 1; eta^n in the estimate pass and
-//    with A 505 0), for phi the pressure of the two steps before extrapolated to this one.
+//    their compact stencil: for eta^{n+1} it takes eta of the estimate pass (eta^n in the estimate pass), for phi the
+//    pressure of the two steps before extrapolated to this one.
 // A face or a cell whose stencil leaves the wet deep fluid cells (walls, open boundaries, the shoreline) keeps the
 // second-order terms. The advection of the predictor and the nonlinear face depths are unchanged.
 // ---------------------------------------------------------------------------------------------------------------------
@@ -65,7 +65,28 @@ void nhflow_momentum_SI::ho_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     {
     const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
-    hoC(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1 && p->deep[q]==1) ? 1.0 : 0.0;
+    hoC(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1 && p->deep[q]==1 && !df_col(p,ii,jj)) ? 1.0 : 0.0;
+
+    // VRANS: no fourth-order stencil over a column with a porous cell
+    if(vr && vrPc[q])
+    hoC(ii,jj) = 0.0;
+    }
+
+    // and the cells of subcritical flow, Froude number of the layers below 0.8 (t^n): at the critical point of a dam break
+    // (the tail of the rarefaction, u = c) the cubic overshoot of the (-1, 9, 9, -1)/16 means grew a two-cell wave at
+    // gravity Courant numbers near 1 (Stoker dam break, theta 1, dx 0.05 m: EMERGENCY STOP at 3.4 s with dt 0.02 s, at
+    // 1.5 s with dt 0.03 s). Waves (the Froude number of the orbital velocity well below 0.5) and rivers keep them. A
+    // limiter of the means instead (v24: the harmonic mean of the two curvatures at kinks) stopped the time convergence
+    // of the standing waves near 2e-7 (its switches are not smooth in time)
+    const double frl = 0.8;
+
+    LOOP
+    if(hoC(i,j)>0.5 && WL0(i,j)>p->A544)
+    {
+    const double v = p->j_dir==1 ? d->V[IJK] : 0.0;
+
+        if(d->U[IJK]*d->U[IJK] + v*v > frl*frl*g*WL0(i,j))
+        hoC(i,j) = 0.0;
     }
 
     exchange4(p,pgc,hoC);
@@ -167,7 +188,8 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
     {
     auto aF = [&](int f)
     {
-        return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j));
+        return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j)
+                        + (shipon ? shx(f,j) : 0.0));
     };
 
     gu = dt*g*(9.0*(aF(i-1) + aF(i)) - aF(i-2) - aF(i+1))/16.0;
@@ -177,7 +199,8 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
     {
     auto aF = [&](int f)
     {
-        return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f));
+        return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f)
+                        + (shipon ? shy(i,f) : 0.0));
     };
 
     gv = dt*g*(9.0*(aF(j-1) + aF(j)) - aF(j-2) - aF(j+1))/16.0;

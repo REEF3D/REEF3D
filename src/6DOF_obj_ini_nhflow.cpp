@@ -90,6 +90,16 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // Initialise position of bodies
     iniPosition_RBM(p,pgc);
+    
+    // the semi-implicit NHFLOW (A 510 11/12/13): the stabilised coupling X 197 of CFD, (M + A) a = F + A a_prev with
+    // the added mass of the equivalent ellipsoid of the hull (sixdof_obj::cfd_added_mass). The coupled eta-phi system
+    // holds the body velocity in the cells of the body, its pressure contains the reaction of the water to the
+    // acceleration of the body of the step before; for A > M the explicit coupling grows from step to step
+    if(p->A534==1 && p->X197>0.0)
+    {
+    set_cfd_added_mass(p->X197);
+    added_mass_ellipsoid(p);
+    }
 	
 	// Recalculate distances
 	ray_cast(p,d,pgc);

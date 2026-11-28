@@ -123,11 +123,11 @@ double sflow_rheology_core::lambda_mid(lexer *p, double lam, double h)
     return 0.0;
 }
 
-double sflow_rheology_core::si_factor(lexer *p, fdm2D *b, int ii, int jj, int dir, double h, double Ustar, double dt)
+double sflow_rheology_core::si_factor(lexer *p, fdm2D *b, int ii, int jj, int dir, double h, double U0, double Ustar, double dt)
 {
-    // semi-implicit step: the speed s of the backward-Euler friction step s + dt tau_b(s)/(rho h) = Ustar, as the
-    // factor s/Ustar = 1/(1 + dt tau_b(s)/(rho h s)) on the momentum of the cell or the face (with the implicit
-    // gravity term); 0 when the driving force of the step is below the static threshold. At a face the normal gravity
+    // semi-implicit step: the speed s at the end of the friction step for the driving of the step (Ustar: the speed
+    // without friction, U0: at the start), as the factor s/Ustar on the momentum of the cell or the face (with the
+    // implicit gravity term); 0 when the driving force of the step is below the static threshold. At a face the normal gravity
     // and the pore pressure ratio are the means of the two cells
     if(h<=p->A244)
     return 1.0;
@@ -146,7 +146,11 @@ double sflow_rheology_core::si_factor(lexer *p, fdm2D *b, int ii, int jj, int di
     s.sigma_n = s.rho*s.gn*h;
     s.lambda = lambda_mid(p,dir==0 ? lambda(ii,jj) : 0.5*(lambda(ii,jj) + lambda(i2,j2)),h);
     
-    return rheo::implicit_speed(q,s,Ustar,dt)/Ustar;
+    // the semi-implicit steps are long against the relaxation time of the speed (a 5 mm mu(I) layer reaches its
+    // steady speed in 0.02 s, the step is 0.04 s): the friction of the step in sub-steps with the constant driving of
+    // the step from the speed of its start (at most 8: after them the speed has relaxed); a single backward-Euler step
+    // was up to 20 % off during the acceleration
+    return rheo::implicit_speed_sub(q,s,U0,Ustar,dt,8)/Ustar;
 }
 
 void sflow_rheology_core::si_end(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL)

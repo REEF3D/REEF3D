@@ -85,7 +85,7 @@ void lexer::flagini()
     Iarray(DFBED,imax*jmax);
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     DFBED[(i-imin)*jmax + j-jmin] = 1;
 
     // flag
@@ -93,18 +93,19 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 
+    // (the arrays have kmargin, jmargin ghost cells in z, y: grid.h)
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
-    for(k=-margin; k<knoz+margin; ++k)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
+    for(k=-kmargin; k<knoz+kmargin; ++k)
     IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     IOSL[(i-imin)*jmax + j-jmin] = 0;
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
-    for(k=-margin; k<knoz+margin; ++k)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
+    for(k=-kmargin; k<knoz+kmargin; ++k)
     DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 
 	x_dir=y_dir=z_dir=1.0;
@@ -237,6 +238,29 @@ static void periodic_ghost_nodes(lexer *p, ghostcell *pgc)
     side(p->YN,p->knoy,p->origin_j,p->gknoy);
 }
 
+// SFLOW reads the boundary lists of the 3D grid (gcb1-4a: bottom and top face of every cell, six integers each, and
+// their distances gcd1-4a) and the sigma heights ZSN, ZSP in its grid set-up only (the lists of the slices gcbsl are
+// made from gcb4). They are given back before the run starts: about 590 bytes per cell, 22 % of the memory of an
+// explicit run and 15 % of a semi-implicit one. The patches of a mesh refinement never had them. Any later access
+// fails at once (nullptr; the counts stay).
+void lexer::gridfree_sflow()
+{
+    del_Iarray(gcb1,gcb1_count,6);
+    del_Iarray(gcb2,gcb2_count,6);
+    del_Iarray(gcb3,gcb3_count,6);
+    del_Iarray(gcb4,gcb4_count,6);
+    del_Iarray(gcb4a,gcb4a_count,6);
+
+    del_Darray(gcd1,gcb1_count);
+    del_Darray(gcd2,gcb2_count);
+    del_Darray(gcd3,gcb3_count);
+    del_Darray(gcd4,gcb4_count);
+    del_Darray(gcd4a,gcb4a_count);
+
+    del_Darray(ZSN,imax*jmax*(kmax+1));
+    del_Darray(ZSP,imax*jmax*kmax);
+}
+
 // FNPF reads the 3D cell flags flag4, flag5 and flag7 in its time steps (and the printers). The flags
 // of the CFD velocity components (flag1-3), of the solid forcing (flagsf1-4, DF, DF1-3, DFF) and IO
 // are read by the grid set-up only. For FNPF they are given back after the initialisation: 13 int
@@ -262,4 +286,27 @@ void lexer::flagfree_fnpf()
     del_Iarray(DF2,n3);
     del_Iarray(DF3,n3);
     del_Iarray(DFF,nF);
+}
+
+// The semi-implicit NHFLOW with the one-step predictor (A 510 11) on one Cartesian grid reads the cell flags flag4,
+// flag5 and flag7, IO, DF, DFF and flagsf4 in its time steps (flag5: the cells of every VTU output and LAGOON volume,
+// vtu3D::structureWrite; freed, the second volume output crashed). The flags of the CFD velocity components (flag1-3)
+// and the solid forcing flags flagsf1-3, DF1-3 are read by the grid set-up only and are given back after the
+// initialisation (driver::nhflow_driver says when), as for FNPF: 9 int arrays of the 3D grid. Any later access fails at
+// once (nullptr).
+void lexer::flagfree_nhflow_si()
+{
+    const int n3 = imax*jmax*kmax;
+
+    del_Iarray(flag1,n3);
+    del_Iarray(flag2,n3);
+    del_Iarray(flag3,n3);
+
+    del_Iarray(flagsf1,n3);
+    del_Iarray(flagsf2,n3);
+    del_Iarray(flagsf3,n3);
+
+    del_Iarray(DF1,n3);
+    del_Iarray(DF2,n3);
+    del_Iarray(DF3,n3);
 }

@@ -110,7 +110,7 @@ int main(int argc, char **argv)
         if(r.vtp_dt >= 0.0) vtp();
         const long nvtp_every = r.vtp_dt > 0.0 ? std::max(1L, std::lround(r.vtp_dt/r.dt)) : 1L;
         time_series out;
-        out.open(r.out_file, c.m);
+        out.open(r.out_file, c.m, false, r.out_only);
         out.write(c.m, r.t_start);
         const long n = std::lround((r.t_end - r.t_start)/r.dt);
         const long nout = r.out_dt > 0.0 ? std::max(1L, std::lround(r.out_dt/r.dt)) : 1L;

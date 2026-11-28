@@ -20,5 +20,8 @@
  ],
  "covers": [
   "tracers across the faces between tiles (corners of four pieces)"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

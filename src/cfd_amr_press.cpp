@@ -1336,10 +1336,28 @@ void cfd_amr::pr_weights()
         if(p0->G9>0)
         {
             const double wc = interface_width(glex(F.gc),gfd(F.gc)->phi,F.ci[0],F.ci[1],F.ci[2]);
+            // Not next to a solid or the bed (the coarse cell within two of its cells of the
+            // surface): there the faces of the patch edge lie in gaps and corners, and a face in
+            // the air that carries the density of a mixture holds the air back that has to come
+            // in for the water to leave.  A level-2 box ending 15 mm behind a cap beam under a
+            // closed deck (D 32 1), water hanging in the bay behind it: the water stayed in the
+            // corner of the beam and the deck, the air came in under the beam at 25 m/s with
+            // -10 kPa (11 m/s and -0.8 kPa with G 9 0), the water under the beam rose into the
+            // jet, and with the compressible air (W 32 2) 500 m/s after 0.5 s
+            // (Regression: cfd_2d_deck_hanging_water_amr)
+            fdm *ac = gfd(F.gc);
+            lexer *qc = glex(F.gc);
+            double hc = MAX(qc->DXN[F.ci[0]+marge],qc->DZN[F.ci[2]+marge]);
+            if(qc->j_dir==1)
+            hc = MAX(hc,qc->DYN[F.ci[1]+marge]);
+            const bool wall = (p0->solidread>0 && ac->solid(F.ci[0],F.ci[1],F.ci[2])<2.0*hc)
+                           || (p0->topoforcing>0 && ac->topo(F.ci[0],F.ci[1],F.ci[2])<2.0*hc);
+            if(!wall)
             w = p0->G9==1 ? 0.5*(w+wc) : wc;
         }
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
         F.rof = rmix(c->pp,H,0.5*(sval(F.pid,F.qf) + sval(F.pid,F.qm)));
+        F.rog = F.rof;      // the density of the face without the porosity factor (G 17)
 
         // porous structures: the face density divided by the porosity factor of the face (all
         // the fluxes of the face, kf, kc and the corrections, carry it as pjm_corr / poisson_pcorr)
@@ -1398,6 +1416,25 @@ void cfd_amr::pr_weights()
                     (sd<0 ? qm : qp) = -1;
                 }
             }
+            // The direct forcing (D 32 0, 1): not a cell in a solid or the bed for a coarse cell in
+            // the fluid (D 32 1 above keeps it: its face is open).  The pressure in a solid is not that
+            // of the fluid column (the forcing holds its faces, the hydrostatic balance is not kept
+            // there), and the coarse value at the height of a fine cell next to the surface took it:
+            // in still water 1-2 mm/s in and out of the fine faces of a patch edge at the surface of
+            // a body (in the air over a pile 0.007 Pa are 3 mm/s).
+            if(p0->D32!=2 && p0->D1!=2 && p0->G505==0 && (p0->solidread>0 || p0->topoforcing>0))
+            {
+                if(!d32_inside(F.gc,F.ci))
+                for(int sd=-1; sd<=1; sd+=2)
+                {
+                    if((sd<0 ? qm : qp)<0)
+                    continue;
+                    int cn[3] = {F.ci[0],F.ci[1],F.ci[2]};
+                    cn[t] += sd;
+                    if(d32_inside(F.gc,cn))
+                    (sd<0 ? qm : qp) = -1;
+                }
+            }
             double phs = phf;
             if(p0->G8==1)
             {
@@ -1429,6 +1466,9 @@ void cfd_amr::pr_weights()
                 F.sw[0] -= mf/mm;
             }
         }
+
+        for(int m=0; m<F.ns; ++m)
+        F.sh[m] = F.sw[m];
     }
 
     // F 41 1: p = 0 at the free surface by the ghost fluid method across the faces at the patch
@@ -1449,17 +1489,73 @@ void cfd_amr::pr_weights()
         for(int m=0; m<F.ns; ++m)
         phs += F.sw[m]*gfd(F.sg[m])->phi.V[F.sq[m]];
 
-        F.fw = phf>=0.0;
-        F.cw = gfd(F.gc)->phi.V[F.qc]>=0.0;
+        // (F 66: a cell counts as water from the level of its grid, pic_gfm_water)
+        const double wf = pic_gfm_wet41_level(CP(F.pid)->pp), wc = pic_gfm_wet41_level(glex(F.gc));
+        F.fw = phf>=wf;
+        F.cw = gfd(F.gc)->phi.V[F.qc]>=wc;
 
-        if(phf>=0.0 && phs>=0.0)
+        // G 18: the coarse value at the position of the fine cell from the water only (where that
+        // position lies in the water).  A neighbour in the air has the row p = 0; linear with it, the
+        // value of a fine cell next to the surface was not hydrostatic, and still water moved in and
+        // out of the patch there (0.06 m/s).  A neighbour in the air takes the ghost value of the
+        // ghost fluid method of its grid, p of the coarse cell extrapolated to p = 0 at the surface;
+        // a coarse cell in the air the value on the line from its neighbour in the water to the
+        // surface.  Linear pressures are then exact
+        if(p0->G18==1 && phs>=wc)
+        {
+            field &fc = gfd(F.gc)->phi;
+            const double phC = fc.V[F.qc];
+            if(phC>=wc)
+            {
+                for(int m=1; m<F.ns; ++m)
+                {
+                    const double phm = fc.V[F.sq[m]];
+                    if(phm>=wc)
+                    continue;
+                    // x_m = x_C (1 - 1/theta)
+                    F.sw[0] += F.sw[m]*(1.0 - 1.0/pic_gfm_theta(phC,phm));
+                    F.sw[m] = 0.0;
+                }
+            }
+            else
+            {
+                // the coarse cell in the air: from the neighbour in the water with the largest level
+                // set, along its direction (the other directions without slope)
+                int mb = -1, tb = -1, sb = 0;
+                for(int m=1; m<F.ns; ++m)
+                {
+                    const double phm = fc.V[F.sq[m]];
+                    if(phm<wc || (mb>=0 && phm<=fc.V[F.sq[mb]]))
+                    continue;
+                    for(int t=0; t<3; ++t)
+                    if(F.sc[m][t]!=F.ci[t])
+                    {
+                        tb = t;
+                        sb = F.sc[m][t]-F.ci[t];
+                    }
+                    mb = m;
+                }
+                if(mb>=0 && tb>=0)
+                {
+                    // the line from the neighbour (at sb) to the surface (theta from it towards the
+                    // coarse cell), at the offset tdel of the fine cell
+                    const double a = F.tdel[tb]/double(sb);
+                    const double wv = MAX(0.0,1.0 - (1.0-a)/pic_gfm_theta(fc.V[F.sq[mb]],phC));
+                    for(int m=0; m<F.ns; ++m)
+                    F.sw[m] = 0.0;
+                    F.sw[mb] = wv;
+                }
+            }
+        }
+
+        if(phf>=wf && phs>=wc)
         continue;
-        if(phf>=0.0)
+        if(phf>=wf)
         {
             F.gs = 0.0;
             F.gf = 1.0/pic_gfm_theta(phf,phs);
         }
-        else if(phs>=0.0)
+        else if(phs>=wc)
         {
             F.gs = 1.0/pic_gfm_theta(phs,phf);
             F.gf = 0.0;
@@ -1500,6 +1596,42 @@ void cfd_amr::pr_hydro(int lsub)
     };
     std::unordered_map<unsigned long long,hcol> cols;
 
+    // G 17: where the two columns start.  Both start at the plane on top of the patch, each with half
+    // of its first cell and the density at the centre of that cell.  With the free surface near that
+    // plane the two half cells do not weigh the same: the coarse one reaches twice as far down and has
+    // the interface width of the coarse grid, and the value of the coarse cell above the plane, one
+    // coarse face up from there, came out several Pa off (3.6 Pa on a face in the air, with the
+    // surface 1.5 cm below the plane).  At rest that is the same along the edge and the pressure of
+    // the patch takes it up; under a surface that is not level it changes along the edge, and the fine
+    // row below the edge took a pressure gradient in the air (2.7 m/s against 0.3 m/s on one grid, a
+    // sloshing surface through the top of a band).
+    // G 17 1: the coarse column of a patch starts at the coarse cell above the plane, whose value is
+    // that of the fine cell below it less the weight between the two centres with the density of the
+    // face between them (the face of the patch edge then has the gravity of its own density, as any
+    // face of a grid); the mean over the fine columns under the coarse one.  Down from there the
+    // columns are as before.  With one phase at the plane both are the same (kept to the last digit).
+    std::unordered_map<unsigned long long,std::pair<double,int>> anch;
+    auto akey = [&](int gg, int i, int j, int k) -> unsigned long long
+    {
+        int og[3];
+        goff(gg,og);
+        return ((unsigned long long)(glevel(gg)+1)<<56) | ((unsigned long long)(i+og[0]+64)<<38) | ((unsigned long long)(j+og[1]+64)<<20) | (unsigned long long)(k+og[2]+64);
+    };
+    if(p0->G17==1 && zgrav && rr[2]==2)
+    for(cfd_amr_cf &F : cf)
+    if(F.d==2 && F.dir>0)
+    {
+        lexer *pp = CP(F.pid)->pp;
+        field &pf = lsf(F.pid);
+        const int i = F.fi[0], j = F.fi[1], kt = F.fi[2];
+        if(kt!=pp->knoz-1)
+        continue;
+        const double Hf = heaviside(pf(i,j,kt),interface_width(pp,pf,i,j,kt));
+        auto &a = anch[akey(F.gc,F.ci[0],F.ci[1],F.ci[2])];
+        a.first += g*(pp->W1*Hf + pp->W3*(1.0-Hf))*0.5*pp->DZN[kt+marge] - g*F.rog*F.dist;
+        a.second += 1;
+    }
+
     auto column = [&](int gg, int i, int j, int ktop, int kc, double &val) -> bool
     {
         lexer *q = glex(gg);
@@ -1522,6 +1654,40 @@ void cfd_amr::pr_hydro(int lsub)
             c.kdone = ktop-1;
             c.bad = false;
             c.h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+            if(p0->G17==1)
+            {
+                // G 17: from the coarse cell above the plane (its value: the anchor), one face down
+                const double hold = c.h;
+                auto start = [&](int ii, int jj, double &h0, double &h1) -> bool
+                {
+                    auto ia = anch.find(akey(gg,ii,jj,ktop));
+                    if(ia==anch.end())
+                    return false;
+                    h0 = g*rho(phi(ii,jj,ktop-1),interface_width(q,phi,ii,jj,ktop-1))*0.5*q->DZN[ktop-1+marge];
+                    h1 = ia->second.first/double(ia->second.second)
+                       + g*rho(0.5*(phi(ii,jj,ktop-1)+phi(ii,jj,ktop)),interface_width_face(q,phi,ii,jj,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
+                    return true;
+                };
+                double h0,h1;
+                if(start(i,j,h0,h1))
+                c.h = h1;
+                else
+                {
+                    // a column beside the patch (the neighbour of a face at a corner of the patch):
+                    // the shift of the column next to it under the patch
+                    bool found = false;
+                    for(int di=-1; di<=1 && !found; ++di)
+                    for(int dj=-1; dj<=1 && !found; ++dj)
+                    if((di!=0 || dj!=0) && i+di>=-m && i+di<=q->knox+m-1 && j+dj>=-m && j+dj<=q->knoy+m-1 && start(i+di,j+dj,h0,h1))
+                    {
+                        c.h = hold + (h1-h0);
+                        found = true;
+                    }
+                }
+                // one phase at the plane: the same value, kept as it was
+                if(fabs(c.h-hold)<=1.0e-12*(fabs(hold)+1.0e-30))
+                c.h = hold;
+            }
             c.hk.push_back(c.h);
             it = cols.emplace(key,std::move(c)).first;
         }
@@ -1594,7 +1760,7 @@ void cfd_amr::pr_hydro(int lsub)
             if(!column(gh,sc[0],sc[1],ktop,sc[2],hc))
             ok = false;
             else
-            hs += F.sw[m]*hc;
+            hs += F.sh[m]*hc;
         }
         if(!ok)
         continue;
@@ -1859,12 +2025,13 @@ void cfd_amr::pr_predict(int s)
                 const double am = (F.dir>0) ? pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]) : pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]);
                 const double al = (F.dir>0) ? pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]) : pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]);
                 const double dx = dp[F.d][Lc+marge];
+                const double wm = pic_gfm_wet41_level((F.dir>0) ? qp : qc), wl = pic_gfm_wet41_level((F.dir>0) ? qc : qp);
                 double g = 0.0;
-                if(fm>=0.0 && fl>=0.0)
+                if(fm>=wm && fl>=wl)
                 g = (pl-pm)/dx;
-                else if(fm>=0.0)
+                else if(fm>=wm)
                 g = (al-pm)/(pic_gfm_theta(fm,fl)*dx);
-                else if(fl>=0.0)
+                else if(fl>=wl)
                 g = (pl-am)/(pic_gfm_theta(fl,fm)*dx);
                 Gc = g/roc;
 
@@ -1893,7 +2060,17 @@ void cfd_amr::pr_predict(int s)
             // replaced on the share 1-H only.  Replaced on the whole face, a face deep in a solid
             // took dt (Gc-Gf) with the densities of the level set extended into the solid (X 48 2,
             // 3), in the air above the free surface there 1000 times the velocity of water
-            const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            const double Hcs = forced_share(F.gface,F.cf,F.d);
+            const double Hf = MAX(Hcs,forced_share(F.pid,F.ff,F.d));
+
+            // The fine face lies deeper in a solid than the coarse face (its share is larger): the
+            // coarse stage velocity holds the share 1-Hcs of its own terms, the fine face takes 1-Hf
+            // of them.  Without this the share Hf-Hcs of the coarse pressure gradient stayed in
+            // the fine face: under a patch the pressure of a coarse cell at the surface of a solid
+            // is the mean of fine cells in the solid and in the fluid, in the air its gradient is
+            // some m/s per stage.  (The solids and the bed, target velocity 0; not with bodies.)
+            if(!bodies && Hf>Hcs)
+            v *= (1.0-Hf)/(1.0-Hcs);
 
             v += (1.0-Hf)*bs*p0->dt*(Gc-Gf);
 
@@ -2650,8 +2827,15 @@ void cfd_amr::pr_prec(int kr, int kz)
                         // smeared over its own band (psi of each level), the fine cell is water or air,
                         // and the coarse correction does not fit the fine rows (with 4 levels and a
                         // free surface in the patches the composite BiCGStab diverged, 250 iterations);
-                        // the level solve takes these cells from the residual alone
-                        if(p0->F30>0 && fabs(c->a->phi(i,j,k))<bw)
+                        // the level solve takes these cells from the residual alone.
+                        // Not with G 28: one width of the density on all levels, a coarse and a fine
+                        // cell at the same distance from the free surface have the same density, and
+                        // the coarse correction fits the fine rows in the band as well.  The band is
+                        // then psi_rho on every level, up to 8 fine cells to each side of the free
+                        // surface (G 28 3, three levels) that got no coarse correction (wave tank
+                        // with three levels, G 28 3: 5.0 -> 4.4 iterations; without G 28 the same
+                        // change costs iterations, 5.8 -> 6.6)
+                        if(p0->F30>0 && p0->psi_rho<=0.0 && fabs(c->a->phi(i,j,k))<bw)
                         continue;
                         if(!cm.empty() && cm[qq])
                         continue;
@@ -3470,7 +3654,12 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double Gf = double(F.dir)*(pCs-pf)/(F.dist*F.rof);
 
         // the share of the direct forcing alone (pr_predict)
-        const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+        const double Hcs = forced_share(F.gface,F.cf,F.d);
+        const double Hf = MAX(Hcs,forced_share(F.pid,F.ff,F.d));
+        // the fine face deeper in a solid than the coarse face: the share 1-Hf of the coarse stage
+        // velocity (pr_predict)
+        if(!bodies && Hf>Hcs)
+        v *= (1.0-Hf)/(1.0-Hcs);
         v += (1.0-Hf)*alpha*pp->dt*(Gc-Gf);
         if(F.hok && F.d==2)
         v -= (1.0-Hf)*alpha*pp->dt*p0->W22*fpc;
@@ -3953,6 +4142,26 @@ void cfd_amr::single_extend(ghostcell *pgc, int s)
             for(int id : ids)
             CP(id)->pmom->single()->ext_end(CP(id)->pp,vel(id),c);
             vector<fspec> fv(1,fb[0]);
+            fill(l,fv,true);
+        }
+
+        // F 67: the band of the extended velocities free of divergence, each patch alone (closed at its
+        // edges), then the faces around the patches from the siblings again
+        if(p0->F67>0)
+        {
+            for(int id : ids)
+            {
+                cfd_amr_patch *cp = CP(id);
+                momentum_rk *m = cp->pmom;
+                m->single()->band(cp->pp,cp->a,pgc,m->amr_velout(cp->a,0,s),m->amr_velout(cp->a,1,s),m->amr_velout(cp->a,2,s));
+            }
+
+            vector<fspec> fv(3);
+            for(int c=0; c<3; ++c)
+            {
+                fv[c].type = c; fv[c].mode = 2;
+                fv[c].f = [this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); };
+            }
             fill(l,fv,true);
         }
     }

@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_curv_bend_mpi2",
+ "np": 2,
+ "steps": 150,
+ "ctrl_set": {
+  "A 210": "11",
+  "A 260": "1"
+ },
+ "description": "The 90 deg river bend of sflow_2d_curv_bend_mpi2 (G 50 2, two ranks) with the semi-implicit one-step SFLOW (A 210 11) and k-epsilon (A 260 1) on the curvilinear grid (patch 261124/0001): A 212 not given -> the implicit horizontal diffusion (A 212 2) with the semi-implicit step (sflow_idiff::curv_diff, patch 261125/0002), the time step from the flow Courant number only.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "semi_implicit",
+  "mpi",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_turb_io::curv_convection, curv_diffusion, curv_velgrad",
+  "sflow_idiff::curv_diff (A 212 2 on G 50)",
+  "lexer_read: A 212 default 2 with A 210 11/12/13 and A 260 1/2"
+ ]
+}

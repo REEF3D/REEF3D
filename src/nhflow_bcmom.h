@@ -41,6 +41,9 @@ public:
 	void roughness_v(lexer*, fdm_nhf*, double*, double*, slice&);
 	void roughness_w(lexer*, fdm_nhf*, double*, double*, slice&);
 	void wall_friction(lexer*, fdm_nhf*, int, double*, double*, slice&);
+	void bed_friction_update(lexer*, fdm_nhf*, double*, slice&, double, int);
+	static bool bed_implicit(lexer*);
+	static double bed_gamma(lexer*, fdm_nhf*, int, int, int, double);
 
 private:
 	const double kappa;

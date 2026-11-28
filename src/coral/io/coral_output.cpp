@@ -31,7 +31,7 @@ Architect: Hans Bihs
 namespace coral
 {
 
-void time_series::open(const std::string &file, const model &m, bool append)
+void time_series::open(const std::string &file, const model &m, bool append, const std::vector<std::string> &only)
 {
     // a restart continues an existing file (no new header)
     if(append)
@@ -52,6 +52,20 @@ void time_series::open(const std::string &file, const model &m, bool append)
             cols_.push_back(b.name + "_" + c);
     for(const auto &l : m.load_list)
         l->channel_names(cols_);
+    keep_.assign(cols_.size(), 1);
+    if(!only.empty())
+    {
+        std::vector<std::string> kept;
+        for(size_t i=0; i<cols_.size(); ++i)
+        {
+            bool k = i==0;
+            for(const auto &p : only)
+                if(cols_[i].compare(0, p.size(), p)==0) k = true;
+            keep_[i] = k;
+            if(k) kept.push_back(cols_[i]);
+        }
+        cols_ = kept;
+    }
     if(append)
         return;
     out_<<"# "<<banner()<<"\n#";
@@ -78,6 +92,8 @@ void time_series::write(const model &m, double t)
     char buf[32];
     for(size_t i=0; i<v.size(); ++i)
     {
+        if(i < keep_.size() && !keep_[i])
+            continue;
         std::snprintf(buf, sizeof(buf), i ? " %.10e" : "%.10e", v[i]);
         out_<<buf;
     }

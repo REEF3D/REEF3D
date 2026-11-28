@@ -1,0 +1,9 @@
+{
+ "description": "nhflow_1d_si_nh_bar with the bar as an immersed solid (A 580 1: DIVEMesh's S 61 / S 10 / S 61 by direct forcing over a flat bed), 10 sigma layers. 300 steps: the waves reach the bar.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["1d", "nhflow", "semi_implicit", "nonhydrostatic", "waves", "forcing"],
+ "covers": ["nhflow_momentum_SI::df_predictor, df_reforce (forcing of the cells)", "nhflow_momentum_SI::df_faces (incremental force of the layer faces in the solid: DFx in the face predictor, corrected by the discharge the solve leaves)"],
+ "architect": "Hans Bihs"
+}

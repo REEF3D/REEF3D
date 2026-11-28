@@ -215,6 +215,10 @@ void driver::driver_ini_nhflow()
     if(pnhfamr!=nullptr)
     pnhfamr->ini(p,d,pgc);
 
+    // SEASTATE remote waves (A 750 2) on a multi-block grid: the wave fields of the blocks, then the set-up exchange
+    if(pnhfamr!=nullptr && d->wave!=nullptr)
+    d->wave->attach(p,d,pgc,pnhfamr);
+
     // the wave gauges and probes of the printer on the finest grid
     if(pnhfamr!=nullptr)
     pprint->amr_columns(p,pnhfamr);
@@ -241,6 +245,9 @@ void driver::driver_ini_nhflow()
     pnhfturb->ktimesave(p,d,pgc);
     pnhfturb->etimesave(p,d,pgc);
     }
+
+    // the time step of the first step from the initial fields (A 510 11/12/13)
+    pnhfstep->ini_end(p,d,pgc);
 
     // restart from the latest checkpoint (I 45), on any decomposition
     if(p->I45==1)

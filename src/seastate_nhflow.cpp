@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"seastate_vtp.h"
 #include"fdm_seastate.h"
 #include"fdm_nhf.h"
+#include"nhflow_amr.h"
 #include"met_forcing.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -42,6 +43,16 @@ void seastate_nhflow::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<endl<<"SEASTATE input error  --  A 750 1/2 with NHFLOW: mesh refinement (G 1) is not supported"<<endl<<endl;
+
+        pgc->final(true);
+    }
+
+    // curvilinear and multi-block grids: the in-process waves would run on the logical box of the NHFLOW grid
+    if(p->A750==1 && (p->geo_curv==1 || p->geo_mb>0))
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  A 750 1 with NHFLOW on a curvilinear or multi-block grid (G 50): use the remote waves (A 750 2,"
+            <<" SEASTATE on its own grid in the same MPI job)"<<endl<<endl;
 
         pgc->final(true);
     }
@@ -64,6 +75,23 @@ void seastate_nhflow::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     seastate_remote::link = this;
     average(p,d);
+
+        // multi-block grid: the set-up exchange after the blocks are built (attach)
+        if(p->geo_mb>0)
+        {
+        pending = true;
+        return;
+        }
+
+        // curvilinear grid: the host maps at the physical cell centres
+        if(p->geo_curv==1)
+        {
+        std::vector<seastate_host_grid> G;
+        host_grids(p,d,G);
+        remote_ini_grids(p,pgc,G);
+        return;
+        }
+
     remote_ini(p,pgc,d->eta,d->WL,Ub,Vb);
     return;
     }
@@ -84,6 +112,63 @@ void seastate_nhflow::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->P10>0)
     pwave->printer()->print2D(p,pwave->e,pgc);
+}
+
+void seastate_nhflow::attach(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_amr *amr)
+{
+    if(!pending || amr==nullptr)
+    return;
+
+    pamr = amr;
+
+    // the wave fields of the blocks: a seastate_nhflow per block (no wave model), with the wave-dependent drag of the
+    // met forcing of the block (W 207 7)
+    std::vector<std::pair<lexer*,fdm_nhf*>> B;
+    pamr->wave_grids(B);
+
+    for(auto &b : B)
+    {
+    lexer *pp = b.first;
+    fdm_nhf *dd = b.second;
+
+        if(dd->wave==nullptr)
+        {
+        dd->wave = new seastate_nhflow(pp,dd,pgc);
+
+            if(p->W207==7 && p->W200>0 && dd->met!=nullptr)
+            {
+            dd->met->waves(pp,&dd->wave->Hsw,&dd->wave->Tpw,&dd->WL);
+            dd->wave->pmetw = dd->met;
+            }
+        }
+    }
+
+    std::vector<seastate_host_grid> G;
+    host_grids(p,d,G);
+    remote_ini_grids(p,pgc,G);
+
+    pending = false;
+}
+
+void seastate_nhflow::host_grids(lexer *p, fdm_nhf *d, std::vector<seastate_host_grid> &G)
+{
+    G.clear();
+
+    average(p,d);
+    G.push_back({p,&d->eta,&d->WL,&Ub,&Vb,this});
+
+    if(pamr==nullptr)
+    return;
+
+    std::vector<std::pair<lexer*,fdm_nhf*>> B;
+    pamr->wave_grids(B);
+
+    for(auto &b : B)
+    {
+    seastate_nhflow *w = b.second->wave;
+    w->average(b.first,b.second);
+    G.push_back({b.first,&b.second->eta,&b.second->WL,&w->Ub,&w->Vb,w});
+    }
 }
 
 void seastate_nhflow::average(lexer *p, fdm_nhf *d)
@@ -113,8 +198,17 @@ void seastate_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         if(!(p->simtime < tnext - 1.0e-9*p->A706))
         {
-        average(p,d);
-        remote_step(p,pgc,d->eta,d->WL,Ub,Vb,false);
+            if(hgrids)
+            {
+            std::vector<seastate_host_grid> G;
+            host_grids(p,d,G);
+            remote_step_grids(p,pgc,G,false);
+            }
+            else
+            {
+            average(p,d);
+            remote_step(p,pgc,d->eta,d->WL,Ub,Vb,false);
+            }
         }
     return;
     }

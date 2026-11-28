@@ -33,7 +33,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               Bx(p),By(p),Bxx(p),Byy(p),
                               hx(p),hy(p),
                               ks(p),
-                              coastline(p),PORS(p),vb(p),vbk(p),
+                              coastline(p),PORS(p),vb(p),vbk(p),plk(p),plh(p),
                               test2D(p),fs(p),
                               breaking_print(p),Hs(p),
                               rhsvec(p),rvec(p,0),xvec(p,0),N(p,0),M(p),
@@ -130,16 +130,23 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     // faces of the conserved variables; the tangential velocities of the horizontal faces only where they are read
     p->Darray_lazy(Us,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Un,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_hll_faces(p))
     p->Darray_lazy(Ub,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Ut,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray_lazy(Ve,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Vw,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_hll_faces(p))
     p->Darray_lazy(Vb,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Vt,p->imax*p->jmax*(p->kmax+2));
     
+    if(nhflow_hll_faces(p))
+    {
     p->Darray_lazy(Wb,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Wt,p->imax*p->jmax*(p->kmax+2));
+    }
+    else
+    Ub = Vb = Wb = Wt = nullptr;
     
     if(nhflow_tangential_faces(p))
     {

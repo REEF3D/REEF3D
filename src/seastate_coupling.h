@@ -105,6 +105,14 @@ wave force, div(M), Hs, Tp and the wet cells of the wave grid:
   host -> waves   the area mean over the host cells inside the wave cell (eta,
                   U, V over the wet ones, WL over all), bilinear where the
                   host grid is the coarser one
+A curvilinear or multi-block host (G 50: XP, YP are the logical box of
+DIVEMesh there, the grids of the blocks no lattice) maps both ways
+itself at the physical cell centres XC2D, YC2D of all its grids on the
+rank (seastate_coupling_grids.cpp): it sends per wave cell the sums of
+its cells (the cells whose centre lies in the wave cell: area mean;
+the cell that holds the wave centre: where the host is coarser) and
+interpolates the wave fields at the centres of every grid; NHFLOW gives
+every block its own seastate_nhflow that holds the fields of the block.
 The waves lag one interval: the forces the host gets at t_k are those
 of the wave state at t_k, which was computed with the host fields of
 t_(k-1); host and waves compute in parallel. The host ends the run
@@ -118,6 +126,17 @@ with zeta_b, q_b the incoming bound long wave of the row (A 774 1, zero
 with A 774 0) and eta_1, v_1, h the first host cell: the incoming wave
 enters, everything else leaves through the side.
 --------------------------------------------------------------------*/
+
+class seastate_coupling;
+
+// remote waves (A 750 2) with a curvilinear or multi-block host: one grid of the host on this rank (level 0, a block of
+// a multi-block grid), its fields and the object that holds its wave fields (Fw, Gw, divM, Hsw, Tpw)
+struct seastate_host_grid
+{
+    lexer *p;
+    slice *eta, *WL, *U, *V;
+    seastate_coupling *w;
+};
 
 class seastate_coupling : public increment
 {
@@ -171,7 +190,17 @@ protected:
 
     // remote waves (A 750 2), host side: exchange of the grids and the first fields; then every A 706 s
     void remote_ini(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V);
+    void remote_setup(lexer*, ghostcell*);       // the checks, the set-up exchange and the buffers of remote_ini
     void remote_step(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V, bool force);
+
+    // remote waves with a curvilinear or multi-block host (G 50; seastate_coupling_grids.cpp): the host maps between
+    // its grids and the wave grid at the physical cell centres (XC2D, YC2D), every grid of the host on this rank
+    void remote_ini_grids(lexer*, ghostcell*, const std::vector<seastate_host_grid>&);
+    void remote_step_grids(lexer*, ghostcell*, const std::vector<seastate_host_grid>&, bool force);
+
+    // the wave fields of the last receive at the cells of a host grid (ghost cells included): bilinear between the
+    // wet wave cell centres at the logical centres XP, YP (phys false: the rectilinear host) or the physical ones
+    void fields_at(lexer*, seastate_coupling *w, bool phys);
 
     // remote waves: global cell centres of this model, the fields of this model gathered on its rank 0
     void centres(lexer*, ghostcell*, std::vector<double> &xs, std::vector<double> &ys);
@@ -223,6 +252,13 @@ protected:
 
     met_forcing *pmetw = nullptr;           // wave-dependent drag W 207 7: told after every change of Hsw, Tpw
     int nupd = 0;                           // changes of Fw, Gw, divM, Hsw, Tpw (updates)
+
+    // remote waves with a curvilinear or multi-block host (the host side, seastate_coupling_grids.cpp)
+    bool hgrids = false;                    // the host maps at the physical cell centres of its grids
+    static const int hg_nsc = 12;           // sums per wave cell in the environment of such a host
+    std::vector<double> wfx, wfy;           // faces of the wave cells (halfway between the wave cell centres)
+    std::vector<std::vector<int>> hbin;     // per host grid: cell (slice index) and wave cell of every own cell centre
+    std::vector<int> hsamp;                 // wave cells whose centre lies in an own host cell: grid, slice index, wave cell
 };
 
 #endif

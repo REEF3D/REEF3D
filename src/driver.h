@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 
 class field;
+class rheology_cfd_3phase;
 class printer;
 class initialize;
 class diffusion;
@@ -197,6 +198,7 @@ public:
     fnpf_amr *pfamr = nullptr;
     coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
     soil_stress *psoil = nullptr;     // REEF3D::CFD soil stress model (S 200)
+    rheology_cfd_3phase *p3ph = nullptr;   // REEF3D::CFD three-phase slide model (W 140)
     std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
     nhflow_longrun *plongrun = nullptr;

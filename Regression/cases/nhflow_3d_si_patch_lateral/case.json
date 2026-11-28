@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit (A 510 11, 5 layers): river reach 1 km x 40 m (100 x 4 columns, 80 m3/s in at x- with B 60, level out at x+) with a lateral patch inlet of 10 m3/s through the y+ wall over 480 < x < 520 m (B 440 face 2, B 411 1 10.0, positive into the domain), as sflow_2d_si_patch_inlet. The patch faces as discharge faces of bc_setup, the inlet velocity on all layers of the ghost columns (patch_ghosts). The log of the semi-implicit step has Qin 90 m3/s; averaged over 3000 - 6000 s (N 41 6000) the outflow is 90.01 m3/s.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "patchbc"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::bc_setup patch inlet on a y+ wall",
+  "patch_obj::velocity inward on a + face (NHFLOW)"
+ ],
+ "architect": "Hans Bihs"
+}

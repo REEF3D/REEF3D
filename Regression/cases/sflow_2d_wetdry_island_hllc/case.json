@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_wetdry_island",
+ "ctrl_add": [
+  "A 225 2"
+ ],
+ "description": "sflow_2d_wetdry_island with the HLLC flux (A 225 2) and the non-hydrostatic pressure A 220 3: the tangential velocities Vs, Vn, Ue, Uw and the vertical velocity Ws, Wn, We, Ww at the faces are reconstructed and carried with the contact; wetting and drying on the beach and around the island.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "nonhydrostatic",
+  "hllc"
+ ],
+ "covers": [
+  "sflow_HLL::HLLC_x/HLLC_y for V, U and W",
+  "sflow_memory.h: sflow_tangential_faces, sflow_w_faces (A 225 2)",
+  "sflow_reconstruct_weno next to dry cells"
+ ],
+ "architect": "Hans Bihs"
+}

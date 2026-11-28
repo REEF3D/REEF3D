@@ -70,20 +70,40 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     positivity_limit(p,b,pgc,WLs);
     
     // continuity: dWL/dt = -div(FE)
+    if(p->geo_curv==1)
+    {
     SLICELOOP4
     K(i,j) = 0.0;
     
-    if(p->geo_curv==1)
     SLICELOOP4
     WETDRY
     K(i,j) = -(b->FEx(i,j)*p->LEN1[IJ] - b->FEx(i-1,j)*p->LEN1[Im1J]
              + b->FEy(i,j)*p->LEN2[IJ] - b->FEy(i,j-1)*p->LEN2[IJm1])/p->AREA2D[IJ];
+    }
     
-    if(p->geo_curv==0)
-    SLICELOOP4
-    WETDRY
-    K(i,j) = -(b->FEx(i,j) - b->FEx(i-1,j))/p->DXN[IP] 
-             -(b->FEy(i,j) - b->FEy(i,j-1))/p->DYN[JP]*p->y_dir;
+    else
+    {
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    const double *const FEx = b->FEx.V, *const FEy = b->FEy.V;
+    double *const Kv = K.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    const double dxn = p->DXN[ii+marge];
+    
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+        const int q = q0 + jj;
+        
+        if(flag[q]>0)
+        Kv[q] = wet[q]==1 ? -(FEx[q] - FEx[q-nj])/dxn
+                            -(FEy[q] - FEy[q-1])/p->DYN[jj+marge]*p->y_dir
+                          : 0.0;
+        }
+    }
+    }
 
     // REEF3D::SEASTATE vortex force (A 751 2): Stokes transport
     if(b->wave!=nullptr)
@@ -121,19 +141,47 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     b->FEacc_step = p->count;
     }
     
-    SLICELOOP4
-    WLout(i,j) = a*WL0(i,j) + (1.0-a)*(WLs(i,j) + p->dt*K(i,j));
-    
     // eta + boundary conditions
-    SLICELOOP4
-    b->eta(i,j) = WLout(i,j) - b->depth(i,j);
+    {
+    const int *const flag = p->flagslice4;
+    const double *const w0 = WL0.V, *const ws = WLs.V, *const Kv = K.V, *const depth = b->depth.V;
+    double *const wo = WLout.V, *const eta = b->eta.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*p->jmax - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        // = a*w0 + (1-a)*(ws + dt*K), written as an increment on ws: fl(1/3) + fl(2/3) = 1 + 2^-54, so the
+        // convex form multiplied WL by 1 + 5.5e-17 in the last RK3 stage (a = 1/3) and a lake at rest gained
+        // water every step (1e-13 of the mass in 2 s, an eta rise that gravity waves spread over the lake)
+        wo[q] = ws[q] + (a*(w0[q]-ws[q]) + (1.0-a)*p->dt*Kv[q]);
+        eta[q] = wo[q] - depth[q];
+        }
+    }
+    }
+    
     
     pflow->waterlevel2D(p,b,pgc,b->eta);
     pflow->eta_relax(p,pgc,b->eta);
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     
-    SLICELOOP4
-    WLout(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    {
+    const int *const flag = p->flagslice4;
+    const double *const depth = b->depth.V, *const eta = b->eta.V;
+    double *const wo = WLout.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*p->jmax - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        wo[q] = MAX(eta[q] + depth[q], 0.0);
+    }
+    }
     
     pgc->gcsl_start4(p,WLout,gcval_eta);
     
@@ -149,19 +197,51 @@ void sflow_eta::positivity_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
     double out;
 
     // the factor of the outflow of each cell (in K, which update sets afterwards)
+    // Cartesian grid without REEF3D::HYDRO: over the arrays of the slices
+    if(p->geo_curv!=1 && b->hydro==nullptr)
+    {
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4;
+    const double *const FEx = b->FEx.V, *const FEy = b->FEy.V, *const wls = WLs.V;
+    double *const Kv = K.V;
+    const double wdc = wd_criterion;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    const double dxn = p->DXN[ii+marge];
+    
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+        const int q = q0 + jj;
+        
+        if(flag[q]>0)
+        {
+        const double fe = FEx[q], fw = FEx[q-nj], fn = FEy[q], fs = FEy[q-1];
+        
+        const double o = (MAX(fe,0.0) + MAX(-fw,0.0))/dxn
+                       + (MAX(fn,0.0) + MAX(-fs,0.0))/p->DYN[jj+marge]*p->y_dir;
+        
+        // the film A 244 stays: wetdry gives a cell that drains below it the film again (water from nothing)
+        const double avail = MAX(wls[q]-wdc,0.0) + 0.0;
+        
+        Kv[q] = (dt*o>avail && o>0.0) ? avail/(dt*o) : 1.0;
+        }
+        }
+    }
+    }
+    
+    else
     SLICELOOP4
     {
         if(p->geo_curv==1)
         out = (MAX(b->FEx(i,j),0.0)*p->LEN1[IJ] + MAX(-b->FEx(i-1,j),0.0)*p->LEN1[Im1J]
             +  MAX(b->FEy(i,j),0.0)*p->LEN2[IJ] + MAX(-b->FEy(i,j-1),0.0)*p->LEN2[IJm1])/p->AREA2D[IJ];
-
         else
         out = (MAX(b->FEx(i,j),0.0) + MAX(-b->FEx(i-1,j),0.0))/p->DXN[IP]
             + (MAX(b->FEy(i,j),0.0) + MAX(-b->FEy(i,j-1),0.0))/p->DYN[JP]*p->y_dir;
-
         // the film A 244 stays: wetdry gives a cell that drains below it the film again (water from nothing)
         const double avail = MAX(WLs(i,j)-wd_criterion,0.0) + (b->hydro!=nullptr ? dt*b->hydro->S(i,j) : 0.0);
-
         K(i,j) = (dt*out>avail && out>0.0) ? avail/(dt*out) : 1.0;
     }
 
@@ -178,12 +258,33 @@ void sflow_eta::positivity_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
     }
 
     // a face takes the factor of its donor cell
-    SLICELOOP1
-    b->FEx(i,j) *= b->FEx(i,j)>0.0 ? K(i,j) : K(i+1,j);
-
+    {
+    const int nj = p->jmax;
+    const int *const flag1 = p->flagslice1, *const flag2 = p->flagslice2;
+    const double *const Kv = K.V;
+    double *const FEx = b->FEx.V, *const FEy = b->FEy.V;
+    const int ie = p->knox - p->ulast;
+    const int je = p->knoy - p->vlast;
+    
+    for(int ii=0; ii<ie; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag1[q]>0)
+        FEx[q] *= FEx[q]>0.0 ? Kv[q] : Kv[q+nj];
+    }
+    
     if(p->j_dir==1)
-    SLICELOOP2
-    b->FEy(i,j) *= b->FEy(i,j)>0.0 ? K(i,j) : K(i,j+1);
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+je; ++q)
+        if(flag2[q]>0)
+        FEy[q] *= FEy[q]>0.0 ? Kv[q] : Kv[q+1];
+    }
+    }
 }
 
 void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)

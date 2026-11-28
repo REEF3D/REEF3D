@@ -342,6 +342,7 @@ private:
 
     // Phase 18: checkpoints and the rebalance (seastate_f_ckpt.cpp)
     reefrun_ckpt *rck = nullptr;
+    bool active = false;                // Phase 29: the settled cells (A 782) in use
     bool restart = false;                   // I 45 1: from a checkpoint
     int ss_resume = 0;                      // stationary: the iterations done in the step of the checkpoint (continued)
     std::vector<double> dprev;              // stationary: the last change of Hs of every leaf cell (A 799 1)

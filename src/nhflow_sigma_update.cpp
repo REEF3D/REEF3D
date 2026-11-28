@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
 #include"nhflow_fsf_hull.h"
+#include"gcsl_yskip.h"
 
 #define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
@@ -57,12 +58,22 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     const size_t ns = (size_t)p->imax*p->jmax;
     int same = (dprev.size()==ns && dprev_bed==p->gcsldfbed4_count) ? 1 : 0;
     
+        // (one cell in y, gcsl_yskip: the y ghost rows are not kept, the cell row and its x ghost cells compared)
+        const bool ysk = gcsl_yskip(p);
+
         if(same==1)
         for(size_t q=0; q<ns; ++q)
+        {
+        const int jq = int(q%size_t(p->jmax)) + p->jmin;
+
+        if(ysk && (jq<0 || jq>=p->knoy))
+        continue;
+
         if(dprev[q]!=df.V[q])
         {
         same = 0;
         break;
+        }
         }
     
     same = pgc->globalimin(same);
@@ -290,16 +301,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         if(p->nb5==-2)
         {
             p->sigx[FIJKm1] = p->sigx[FIJK];
-            p->sigx[FIJKm2] = p->sigx[FIJK];
-            p->sigx[FIJKm3] = p->sigx[FIJK];
+            if(k-2>=p->kmin) p->sigx[FIJKm2] = p->sigx[FIJK];
+            if(k-3>=p->kmin) p->sigx[FIJKm3] = p->sigx[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigx[FIJKp1] = p->sigx[FIJK];
-            p->sigx[FIJKp2] = p->sigx[FIJK];
-            p->sigx[FIJKp3] = p->sigx[FIJK];
+            if(k+2<p->kmin+p->kmaxF) p->sigx[FIJKp2] = p->sigx[FIJK];
+            if(k+3<p->kmin+p->kmaxF) p->sigx[FIJKp3] = p->sigx[FIJK];
         } 
     }
     
@@ -310,16 +321,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         if(p->nb5==-2)
         {
             p->sigy[FIJKm1] = p->sigy[FIJK];
-            p->sigy[FIJKm2] = p->sigy[FIJK];
-            p->sigy[FIJKm3] = p->sigy[FIJK];
+            if(k-2>=p->kmin) p->sigy[FIJKm2] = p->sigy[FIJK];
+            if(k-3>=p->kmin) p->sigy[FIJKm3] = p->sigy[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigy[FIJKp1] = p->sigy[FIJK];
-            p->sigy[FIJKp2] = p->sigy[FIJK];
-            p->sigy[FIJKp3] = p->sigy[FIJK];
+            if(k+2<p->kmin+p->kmaxF) p->sigy[FIJKp2] = p->sigy[FIJK];
+            if(k+3<p->kmin+p->kmaxF) p->sigy[FIJKp3] = p->sigy[FIJK];
         } 
     }
     
@@ -329,16 +340,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         if(p->nb5==-2)
         {
             p->sigxx[FIJKm1] = p->sigxx[FIJK];
-            p->sigxx[FIJKm2] = p->sigxx[FIJK];
-            p->sigxx[FIJKm3] = p->sigxx[FIJK];
+            if(k-2>=p->kmin) p->sigxx[FIJKm2] = p->sigxx[FIJK];
+            if(k-3>=p->kmin) p->sigxx[FIJKm3] = p->sigxx[FIJK];
         }
         
         k=p->knoz;
         if(p->nb6==-2)
         {
             p->sigxx[FIJKp1] = p->sigxx[FIJK];
-            p->sigxx[FIJKp2] = p->sigxx[FIJK];
-            p->sigxx[FIJKp3] = p->sigxx[FIJK];
+            if(k+2<p->kmin+p->kmaxF) p->sigxx[FIJKp2] = p->sigxx[FIJK];
+            if(k+3<p->kmin+p->kmaxF) p->sigxx[FIJKp3] = p->sigxx[FIJK];
         } 
     }
     
@@ -364,14 +375,14 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         k=0;
 
             p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
+            if(k-2>=p->kmin) p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
+            if(k-3>=p->kmin) p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
         
         k=p->knoz;
 
             p->ZSN[FIJKp1] = p->ZN[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
+            if(k+2<p->kmin+p->kmaxF) p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
+            if(k+3<p->kmin+p->kmaxF) p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
     }
     
     
@@ -380,14 +391,14 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         k=0;
 
             p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
+            if(k-2>=p->kmin) p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
+            if(k-3>=p->kmin) p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
         
         k=p->knoz-1;
 
             p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
+            if(k+2<p->kmin+p->kmax) p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
+            if(k+3<p->kmin+p->kmax) p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
     }
 }
 

@@ -1,7 +1,8 @@
 {
  "base": "cfd_2d_dambreak_pic2",
  "ctrl_set": {
-  "F 76": "0"
+  "F 76": "0",
+  "F 78": "12"
  },
  "tags": [
   "quick",
@@ -9,9 +10,10 @@
   "dambreak",
   "pic"
  ],
- "description": "cfd_2d_dambreak_pic2 with the particles moved once per step (F 76 0), as before PICFSF patch 0014: its reference is that of cfd_2d_dambreak_pic2 before 0014",
+ "description": "cfd_2d_dambreak_pic2 with the particles moved once per step (F 76 0), as before PICFSF patch 0014, and the redistribution every 30 steps (F 78 12 at N 47 0.1: since patch 0016 F 78 counts the steps at CFL 0.25), as before 0016: its reference is that of cfd_2d_dambreak_pic2 before 0014",
  "covers": [
-  "pic_f::move, pic_f::start without the stages (F 76 0)"
+  "pic_f::move, pic_f::start without the stages (F 76 0)",
+  "the interval of the redistribution in time (F 78, N 47)"
  ],
  "architect": "Hans Bihs"
 }

@@ -192,7 +192,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
 // dry cell takes its right-hand side. BiCGStab iterated over all columns of the domain for the few rows of
 // the breaking zones and the coastline band; here the diagonal rows are set directly and the coupled rows
 // are solved by Jacobi iterations (the rows are diagonally dominant by 1/(alpha dt): convergence factor
-// kappa/(1+kappa), kappa = 4 vb alpha dt/dx^2) until the residual is 1e-10 of the initial one (not the
+// kappa/(1+kappa), kappa = 4 vb alpha dt/dx^2) until the residual is 1e-6 of the initial one (not the
 // N 44 test of BiCGStab, which the old f already meets on large grids).
 // As in BiCGStab the iterate is a separate vector with the halo exchange of the parallel boundaries, and f
 // gets the solution in its interior cells. Without convergence after N 46 iterations f is not changed
@@ -255,7 +255,7 @@ bool fnpf_fsfbc_wd::damping_local(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
         if(p->solveriter==0)
         residual0 = residual;
         
-        if(residual<=1.0e-10*residual0)
+        if(residual<=1.0e-6*residual0)
         break;
         
         if(p->solveriter>=p->N46)

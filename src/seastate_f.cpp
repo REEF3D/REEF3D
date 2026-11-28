@@ -125,7 +125,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         ++p->count;
         starttime=pgc->timer();
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->P12>0 && p->count%p->P12==0)
         {
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
@@ -166,7 +166,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         p->totaltime+=p->itertime;
         p->meantime=p->totaltime/double(p->count);
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->P12>0 && p->count%p->P12==0)
         {
         cout<<"Hs max: "<<setprecision(5)<<hsmax<<"   Hs mean: "<<setprecision(5)<<hsmean<<"   iterations: "<<iter_done;
         if(p->A700==2)
@@ -207,6 +207,18 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     // Phase 19: the time of the pipelined sweeps per rank
     if(kba)
     pipeline_report(p,pgc);
+
+    // Phase 29 (A 782): the share of the cell solves that the settled cells saved
+    if(active)
+    {
+    double ns = psolv->active_solved(), nc = psolv->active_cells();
+    if(pamr!=nullptr)
+    pamr->active_counts(ns,nc);
+    ns = pgc->globalsum(ns);
+    nc = pgc->globalsum(nc);
+    if(p->mpirank==0 && nc>0.0)
+    cout<<"SEASTATE settled cells (A 782 "<<p->A782<<"): "<<setprecision(4)<<100.0*ns/nc<<" % of the cells solved over all iterations"<<endl;
+    }
 
     // online collocation (A 787 1): a stationary run takes the final field; the statistics
     colloc_end(p,pgc);

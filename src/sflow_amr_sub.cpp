@@ -189,8 +189,12 @@ void sflow_amr::sub_end(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int side=0; side<4; ++side)
     std::fill(SP(n)->freg[ip][side].begin(),SP(n)->freg[ip][side].end(),0.0);
 
-    sub_level(p,pgc,1,0,t,0.5*dt);
-    sub_level(p,pgc,1,1,t+0.5*dt,0.5*dt);
+    {
+    const int m = msub[1];
+    const double dtl = dt/double(m);
+    for(int kk=0; kk<m; ++kk)
+    sub_level(p,pgc,1,kk,t+double(kk)*dtl,dtl);
+    }
 
     sub_sync(p,pgc,0,0,dt);
 }
@@ -218,12 +222,15 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     if(l<=7)
     ++sub_steps[l];
 
+    // steps of this level in the step of its parent: the weights in time of the parent state
+    const double rm = 1.0/double(msub[l]);
+
     for(int s=0; s<3; ++s)
     {
         // cells around the patches at the stage time, the parent interpolated in time
         t0 = MPI_Wtime();
         cache_stage(s);
-        tint = 0.5*(double(k)+rkc[s]);
+        tint = rm*(double(k)+rkc[s]);
         fill_level(pgc,l,s);
         tint = -1.0;
 
@@ -254,6 +261,8 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         sfc_stage(l);
         }
         tm[1] += MPI_Wtime()-t0;
+        if(l<NPL)
+        tlv[l] += MPI_Wtime()-t0;
 
         // A 220 1-3: the pressure of the stage, one solve over the level (sflow_amr_subnh.cpp);
         // A 220 4: u_a (sflow_amr_bous.cpp)
@@ -267,7 +276,7 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     // sources first (the wet-dry update reads them, sflow_amr::step_end)
     t0 = MPI_Wtime();
     cache_stage(0);
-    tint = 0.5*double(k+1);
+    tint = rm*double(k+1);
     fill_level(pgc,l,0);
     tint = -1.0;
     tm[0] += MPI_Wtime()-t0;
@@ -295,7 +304,7 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     // (A 220 1-3: and the reference residual of the synchronisation, all levels)
     t0 = MPI_Wtime();
     cache_stage(0);
-    tint = 0.5*double(k+1);
+    tint = rm*double(k+1);
     fill_level(pgc,l,0);
     tint = -1.0;
     tm[0] += MPI_Wtime()-t0;
@@ -312,8 +321,12 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     for(int side=0; side<4; ++side)
     std::fill(SP(n)->freg[ip][side].begin(),SP(n)->freg[ip][side].end(),0.0);
 
-    sub_level(p,pgc,l+1,0,t,0.5*dt);
-    sub_level(p,pgc,l+1,1,t+0.5*dt,0.5*dt);
+    {
+    const int m = msub[l+1];
+    const double dtl = dt/double(m);
+    for(int kk=0; kk<m; ++kk)
+    sub_level(p,pgc,l+1,kk,t+double(kk)*dtl,dtl);
+    }
 
     sub_sync(p,pgc,l,k,dt);
 }

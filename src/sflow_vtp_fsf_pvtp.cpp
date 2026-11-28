@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"met_forcing.h"
 #include"hydro_sflow.h"
+#include"slide2D.h"
 #include"sediment.h"
 #include"runlog.h"
 
@@ -59,6 +60,8 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
         b->met->name_pvtp(result);
     if(b->hydro!=nullptr)
         hydro_sflow::name_pvtp(result);
+    if(b->slide!=nullptr)
+        slide2D::name_pvtp(result);
     result<<"</PPointData>\n";
 
     char pname[200];

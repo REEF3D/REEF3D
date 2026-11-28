@@ -60,6 +60,7 @@ public:
 	void discharge(lexer*,fdm*,ghostcell*) override final;
 	void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override final;
     void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void relax_inlet_flux(lexer*,fdm*,ghostcell*,field&);
 	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override final;
 	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override final;
 	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override final;
@@ -188,6 +189,7 @@ public:
     // NHFLOW
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    bool relax_lowpass() const override {return gen_lp || beach_lp;}
     void wavegen_stage_fnpf(lexer*,fdm_fnpf*,ghostcell*,double,double) override final;
     void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
@@ -415,11 +417,6 @@ private:
     slice4 vofheight;
     slice4 genheight;
 
-    //  Written only by wavegen_precalc_relax under F80==4 (VOF-PLIC), which
-    //  FNPF never reaches - it goes through fnpf_precalc_relax instead.  Held
-    //  by pointer so a run that cannot use it does not pay for a full 3D
-    //  field: 3.5 MiB per rank on a 133x200x10 box.
-    std::unique_ptr<field4> vofgen;
 
     int n,count;
     int wtype;

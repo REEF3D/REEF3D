@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"turbulence.h"
 #include"sliceint.h"
+#include"nhflow_breaking_profile.h"
 
 // NHFLOW
 void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
@@ -134,6 +135,15 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         V = d->V[IJK];
         W = d->W[IJK];
         
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006) in the log-law part, as for S 16 1; the 0.3 rho k
+        // part keeps the k of the bed cell (with A 543 the turbulence of breaking)
+        if(p->S37==2 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
+        
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
         uabs = sqrt(U*U + V*V + W*W);
@@ -217,6 +227,12 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 
         tau_i = density*(uabs*uabs)/(u_plus*u_plus);
         
+        // A 543 with S 16 2/10/11: the turbulence that breaking puts into k stirs the bed, the pick-up (van Rijn, from
+        // tau_i) takes 0.3 rho k of the bed cell as tau_eff does; without A 543 tau_i stays the skin friction of the
+        // log law
+        if(p->A543>0.0 && (p->S16==2 || p->S16==10 || p->S16==11) && d->KIN!=nullptr)
+        tau_i = MAX(tau_i, density*0.3*d->KIN[IJK]);
+        
         
         // blend with shallow water
         if(p->S38==1 && d->WL(i,j)<p->S39*p->A544)
@@ -282,6 +298,57 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
 
 
+        // S 136: stirring of the bed by the breaking turbulence (A 550), as XBeach (Reniers et al. 2004):
+        //   u_eff^2 = u_b^2 + 1.45 k_b,   k_b = S 136 (D_b/rho)^(2/3)
+        // D_b/rho = sum over the layers of vb (du/dx^2 + dv/dy^2) dz is the dissipation of the breaking viscosity in the
+        // column (its horizontal part, along the layers), (D_b/rho)^(2/3) the turbulent kinetic energy it supports
+        // at the surface, S 136 the share that reaches the bed (1/(exp(h/H) - 1), about 0.4 in a saturated surf zone).
+        // The turbulence adds 1.45 k_b / u+^2 to the bed shear stress (the friction coefficient of the bed cell).
+        if(p->S136>0.0 && p->A550>0)
+        {
+        const double h = MAX(d->WL(i,j),0.0);
+        double db = 0.0;
+        
+        const int kb=k;
+        KLOOP
+        if(p->DF[IJK]>0)
+        {
+        const double vb = nhflow_vb_layer(p,d,i,j,k);
+        
+            if(vb>0.0)
+            {
+            const double dudx = (d->U[Ip1JK]-d->U[Im1JK])/(p->DXP[IP]+p->DXP[IM1]);
+            const double dvdy = p->j_dir==1 ? (d->V[IJp1K]-d->V[IJm1K])/(p->DYP[JP]+p->DYP[JM1]) : 0.0;
+            
+            db += vb*(dudx*dudx + dvdy*dvdy)*p->DZN[KP]*h;
+            }
+        }
+        k=kb;
+        
+            if(db>0.0)
+            {
+            const double kbed = p->S136*pow(db,2.0/3.0);
+            const double up = uplus(0.5*p->DZN[KP]*h, s->ks_eff(i,j));
+            const double dtau = density*1.45*kbed/(up*up);
+            
+            tau_eff += dtau;
+            tau_i += dtau;
+            }
+        }
+        
+        // S 137: impact of the plunging jet (nhflow_breaking::plunge): k_p at the surface, exp(-h/(S 139 H_b)) at the bed,
+        // u_eff^2 = u_b^2 + 1.45 k_b as S 136
+        if(p->S137>0.0 && d->plk(i,j)>0.0 && d->plh(i,j)>0.0)
+        {
+        const double h = MAX(d->WL(i,j),0.0);
+        const double kbed = d->plk(i,j)*exp(-h/(MAX(p->S139,1.0e-6)*d->plh(i,j)));
+        const double up = uplus(0.5*p->DZN[KP]*h, s->ks_eff(i,j));
+        const double dtau = density*1.45*kbed/(up*up);
+        
+        tau_eff += dtau;
+        tau_i += dtau;
+        }
+        
         // S 133: upper limit of the Shields number (swash and wetting fronts: the friction coefficient of a thin
         // layer is of order 0.1 and the velocities of the front are the least reliable ones)
         if(p->S133>0.0)

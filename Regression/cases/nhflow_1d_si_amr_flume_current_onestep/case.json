@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_1d_si_amr_flume_current",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "`nhflow_1d_si_amr_flume_current` with the one-step predictor (A 510 11): one pass before, 2 mm noise after 3 s; with the estimate pass clean.",
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "current"
+ ],
+ "covers": [
+  "the estimate pass (tp2) with A 510 11"
+ ],
+ "architect": "Hans Bihs"
+}

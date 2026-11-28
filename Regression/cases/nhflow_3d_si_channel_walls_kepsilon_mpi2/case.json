@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit step with wall friction at every wall face (A 519 2): the 3D channel with side walls of nhflow_3d_channel_walls_kepsilon_mpi2 (30 x 6 x 1.5 m, 9 m3/s, k-epsilon, ks 1 cm, 2 ranks split in y) with A 510 11. The log-law drag of the side walls on u and w (and of the bed on u and v) implicit on the diagonal of the column operators of the cells and of the layer faces; the column of VH with its own walls.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "turbulence",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_wall.cpp: wf_begin, ld_face, ld_cell, wf_vcol",
+  "nhflow_momentum_SI::friction with A 519 2 (bed)",
+  "nhflow_wall.h with the semi-implicit step"
+ ],
+ "architect": "Hans Bihs"
+}

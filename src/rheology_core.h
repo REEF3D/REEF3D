@@ -33,6 +33,9 @@ Author: Hans Bihs
 //    - mu(I) (GDR MiDi 2004, Jop et al. 2006) with the partial regularisation of Barker & Gray
 //      (2017) at low I (well-posed for I < I_N, I_N from the criterion of Barker et al. 2015)
 //    - Coulomb-viscoplastic (Domnik et al. 2013)
+//    - mu(J) of submerged granular flows (Boyer, Guazzelli & Pouliquen 2011) with the viscous number
+//      J = eta_f gamma/p', or the mixed number K = J + a_K I^2 (Trulsson, Andreotti & Claudin 2012)
+//    - dilatancy: an extra friction tan(psi) (Roux & Radjai 1998, Pailha & Pouliquen 2009) for mu(I) and mu(J)
 // 2. depth-integrated closures: basal shear stress tau_b(h, U, sigma_n') for depth-averaged layers
 //    - Coulomb, Voellmy, Pouliquen-Forterre mu(h,Fr), depth-averaged mu(I) (Bagnold profile),
 //      Herschel-Bulkley exact plug-flow law (Bingham for n = 1), Herschel-Bulkley-Coulomb
@@ -60,7 +63,8 @@ enum law3D
     LAW_HB           = 1,   // Herschel-Bulkley, constant yield stress
     LAW_HBC          = 2,   // Herschel-Bulkley-Coulomb: tau_y = c + tan(phi) p'
     LAW_MUI          = 3,   // mu(I), partially regularised
-    LAW_COULOMB_VP   = 4    // Coulomb-viscoplastic
+    LAW_COULOMB_VP   = 4,   // Coulomb-viscoplastic
+    LAW_MUJ          = 5    // mu(J) / mu(K), submerged granular flow
 };
 
 struct law3D_params
@@ -83,6 +87,11 @@ struct law3D_params
     double alpha = 1.9;           // partial regularisation parameter (alpha < 2: well-posed branch)
     double I_N = 0.0;             // switch to the regularised branch (set by mu_I_setup)
     double A = 0.0;               // continuity constant of the regularised branch (set by mu_I_setup)
+    // mu(J): mus, mu2 as mu(I), J0, the interstitial fluid, the mixed number, the critical fraction
+    double J0 = 0.005;            // Boyer et al. (2011)
+    double eta_f = 1.0e-3;        // dynamic viscosity of the interstitial fluid [Pa s]
+    double aK = 0.0;              // K = J + aK I^2 (0: J)
+    double phic = 0.585;          // critical volume fraction (the term 5/2 phi_c J^1/2 of mu(J))
 };
 
 // inertial number I = gamma d / sqrt(p'/rho_s)
@@ -108,6 +117,22 @@ double yield_stress(const law3D_params &q, double p_eff);
 
 // effective dynamic viscosity [Pa s] from the shear rate sqrt(2 D:D) and the effective pressure
 double viscosity(const law3D_params &q, double gamma, double p_eff);
+
+// the same with the dilatancy friction tan(psi) added to mu(I) or mu(J) (the friction stays >= 0); other laws:
+// as viscosity(q, gamma, p_eff)
+double viscosity(const law3D_params &q, double gamma, double p_eff, double tanpsi);
+
+// viscous number J = eta_f gamma/p' (p' > 0)
+double viscous_number(double gamma, double p_eff, double eta_f);
+
+// mu(J) of Boyer et al. (2011) with the mixed number K = J + aK I^2 in the contact part:
+// mus + (mu2 - mus)/(1 + J0/K) + J + 5/2 phi_c J^1/2
+double mu_J(const law3D_params &q, double J, double I);
+
+// dilatancy (Pailha & Pouliquen 2009): the steady volume fraction phi_eq(J) = phi_c/(1 + J^1/2) (Boyer et al. 2011)
+// and tan(psi) = K3 (phi - phi_eq)
+double phi_eq(double phic, double J);
+double tan_psi(double K3, double phi, double phic, double J);
 
 // ---------------------------------------------------------------------------------------------
 // 2. depth-integrated closures
@@ -162,6 +187,13 @@ double hb_basal_stress(double U, double tauy, double K, double n, double h);
 // backward-Euler friction step: the speed s >= 0 with s + dt tau_b(s)/(rho h) = Ustar; zero when
 // Ustar <= dt tau_static/(rho h) (the layer stops or stays at rest)
 double implicit_speed(const basal_params &q, const basal_state &s, double Ustar, double dt);
+
+// the friction of a step that is long against the relaxation time of the speed: du/dt = a - tau_b(u)/(rho h) with the
+// constant driving a = (Ustar - U0)/dt of the step, from the speed U0 at its start, in backward-Euler sub-steps
+// (5 dt gamma of them, gamma = tau_b(s)/(rho h s) the friction rate, at most nmax; one for Coulomb, where the single
+// step is exact, and at the steady speed). The same yield criterion: a sub-step below the static threshold stops the
+// layer
+double implicit_speed_sub(const basal_params &q, const basal_state &s, double U0, double Ustar, double dt, int nmax);
 
 // ---------------------------------------------------------------------------------------------
 // 3. pore pressure

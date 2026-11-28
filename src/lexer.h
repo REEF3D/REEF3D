@@ -69,7 +69,9 @@ public:
 //---- setup
     void lexer_read(ghostcell*);
     void flagini();
+    void gridfree_sflow();  // SFLOW: the boundary lists and sigma heights of the 3D grid, given back after the grid set-up
     void flagfree_fnpf();   // FNPF: the 3D flags only the grid set-up reads, given back after the initialisation
+    void flagfree_nhflow_si();   // the semi-implicit NHFLOW: the 3D flags of the CFD velocities and solid forcing
 	void gridini(ghostcell*);
     void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
     void geometry_ini(ghostcell*);  // horizontal geometry layer of the grid (lexer_geometry.cpp)

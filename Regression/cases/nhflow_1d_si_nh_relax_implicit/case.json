@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic step (A 510 11, A 520 2) with the relaxation zones inside the step (A 505 1: implicit damping of the face and cell momentum and of the water level, B 95 0.004): 2nd-order Stokes waves T 1 s, H 0.03 m, depth 0.5 m, generation zone 1.5 m, beach 3 m, 160 cells, 6 sigma layers, dt 0.05 s (gravity-wave Courant number 2.2, where the blend after the step is too weak).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 80,
+ "tags": ["quick", "1d", "nhflow", "semi_implicit", "nonhydrostatic", "iowave"],
+ "covers": ["nhflow_momentum_SI::rz_targets (the targets and rates read from iowave's relaxation)", "the damping in the face and cell columns, bdiag, the coupled mass row and its Jacobian, eta_update", "the phi terms of faces and w damped (face_update, nh_dfaces, nh_residual, nh_cell)"],
+ "architect": "Hans Bihs"
+}

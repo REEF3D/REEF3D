@@ -18,5 +18,8 @@
  "covers": [
   "reefamr_si blocks + levels"
  ],
- "architect": "Hans Bihs"
+ "architect": "Hans Bihs",
+ "ctrl_set": {
+  "A 510": "12"
+ }
 }

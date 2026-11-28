@@ -197,6 +197,13 @@ struct sflow_amr_patch : public reefamr_patch
 
     // G 7 1, A 220 1-3: constraint residual at the end of the patch's own step (synchronisation)
     vector<double> rend;
+
+    // the filled cells of the patch that are copies of cells of a grid of its level (sflow_amr::fill_bulk): runs of
+    // cells in a row of the arrays (source grid, first source cell, first cell, length), and the other entries of fill
+    struct frun { int g, sq, dq, n; };
+    vector<frun> fcopy;
+    vector<int> fother;
+    long fgen = -1;
 };
 
 class sflow_amr : public reefamr, public amr_column_lookup, public sediment_grids
@@ -386,6 +393,7 @@ private:
     void nh_qfill(int, int);
     double nh_eval(const reefamr_fill&, int);
     template<class F> void nh_each(F);
+    template<class F> void nh_rows(F);
     vector<signed char> nh0_act;
     vector<int> nh0_row;
     vector<slice*> nh0_v;
@@ -398,6 +406,16 @@ private:
     int wlo = 0, whi = -1;
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool nh_edge = false;
+    vector<int> nh_gw;              // grids with rows in the solve (-1 level 0)
+    // G 7 1: the level-0 part of the preconditioner in the solves of a window above level 0 (nh_coarse), chosen
+    // per level from the iterations of its level solves with and without it (nh_level, nh_c0_choose): nh_c0[l]
+    // the choice, nh_cn[l] the level solves of the cycle, nh_ci[l] the iterations of its first solves without
+    // ([0]) and with ([1]) the choice
+    bool nh_coarse = true;
+    int nh_c0[8] = {1,1,1,1,1,1,1,1};
+    int nh_cn[8] = {0,0,0,0,0,0,0,0};
+    int nh_ci[8][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
+    void nh_c0_choose(ghostcell*, int);
     bool nh_m0_new = true;          // level-0 rows changed since the last level-0 multigrid setup
     long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;
     vector<double> nh0_rend;
@@ -448,6 +466,11 @@ private:
     double native_bed(int, int);
     double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
+    // fine bed of the refined levels (G 60 1, amr-bed.dat, sflow_amr_bed.cpp)
+    struct fbed_tile { int nx=0, ny=0; double x0=0.0, y0=0.0, dx=0.0; vector<float> z; };
+    vector<fbed_tile> fbed;
+    void fbed_read(lexer*);
+    bool fbed_mean(int, int, int, double&);
     void ini_patch_defaults(sflow_amr_patch&);
     // S 10 (sflow_amr_sed.cpp)
     sediment_f *sed0 = nullptr;
@@ -496,6 +519,30 @@ private:
     void prolong(int, int, int, int, int, double, double*);
     static const int NPR = 10;      // values of prolong_parts
     void prolong_parts(int, int, int, int, int, double*);
+    // the parent part of a prolongation and its children (prolong_parts)
+    struct pcent
+    {
+        int g = -2, ic = 0, jc = 0, indep = 1;
+        double r[NPR], q[4], s[8], c0[4], mx[4], my[4];
+        bool full = false;
+    };
+    static const int PCN = 1024;
+    vector<pcent> pcache = vector<pcent>(PCN);
+    bool pc_on = false;
+    void prolong_parent(int, int, int, pcent&);
+    // the arrays of the source grid (eval_fill) and of the patch (store_fill) of the last filled cell
+    struct fptr
+    {
+        int g = -99, imin = 0, jmin = 0, jmax = 0;
+        double *WL = nullptr, *UH = nullptr, *VH = nullptr, *WH = nullptr, *eta = nullptr, *U = nullptr, *V = nullptr, *W = nullptr,
+               *hp = nullptr, *UA = nullptr, *VA = nullptr, *MX = nullptr, *MY = nullptr, *gsf = nullptr, *sfcw = nullptr;
+        const double *sfc = nullptr;
+        int *wet = nullptr, *deep = nullptr;
+    };
+    fptr fsrc, fdst;
+    void fill_plan(sflow_amr_patch&);
+    void fill_bulk(sflow_amr_patch&, int);
+    void prolong_child(const pcent&, int, int, double*);
     void prolong_finish(const double*, double, double*);
 
     // shoreline (well balanced at rest): the restricted water surface of the covered cells at a shoreline (sfc, as
@@ -531,6 +578,13 @@ private:
     void sub_sync(lexer*, ghostcell*, int, int, double);
     void sub_reflux(int);
     long sub_steps[8] = {0,0,0,0,0,0,0,0};
+    // steps of level l per step of level l-1 (msub[l], l >= 1).  2 on every level, or, where that costs less, as many
+    // as the CFL number of the level needs with level 0 at its own step (sflow_amr::timestep, sub_choose)
+    int msub[8] = {1,2,2,2,2,2,2,2};
+    bool b95_fine = false;          // B 95 -1 with G 7 1: the reference step of the relaxation is the step of the finest level
+    long sub_acc = 0;               // steps of the finest level since the last regrid (G 2 counts them)
+    int sub_nfine() const { int n=1; for(int l=1; l<=maxlev && l<8; ++l) n *= msub[l]; return n; }
+    void sub_choose(lexer*, ghostcell*, const vector<double>&, double);
     // A 220 1-3 (sflow_amr_subnh.cpp): level solves, synchronisation projection
     void nh_level(lexer*, ghostcell*, int, int, int);
     void nh_project(lexer*, ghostcell*, int, double);
@@ -559,10 +613,27 @@ private:
     patchBC_interface *pBC;
     sixdof *p6dof;
     ioflow *pflow_void;
+    patchBC_interface *pBC_void = nullptr;
     ioflow *pflow_of(sflow_amr_patch*);     // the in- and outflow of a grid: its open faces (G 54) or none
 
     double m0, printtime_amr;
     double tm[10];
+    // profile of a run (REEF3D_AMR_PROFILE=1 prints it with the timings, sflow_amr::profile_print):
+    // tp [s]: 0 the stages of level 0, 1 the fills (fill_run), 2 the wall conditions after them, 3 cache_stage,
+    //         4 the fill at the end of the step (part of tm[0]), 5 end of the step on the patches (rk_finish,
+    //         depth_update), 6 their face velocities, 7 print (mass, gauges, files)
+    // tlv [s]: the stages of the patches of a level
+    // cu: cells times stages of a level: 0 the boxes of the patches (level 0: its cells), 1 the cells a patch
+    //     computes (box and EXT cells), 2 its arrays with the ghost cells, 3 the filled cells copied from a
+    //     grid of the level, 4 prolonged, 5 received from another rank
+    static const int NPL = 8;
+    double tp[8], tlv[NPL], cu[NPL][6], t_l0 = 0.0;
+    long pstages = 0;
+    vector<vector<long>> fkc;       // [l][kind]: fill entries of the level (profile_layout, after a regrid)
+    void profile_layout();
+    void profile_count();
+    void profile_print(lexer*, ghostcell*);
+    void stage_begin_run(lexer*, fdm2D*, ghostcell*, int);
     int printcount_amr;
     ofstream logout;
     const double eps;

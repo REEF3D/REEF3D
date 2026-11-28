@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "The sloshing tank with a porous column (B 270, x 0.25-0.35 m, n 0.4, d50 2 cm) through the free surface and through the top of a static refined band (z 0.24-0.32 m), G 28 3, G 17 1: the weight of a face of the patch edge with its density without the porosity factor (cfd_amr_cf::rog). To 1 s the largest velocity is 0.29 m/s (1.62 m/s without G 17; 0.29 m/s with the whole tank fine); still water at 9e-7 m/s.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "vrans"
+ ],
+ "covers": [
+  "G 17 1 with a porous structure at the top of a patch: rog"
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "Still water (0.30 m) in the closed tank with a static refined box x 0.20-0.40 m, z 0.24-0.32 m around the free surface (G 15), G 9 1, G 29 1 and G 17 1: the top of the box lies inside the interface width of level 0, the surface runs through its sides. The pressure under the patch (G 29) takes the same start of the coarse column as the faces of the patch edge: with the start changed in pr_hydro alone the cells under the box were 0.004 Pa off those beside it and the water moved at 2.4e-2 m/s (corners and sides of the box); with both 1.5e-7 m/s.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "restrict_press_hydro with G 17 1: the same start of the coarse column as pr_hydro"
+ ]
+}

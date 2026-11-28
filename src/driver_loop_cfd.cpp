@@ -49,6 +49,8 @@ Author: Hans Bihs
 #include"reefcouple.h"
 #include"wave_lib_fnpf_couple.h"
 #include"soil_stress.h"
+#include"rheology_cfd_3phase.h"
+#include"step_repeat.h"
 
 
 namespace
@@ -89,6 +91,8 @@ void driver::loop_cfd(fdm* a)
 {
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
+
+    step_repeat srep;   // N 66
     
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -115,6 +119,28 @@ void driver::loop_cfd(fdm* a)
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
+        // N 66: the state of the start of the step is kept; the step is done again with half the time
+        // step when the time step after it shows that the velocities jumped within it (step_repeat.h).
+        // Not where a step does more than the state of a checkpoint takes back: the runtime coupling,
+        // floating bodies, sediment, DEM, PIC particles, FSI and CORAL (their logs and exchanges)
+        {
+        string refuse;
+        if(p->N66!=0.0)
+        {
+        if(reefcouple::source() || reefcouple::receiver()) refuse = "the runtime coupling B 92 62";
+        else if(p->X10>0) refuse = "floating bodies X 10";
+        else if(p->S10>0) refuse = "sediment S 10";
+        else if(p->E10>0) refuse = "DEM E 10";
+        else if(p->F81>0) refuse = "PIC F 81";
+        else if(p->Z10>0 || p->Z30>0 || p->Z40>0) refuse = "FSI, FEM or CORAL";
+        else if(p->W140>0) refuse = "the three-phase slide W 140";
+        else if(p->S200>0) refuse = "the soil stress model S 200";
+        }
+        srep.begin(p,ckpt(),p->N66,p->N48>0,refuse);
+        }
+
+        do
+        {
         pflow->flowfile(p,a,pgc,pturb);
         
         // runtime coupling (B 92 62): feedback to FNPF at the start of the step (I 243, I 244)
@@ -124,6 +150,10 @@ void driver::loop_cfd(fdm* a)
         pflow->wavegen_precalc(p,pgc);
 
 		    
+            // three-phase slide model (W 140): the slide fraction and the pore pressure over the step
+            if(p3ph!=nullptr)
+            p3ph->start(p,a,pgc,psolv);
+
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             // with the mesh refinement it transports heat and concentration on all grids
@@ -184,6 +214,8 @@ void driver::loop_cfd(fdm* a)
 
         if(pcfdamr!=nullptr)
         pcfdamr->timestep(p,a,pgc);
+        }
+        while(srep.again(p,ckpt(),p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61));
         
         // printer
         if(pcfdamr!=nullptr)

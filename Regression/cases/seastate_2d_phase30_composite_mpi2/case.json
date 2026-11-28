@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase30_composite",
+ "np": 2,
+ "same_as": "seastate_2d_phase30_composite",
+ "ctrl_add": [
+  "A 798 2"
+ ],
+ "description": "seastate_2d_phase30_composite on 2 ranks with 2 threads each (the pipelined composite sweep): bitwise the result of one rank and one thread.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "A 782 on refined grids across ranks and threads"
+ ]
+}

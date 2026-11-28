@@ -1,0 +1,28 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 1,
+ "steps": 120,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1",
+  "F 66 0.05"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_singlephase with F 66 0.05: the faces of the patch edges with the same level (pr_weights, pr_predict) and the extension on the patches (validation CFD AMR speed/24).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "singlephase"
+ ],
+ "covers": [
+  "pic_gfm_water with F 66, cfd_singlephase extension, the patch edges (pr_weights, pr_predict, ext_begin)"
+ ],
+ "architect": "Hans Bihs"
+}

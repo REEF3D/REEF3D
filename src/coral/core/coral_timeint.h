@@ -44,6 +44,7 @@ Architect: Hans Bihs
 
 #include"coral/core/coral_types.h"
 #include"coral/core/coral_linsolve.h"
+#include<string>
 #include<vector>
 
 namespace coral
@@ -81,6 +82,10 @@ namespace coral
         // advance from t to t+h; on return the model holds the state at t+h.
         // false if Newton did not converge (the model is then back at t).
         bool step(model&, double t, double h);
+        // why the last step failed (empty after a step that converged): per Newton attempt the iterations,
+        // the increments of the accelerations against the thresholds, and the reason (no convergence,
+        // non-finite residual with its degree of freedom, non-finite increment)
+        const std::string &failure() const {return fail_;}
 
         // Lagrange multipliers of the last step (constraint forces on the bodies: -G^T lambda)
         const VecX &multipliers() const {return lam_;}
@@ -125,6 +130,7 @@ namespace coral
 
         VecX f_, in_, g_;
         MatX G_;
+        std::string fail_;
     };
 }
 

@@ -8,10 +8,11 @@
  "ctrl_add": [
   "A 706 120.0",
   "A 779 0.01",
-  "A 709 99"
+  "A 709 99",
+  "A 782 0.0"
  ],
  "steps": 10,
- "description": "seastate_2d_surf (JONSWAP Hs 2 m on a plane slope with breaking, friction and triads) nonstationary from rest, 10 steps of 120 s, with A 779 0.01 at most 10 iterations (A 707) and the share criterion (A 709 99, Phase 28, as SWAN npnts): the first step ends after 9 iterations with 99.2 % of the wet cells within A 779 while the largest change is 0.04; the percentage per step in REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat. Validation in Dropbox SEASTATE/validation/84_vartdalsfjord.",
+ "description": "seastate_2d_surf (JONSWAP Hs 2 m on a plane slope with breaking, friction and triads) nonstationary from rest, 10 steps of 120 s, with A 779 0.01 at most 10 iterations (A 707) and the share criterion (A 709 99, Phase 28, as SWAN npnts): the first step ends after 9 iterations with 99.2 % of the wet cells within A 779 while the largest change is 0.04; the percentage per step in REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat. Validation in Dropbox SEASTATE/validation/84_vartdalsfjord. A 782 0 (0069): every cell in every iteration, the iterations of the criterion as blessed.",
  "tags": [
   "quick",
   "2d",

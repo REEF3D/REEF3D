@@ -122,7 +122,7 @@ void net_barDyn::print(lexer *p)
 
 		if(!(stored && p->P18==1))
 		{
-		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		sprintf(name,p->A10==5 ? "./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk" : "./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 
 		ofstream result;

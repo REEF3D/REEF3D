@@ -195,9 +195,6 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         p->B89 = 0;
     }
 
-    if(p->F80==4)
-    vofgen = std::make_unique<field4>(p);
-
     dist1=p->B96_1;
     dist2=p->B96_2;
     

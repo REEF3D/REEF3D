@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_basin_bar",
+ "steps": 60,
+ "ctrl_set": {
+  "A 251": null,
+  "F 60": "0.5"
+ },
+ "description": "sflow_2d_si_basin_bar at rest with the crest of the bar above the water (F 60 0.5, crest 0.8 m): dry cells on the bar, shorelines on both slopes. Exactly at rest: the semi-implicit step starts the dry cells without the film of the wetting criterion (before: the film drained down the slopes, 0.006 m/s).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_momentum_SI::si_restore first step (no film)"
+ ],
+ "architect": "Hans Bihs"
+}

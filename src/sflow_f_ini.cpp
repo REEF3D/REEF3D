@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"gcsl_side.h"
 #include"sflow_f.h"
+#include"sflow_level_file.h"
 #include"lexer.h"
 #include"driver.h"
 #include"fdm2D.h"
@@ -31,7 +32,6 @@ Author: Hans Bihs
 #include"hypre_struct2D.h"
 #endif
 #include"sflow_etimestep.h"
-#include"sflow_weno_flux.h"
 #include"sflow_eta.h"
 #include"sflow_potential.h"
 #include"sflow_momentum.h"
@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"hydro_sflow.h"
 #include"hydro_couple.h"
+#include"slide2D.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -133,10 +134,18 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     {
         for(int qn=0; qn<p->A209;++qn)
         {
+        // the sweep from the old values (Jacobi), as the flow bed above: in place a symmetric bed came out
+        // asymmetric, and the bed depended on the number of ranks
+        slice4 ts(p);
+
+        for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+        for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+        ts(ii,jj) = b->topobed(ii,jj);
+
         SLICELOOP4
         {
         const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
-        b->topobed(i,j) = 0.5*b->topobed(i,j) + 0.125*(b->topobed(i-1,j) + b->topobed(i+1,j) + b->topobed(i,js) + b->topobed(i,jn));
+        b->topobed(i,j) = 0.5*ts(i,j) + 0.125*(ts(i-1,j) + ts(i+1,j) + ts(i,js) + ts(i,jn));
         }
         
         pgc->gcsl_start4(p,b->topobed,50);
@@ -148,6 +157,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
         pgc->gcsl_start4(p,b->bed,50);
     }
     
+
+    // two-layer landslide (W 150): the initial slide on the bed, the bed of the water z_b + h_s
+    if(p->W150>0)
+    {
+    b->slide = new slide2D(p,b,pgc);
+    b->slide->ini(p,b,pgc);
+
+    if(p->N48>0)
+    p->dt = MIN(p->dt, b->slide->dt_cap(p,pgc));
+    }
 
     // FSF ini
     ini_fsf(p,b,pgc);
@@ -338,6 +357,15 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
     
+    // F 73: the initial level from a file (a slide mass or lake from a terrain difference)
+    if(p->F73>0)
+    {
+    if(p->F74>0 && prelease==nullptr)
+    prelease = new sflow_release(p,pgc);
+    
+    sflow_level_file().start(p,b,pgc,prelease);
+    }
+
     // river free-surface initialisation along the i-direction (F 65)
     ini_river(p,b,pgc,0);
     

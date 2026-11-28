@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 #include"ckpt_registry.h"
+#include"nhflow_breaking_profile.h"
 
 nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) : ED(p),RT(p)
 {
@@ -265,6 +266,30 @@ void nhflow_suspended_IM1::diffusion(lexer *p, fdm_nhf *d)
     };
     
     auto eps = [&](int a, int b, int c) { const int q = c3(a,b,c); return d->VISC[q] + d->EV0[q]; };
+    
+    // S 135: the breaking viscosity vb (A 550) in the sediment diffusivity: along the layers (horizontal faces) in full,
+    // on the sigma faces (vertical diffusion) with the share S 135; the mixed terms and the sigx, sigy parts of the
+    // sigma faces keep eps (as the momentum with A 556 < 1, nhflow_vbsig). The momentum takes vb on the sigma faces
+    // with A 556, the sediment with S 135: the vertical mixing of the sediment by the breaking turbulence does not
+    // depend on how much of it the momentum (which has the k-omega viscosity as well) needs
+    const double fb = (p->S135>0.0 && p->A550>0) ? p->S135 : 0.0;
+    auto vbl = [&](int a, int b, int c) { return (fb>0.0 && c>=0 && c<p->knoz) ? nhflow_vb_layer(p,d,a,b,c) : 0.0; };
+    // S 137: the turbulence of the plunging jet, sqrt(k) 0.1 H_b with k = k_p exp(-d/(S 139 H_b)), d the depth of the
+    // cell below the surface (nhflow_breaking::plunge), in all directions; S 144 its share in the sediment diffusivity
+    // (the bed shear of bedshear_nhflow keeps the impact in full): with S 139 3 and S 142 20 it is estimated at 0.05-0.1 m^2/s
+    // over the whole column, mixes the sand lifted at the impact up to the surface and lets the undertow carry it
+    // offshore of the breakpoint
+    auto epl = [&](int a, int b, int c)
+    {
+        if(p->S137<=0.0 || p->S144<=0.0 || c<0 || c>=p->knoz || d->plk(a,b)<=0.0 || d->plh(a,b)<=0.0)
+        return 0.0;
+        
+        const double ds = (1.0-p->ZP[c+marge])*MAX(d->WL(a,b),0.0);
+        
+        return p->S144*0.1*d->plh(a,b)*sqrt(d->plk(a,b)*exp(-ds/(MAX(p->S139,1.0e-6)*d->plh(a,b))));
+    };
+    auto epsh = [&](int a, int b, int c) { return eps(a,b,c) + vbl(a,b,c) + epl(a,b,c); };
+    auto epsv = [&](int a, int b, int c) { return eps(a,b,c) + fb*vbl(a,b,c) + epl(a,b,c); };
     auto wl  = [&](int a, int b) { return MAX(d->WL(a,b),1.0e-20); };
     
     // sigma slopes at the cell centre
@@ -359,11 +384,13 @@ void nhflow_suspended_IM1::diffusion(lexer *p, fdm_nhf *d)
         {
         const double hp = wl(i,j);
         const double ep = eps(i,j,k);
+        const double eh = epsh(i,j,k);
+        const double ev = epsv(i,j,k);
         const double sz2 = p->sigz[IJ]*p->sigz[IJ];
         
         // horizontal
-        const double aE = 0.5*(ep + eps(i+1,j,k))*(act(i+1,j,k) ? 0.5*(hp + wl(i+1,j)) : hp)/(hp*p->DXN[IP]*p->DXP[IP]);
-        const double aW = 0.5*(ep + eps(i-1,j,k))*(act(i-1,j,k) ? 0.5*(hp + wl(i-1,j)) : hp)/(hp*p->DXN[IP]*p->DXP[IM1]);
+        const double aE = 0.5*(eh + epsh(i+1,j,k))*(act(i+1,j,k) ? 0.5*(hp + wl(i+1,j)) : hp)/(hp*p->DXN[IP]*p->DXP[IP]);
+        const double aW = 0.5*(eh + epsh(i-1,j,k))*(act(i-1,j,k) ? 0.5*(hp + wl(i-1,j)) : hp)/(hp*p->DXN[IP]*p->DXP[IM1]);
         
         d->M.p[n] += aE + aW;
         d->M.n[n] -= aE;
@@ -373,8 +400,8 @@ void nhflow_suspended_IM1::diffusion(lexer *p, fdm_nhf *d)
         
             if(ydir)
             {
-            const double aN = 0.5*(ep + eps(i,j+1,k))*(act(i,j+1,k) ? 0.5*(hp + wl(i,j+1)) : hp)/(hp*p->DYN[JP]*p->DYP[JP]);
-            const double aS = 0.5*(ep + eps(i,j-1,k))*(act(i,j-1,k) ? 0.5*(hp + wl(i,j-1)) : hp)/(hp*p->DYN[JP]*p->DYP[JM1]);
+            const double aN = 0.5*(eh + epsh(i,j+1,k))*(act(i,j+1,k) ? 0.5*(hp + wl(i,j+1)) : hp)/(hp*p->DYN[JP]*p->DYP[JP]);
+            const double aS = 0.5*(eh + epsh(i,j-1,k))*(act(i,j-1,k) ? 0.5*(hp + wl(i,j-1)) : hp)/(hp*p->DYN[JP]*p->DYP[JM1]);
             
             d->M.p[n] += aN + aS;
             d->M.w[n] -= aN;
@@ -387,8 +414,8 @@ void nhflow_suspended_IM1::diffusion(lexer *p, fdm_nhf *d)
         const double gT = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + sz2;
         const double gB = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + sz2;
         
-        const double aT = 0.5*(ep + eps(i,j,k+1))*gT/(p->DZN[KP]*p->DZP[KP]);
-        const double aB = 0.5*(ep + eps(i,j,k-1))*gB/(p->DZN[KP]*p->DZP[KM1]);
+        const double aT = (0.5*(ep + eps(i,j,k+1))*(gT - sz2) + 0.5*(ev + epsv(i,j,k+1))*sz2)/(p->DZN[KP]*p->DZP[KP]);
+        const double aB = (0.5*(ep + eps(i,j,k-1))*(gB - sz2) + 0.5*(ev + epsv(i,j,k-1))*sz2)/(p->DZN[KP]*p->DZP[KM1]);
         
         d->M.p[n] += aT + aB;
         d->M.t[n] -= aT;
@@ -438,6 +465,20 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
     
     double eps,c;
     
+    // S 135: the share of the breaking viscosity on the sigma faces (as diffusion())
+    const double fb = (p->S135>0.0 && p->A550>0) ? p->S135 : 0.0;
+    // S 137: the plunging jet with the share S 144 (as diffusion())
+    auto epl2 = [&](int kk)
+    {
+        if(p->S137<=0.0 || p->S144<=0.0 || kk<0 || kk>=p->knoz || d->plk(i,j)<=0.0 || d->plh(i,j)<=0.0)
+        return 0.0;
+        
+        const double ds = (1.0-p->ZP[kk+marge])*MAX(d->WL(i,j),0.0);
+        
+        return p->S144*0.1*d->plh(i,j)*sqrt(d->plk(i,j)*exp(-ds/(MAX(p->S139,1.0e-6)*d->plh(i,j))));
+    };
+    auto vbv2 = [&](int kk1, int kk2) { return (fb>0.0 ? fb*0.5*(nhflow_vb_layer(p,d,i,j,kk1) + nhflow_vb_layer(p,d,i,j,kk2)) : 0.0) + 0.5*(epl2(kk1) + epl2(kk2)); };
+    
     n=0;
     LOOP
     {
@@ -466,8 +507,9 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
             const double dzn = MAX(dzs - MAX(s->rbz(i,j)-zc,0.0)/MAX(d->WL(i,j),1.0e-20), 0.25*dzs);
             const double phi = s->rbf(i,j);
             
-            const double a_old = eps*sface2/(dzs*p->DZN[KP]);
-            const double a_new = (eps*sface2 + fit(eps, wface*dzn*d->WL(i,j))*sz2)/(dzn*p->DZN[KP]);
+            const double epv = eps + vbv2(0,1);
+            const double a_old = (eps*(sface2 - sz2) + epv*sz2)/(dzs*p->DZN[KP]);
+            const double a_new = (eps*(sface2 - sz2) + epv*sz2 + fit(epv, wface*dzn*d->WL(i,j))*sz2)/(dzn*p->DZN[KP]);
             
                 if(k==0)
                 {
@@ -485,7 +527,7 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
             // face above
             if(k<p->knoz-1 && p->DF[IJKp1]>0 && !(bedcell && k==0))
             {
-            eps = 0.5*(epsP + d->VISC[IJKp1] + d->EV0[IJKp1]);
+            eps = 0.5*(epsP + d->VISC[IJKp1] + d->EV0[IJKp1]) + vbv2(k,k+1);
             c = fit(eps, fabs(WVEL[FIJKp1])*p->DZP[KP]*d->WL(i,j))*sz2/(p->DZP[KP]*p->DZN[KP]);
             
             d->M.t[n] -= c;
@@ -495,7 +537,7 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
             // face below
             if(k>0 && p->DF[IJKm1]>0 && !(bedcell && k==1))
             {
-            eps = 0.5*(epsP + d->VISC[IJKm1] + d->EV0[IJKm1]);
+            eps = 0.5*(epsP + d->VISC[IJKm1] + d->EV0[IJKm1]) + vbv2(k,k-1);
             c = fit(eps, fabs(WVEL[FIJK])*p->DZP[KM1]*d->WL(i,j))*sz2/(p->DZP[KM1]*p->DZN[KP]);
             
             d->M.b[n] -= c;

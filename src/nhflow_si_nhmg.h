@@ -75,6 +75,9 @@ public:
         return sl<0 ? 0.0 : A0[(size_t)(ix*ny0 + iy)*CS + offs[d] + sl];
     }
     void scale_rows(int ix, int iy, int d, int r0, double s);
+    // the blocks 0 .. nd-1 of the column (ix,iy) at once from a full array A (block d, row r, column c at (d B + r) B + c;
+    // the zeros not stored), the rows r0 .. B-1 times s; the same as set() of every nonzero entry and scale_rows()
+    void set_column(int ix, int iy, int nd, const double *A, int r0, double s);
     double* block(int ix, int iy, int d) { return &A0[(size_t)(ix*ny0 + iy)*CS + offs[d]]; }
     void mark_all();
     void zero();
@@ -86,6 +89,7 @@ public:
     int offs[5] = {0,0,0,0,0};
     int CS = 0;
     std::vector<std::vector<std::pair<int,int>>> sl;
+    std::vector<std::vector<int>> offp;     // the entries outside the pattern per block (set_column)
 
     // the pattern of level 0 (the products skip the entries that are zero in every column); refresh: the preconditioner
     // from the current level-0 blocks (without: the one of an earlier step, FGMRES is flexible)
@@ -118,6 +122,9 @@ private:
     std::vector<char> nz0;
     std::vector<std::vector<nhmg_pent>> pat0;
     bool dense = false;
+public:
+    bool arrow = false;     // the neighbour blocks in the layout of the mask of nh_mask: fixed-size kernels (bmul)
+private:
     void layout(const std::vector<char> *mask);
     std::shared_ptr<nhflow_si_nhmg_core<float>> cf;
     std::shared_ptr<nhflow_si_nhmg_core<double>> cd;

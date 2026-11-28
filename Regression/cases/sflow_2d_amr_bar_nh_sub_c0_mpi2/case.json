@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_amr_bar_nh_sub_c0",
+ "np": 2,
+ "description": "sflow_2d_amr_bar_nh_sub_c0 on 2 ranks: the choice of the level-0 part of the preconditioner of the level solves from the global iteration and cell counts.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr::nh_c0_choose on several ranks"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -99,6 +99,18 @@ void sixdof_nhflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
 }
 
+bool sixdof_nhflow::nhflow_press(lexer *p, slice &ps)
+{
+    if(p->X10!=3)
+    return false;
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    ps(ii,jj) = press(ii,jj);
+
+    return true;
+}
+
 void sixdof_nhflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }

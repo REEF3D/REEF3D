@@ -77,6 +77,18 @@ public:
     void put_Ci(const std::string&, const int*);
     void write_close(lexer*);
 
+    // ---- in memory (the repeat of a time step, N 66): the same puts and gets on this object, every rank
+    // keeps its own arrays, scalars and blobs (no files, the same decomposition).  mem_open starts a new
+    // snapshot (the arrays of the one before are reused), mem_read makes it readable
+    void mem_open(lexer*);
+    void mem_read();
+    bool in_memory() const { return mem; }
+    long long mem_bytes() const;
+    // an array of this rank under a name, as it is (the arrays of the patches of the mesh refinement:
+    // one by one, so an array that did not change is not copied); mem_array: nullptr when not there
+    void mem_put(const std::string&, const void*, long long n, size_t bytes);
+    const std::vector<char>* mem_array(const std::string&) const;
+
     // ---- reading (all ranks); dir empty: the latest checkpoint
     bool read_open(lexer*, const std::string &dir, std::string &msg);
     bool has(const std::string&) const;
@@ -123,6 +135,11 @@ private:
 
     lexer *p = nullptr;
     std::string dirname;
+    // in memory
+    struct mrec { int type = 0; long long n = 0; unsigned long long gen = 0; std::vector<char> data; };
+    bool mem = false;
+    unsigned long long mgen = 0;
+    std::map<std::string,mrec> marr;
     std::ofstream out;
     std::vector<std::pair<std::string,double>> sc;
     std::vector<std::pair<std::string,std::vector<double>>> bl;

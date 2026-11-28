@@ -29,6 +29,7 @@ class slice1 final : public slice
 {
 public:
     slice1(lexer *p) : slice(p) {};
+    slice1(lexer *p, bool on) : slice(p,on) {};
     virtual ~slice1() = default;
 };
 

@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"hydro_sflow.h"
+#include"sflow_memory.h"
 
 void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
 {
@@ -48,10 +49,24 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         }
     }
     
-    SLICELOOP4
+    // the sweeps below run over the arrays directly, in the order of SLICELOOP4
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4;
+    int *const wet = p->wet;
+    double *const eta = b->eta.V, *const wl = WL.V;
+    const double *const depth = b->depth.V;
+    const double wdc = wd_criterion;
+    
+    for(int ii=0; ii<p->knox; ++ii)
     {
-    p->wet_n[IJ] = p->wet[IJ];
-    temp[IJ] = p->wet[IJ];
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        p->wet_n[q] = wet[q];
+        temp[q] = wet[q];
+        }
     }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
@@ -89,31 +104,39 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     
     if(p->A243==2)
     {
-        SLICELOOP4
+    const bool jd = (p->j_dir==1);
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
         {
-            if(p->wet[IJ]==0)
+            if(wet[q]==0)
             {
-                if(p->wet[Ip1J]==1 && b->eta(i,j)<b->eta(i+1,j) && WL(i+1,j)>wd_criterion+eps)
-                temp[IJ]=1;
+                if(wet[q+nj]==1 && eta[q]<eta[q+nj] && wl[q+nj]>wdc+eps)
+                temp[q]=1;
                 
-                if(p->wet[Im1J]==1 && b->eta(i,j)<b->eta(i-1,j) && WL(i-1,j)>wd_criterion+eps)
-                temp[IJ]=1;
+                if(wet[q-nj]==1 && eta[q]<eta[q-nj] && wl[q-nj]>wdc+eps)
+                temp[q]=1;
                 
-                if(p->wet[IJp1]==1 && b->eta(i,j)<b->eta(i,j+1) && WL(i,j+1)>wd_criterion+eps && p->j_dir==1)
-                temp[IJ]=1;
+                if(wet[q+1]==1 && eta[q]<eta[q+1] && wl[q+1]>wdc+eps && jd)
+                temp[q]=1;
                 
-                if(p->wet[IJm1]==1 && b->eta(i,j)<b->eta(i,j-1) && WL(i,j-1)>wd_criterion+eps && p->j_dir==1)
-                temp[IJ]=1;
+                if(wet[q-1]==1 && eta[q]<eta[q-1] && wl[q-1]>wdc+eps && jd)
+                temp[q]=1;
             }
             
             else              
-            if(WL(i,j)<=wd_criterion+eps)
+            if(wl[q]<=wdc+eps)
             {
-            temp[IJ]=0;
-            b->eta(i,j) = wd_criterion - b->depth(i,j);
-            WL(i,j) = wd_criterion;
+            temp[q]=0;
+            eta[q] = wdc - depth[q];
+            wl[q] = wdc;
             }
         }
+    }
     }
     
     // REEF3D::HYDRO rain and point sources (R 10, R 40): a dry cell gets wet by its own depth as well,
@@ -125,8 +148,14 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     if(temp[IJ]==0 && WL(i,j)>=wd_criterion+eps)
     temp[IJ]=1;
     
-    SLICELOOP4
-    p->wet[IJ] = temp[IJ];
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        wet[q] = temp[q];
+    }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
@@ -139,25 +168,36 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     // first ring of cells a point source wets, whose neighbours across are still dry)
     if(p->A243>0 && !hwet)
     {
-        SLICELOOP4
-        temp[IJ] = p->wet[IJ];
+        // (temp holds the flags of the cells already: copied to wet above)
+        const bool j0 = (p->j_dir==0);
         
-        SLICELOOP4
-        if(p->wet[IJ]==1)
+        for(int ii=0; ii<p->knox; ++ii)
         {
-        // no wet neighbour in x: dry on both sides, or dry on one side and a wall or solid on the other
-        const bool isox = (p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0) || (p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
-                       || (p->wet[Im1J]==0 && p->wet[Ip1J]==0);
-        
-        const bool isoy = (p->wet[IJm1]==0 && p->flagslice4[IJp1]<0) || (p->wet[IJp1]==0 && p->flagslice4[IJm1]<0)
-                       || (p->wet[IJm1]==0 && p->wet[IJp1]==0);
-        
-        if(isox && (isoy || p->j_dir==0))
-        temp[IJ]=0;
+        const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+            for(int q=q0; q<q0+p->knoy; ++q)
+            if(flag[q]>0)
+            if(wet[q]==1)
+            {
+            // no wet neighbour in x: dry on both sides, or dry on one side and a wall or solid on the other
+            const bool isox = (wet[q-nj]==0 && flag[q+nj]<0) || (wet[q+nj]==0 && flag[q-nj]<0)
+                           || (wet[q-nj]==0 && wet[q+nj]==0);
+            const bool isoy = (wet[q-1]==0 && flag[q+1]<0) || (wet[q+1]==0 && flag[q-1]<0)
+                           || (wet[q-1]==0 && wet[q+1]==0);
+            
+            if(isox && (isoy || j0))
+            temp[q]=0;
+            }
         }
         
-        SLICELOOP4
-        p->wet[IJ] = temp[IJ];
+        for(int ii=0; ii<p->knox; ++ii)
+        {
+        const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+            for(int q=q0; q<q0+p->knoy; ++q)
+            if(flag[q]>0)
+            wet[q] = temp[q];
+        }
         
         pgc->gcsl_start4Vint(p,p->wet,50);
     }
@@ -166,30 +206,49 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     pgc->gcsl_start4(p,WL,gcval_eta);
     
     // dry cells carry no momentum
-    SLICELOOP4
-    if(p->wet[IJ]==0)
+    // also: face wet flags (used by the turbulence model) and the water depth for the other modules
     {
-    b->U(i,j) = 0.0;
-    b->V(i,j) = 0.0;
-    b->W(i,j) = 0.0;
-    b->UH(i,j) = 0.0;
-    b->VH(i,j) = 0.0;
-    b->WH(i,j) = 0.0;
+    const int *const flag1 = p->flagslice1, *const flag2 = p->flagslice2;
+    double *const U = b->U.V, *const V = b->V.V, *const W = b->W.V, *const UH = b->UH.V, *const VH = b->VH.V, *const WH = b->WH.V;
+    double *const hp = b->hp.V;
+    int *const wet1 = b->wet1.V, *const wet2 = b->wet2.V;
+    const int ie = p->knox - p->ulast;
+    const int je = p->knoy - p->vlast;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+            if(wet[q]==0)
+            {
+            U[q] = 0.0;
+            V[q] = 0.0;
+            W[q] = 0.0;
+            UH[q] = 0.0;
+            VH[q] = 0.0;
+            WH[q] = 0.0;
+            }
+        
+        hp[q] = wl[q];
+        }
+        
+        if(ii<ie)
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag1[q]>0)
+        wet1[q] = (wet[q]==1 && wet[q+nj]==1)?1:0;
+        
+        for(int q=q0; q<q0+je; ++q)
+        if(flag2[q]>0)
+        wet2[q] = (wet[q]==1 && wet[q+1]==1)?1:0;
     }
-    
-    // face wet flags (used by the turbulence model)
-    SLICELOOP1
-    b->wet1(i,j) = (p->wet[IJ]==1 && p->wet[Ip1J]==1)?1:0;
-    
-    SLICELOOP2
-    b->wet2(i,j) = (p->wet[IJ]==1 && p->wet[IJp1]==1)?1:0;
+    }
     
     pgc->gcsl_start1int(p,b->wet1,50);
     pgc->gcsl_start2int(p,b->wet2,50);
     
-    // water depth for the other modules
-    SLICELOOP4
-    b->hp(i,j) = WL(i,j);
     
     pgc->gcsl_start4(p,b->hp,gcval_eta);
     
@@ -212,6 +271,9 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
 {
     if(p->A243==0)
     return;
+    
+    // the face states of the vertical momentum and of the Boussinesq model only where they are stored (sflow_memory.h)
+    const bool whf = sflow_wh_faces(p), bsf = sflow_bous_faces(p);
     
     // x-faces
     SLICELOOP1
@@ -252,12 +314,19 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->UHn(i,j) = 0.0;
         b->VHs(i,j) = 0.0;
         b->VHn(i,j) = 0.0;
-        b->WHs(i,j) = 0.0;
-        b->WHn(i,j) = 0.0;
-        b->QUs(i,j) = 0.0;
-        b->QUn(i,j) = 0.0;
-        b->QVs(i,j) = 0.0;
-        b->QVn(i,j) = 0.0;
+            if(whf)
+            {
+            b->WHs(i,j) = 0.0;
+            b->WHn(i,j) = 0.0;
+            }
+            
+            if(bsf)
+            {
+            b->QUs(i,j) = 0.0;
+            b->QUn(i,j) = 0.0;
+            b->QVs(i,j) = 0.0;
+            b->QVn(i,j) = 0.0;
+            }
         }
     }
     
@@ -301,12 +370,19 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->UHw(i,j) = 0.0;
         b->VHe(i,j) = 0.0;
         b->VHw(i,j) = 0.0;
-        b->WHe(i,j) = 0.0;
-        b->WHw(i,j) = 0.0;
-        b->QUe(i,j) = 0.0;
-        b->QUw(i,j) = 0.0;
-        b->QVe(i,j) = 0.0;
-        b->QVw(i,j) = 0.0;
+            if(whf)
+            {
+            b->WHe(i,j) = 0.0;
+            b->WHw(i,j) = 0.0;
+            }
+            
+            if(bsf)
+            {
+            b->QUe(i,j) = 0.0;
+            b->QUw(i,j) = 0.0;
+            b->QVe(i,j) = 0.0;
+            b->QVw(i,j) = 0.0;
+            }
         }
     }
     

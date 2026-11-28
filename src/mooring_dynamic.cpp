@@ -24,6 +24,10 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"ghostcell.h"
 #include"ckpt_pack.h"
+#include"6DOF_output_dir.h"
+#include"lagoon_nets.h"
+#include"runlog.h"
+#include<cstdio>
 
 mooring_dynamic::mooring_dynamic(int number):line(number),beam(number)
 {}
@@ -58,7 +62,7 @@ void mooring_dynamic::start(lexer *p, ghostcell *pgc)
 	saveMooringPoint(p);
 
 	// Plot mooring line	
-	print(p);
+	print_line(p);
 }
 
 void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
@@ -176,4 +180,73 @@ void mooring_dynamic::ckpt_restore(const std::vector<double> &v, size_t &k)
     r.m(fixPoint); r.m(a_O);
     r.b(broken);
     k = r.k;
+}
+
+void mooring_dynamic::print_line(lexer *p)
+{
+    // the beam's file (REEF3D_CFD_Beam: tensions, moments, quaternions), at its output times
+    if(!print(p))
+    return;
+
+	int num=0;
+	
+	if(p->P15==1)
+    num = p->printcount_sixdof;
+
+    if(p->P15==2)
+    num = p->count;
+	
+	if(num<0)
+	num=0;
+
+    Matrix3Xd c_;
+    getTransPos(c_);
+    const int np = int(c_.cols());
+
+    // P 18: the line in the LAGOON store as well (lagoon_moorings); P 18 1: instead of the .vtk file
+    std::vector<double> T(np);  // the inner force at each node, as the force file has it at the end
+    lagoon_line_points k;
+    for(int n=0; n<np; ++n)
+    {
+        T[n] = getTensLoc(n);
+        k.xyz.insert(k.xyz.end(), {float(c_(0,n)), float(c_(1,n)), float(c_(2,n))});
+        k.tension.push_back(float(T[n]));
+    }
+    for(int n=0; n<np-1; ++n)
+    k.bars.insert(k.bars.end(), {n, n+1});
+    const bool stored = lagoon_moorings::output(p, line, num, std::move(k));
+
+    if(stored && p->P18==1)
+    return;
+
+    char name[1000];
+    snprintf(name,sizeof(name),"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
+
+    ofstream result;
+    result.open(name, ios::binary);
+
+    result << "# vtk DataFile Version 2.0" << endl;
+    result << "Mooring line " << line << endl;
+    result << "ASCII \nDATASET POLYDATA" << endl;
+    result << "POINTS " << np << " float" <<endl;
+
+    for(int n=0; n<np; ++n)
+    result<<c_(0,n)<<" "<<c_(1,n)<<" "<<c_(2,n)<<endl;
+
+    result << "\nLINES " << np-1 << " " << (np-1)*3 <<endl;
+
+    for(int n=0; n<np-1; ++n)
+    result<<"2 "<< n << " " << n+1 << endl;
+
+    result<<"\nPOINT_DATA " << np <<endl;
+    result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
+
+    for(int n=0; n<np; ++n)
+    result<<T[n]<<endl;
+
+    result.close();
+    char sname[32];
+    snprintf(sname,sizeof(sname),"mooring%i",line);
+    if(p->plog)
+    p->plog->written(p,num,sname,"mooring",name,0);
 }

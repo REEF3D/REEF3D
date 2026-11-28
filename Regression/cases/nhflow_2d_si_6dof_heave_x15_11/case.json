@@ -1,0 +1,18 @@
+{
+ "description": "nhflow_2d_si_6dof_heave_nh with X 15 11: in the semi-implicit step the cells with the forcing of X 15 1 (check), the body in the eta-phi solve (NHFLOW_SI_6DOF v49).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::check X 15 8/10/11 -> 4"
+ ],
+ "architect": "Hans Bihs"
+}

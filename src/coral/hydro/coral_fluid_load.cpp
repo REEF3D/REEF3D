@@ -24,6 +24,8 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include<algorithm>
 #include<cmath>
+#include<cstdio>
+#include<Eigen/Eigenvalues>
 
 namespace coral
 {
@@ -100,6 +102,59 @@ VecX fluid_load::force(double t) const
         F += l*Fs_[i];
     }
     return F;
+}
+
+void fluid_load::describe(std::ostream &os, const model &m, double t0, double t1) const
+{
+    char b[512];
+    auto v6 = [&](const VecX &F, int k)
+    {
+        std::snprintf(b, sizeof(b), "(%.4g %.4g %.4g | %.4g %.4g %.4g)", F(6*k), F(6*k+1), F(6*k+2), F(6*k+3), F(6*k+4), F(6*k+5));
+        return std::string(b);
+    };
+    os<<"  fluid loads ("<<name_<<", order "<<order<<"): "<<ts_.size()<<" samples, oldest first, F | M"<<std::endl;
+    for(size_t i=0; i<ts_.size(); ++i)
+    {
+        const bool p = prov_ && i+1 == ts_.size();
+        for(int k=0; k<nbody(); ++k)
+            os<<"    t = "<<ts_[i]<<(p ? " provisional " : " committed   ")<<bname_[k]<<" "<<v6(Fs_[i], k)
+              <<(Fs_[i].segment<6>(6*k).allFinite() ? "" : "  NON-FINITE")<<std::endl;
+    }
+    const VecX F0 = force(t0), F1 = force(t1);
+    for(int k=0; k<nbody(); ++k)
+    {
+        os<<"    load at t = "<<t0<<": "<<bname_[k]<<" "<<v6(F0, k)<<std::endl;
+        os<<"    load at t = "<<t1<<": "<<bname_[k]<<" "<<v6(F1, k)<<std::endl;
+    }
+    for(int k=0; k<nbody(); ++k)
+    {
+        const rigid_body &bd = m.body(map_[k]);
+        const Mat6 A = A_.block<6,6>(6*k, 6*k), As = As_.block<6,6>(6*k, 6*k);
+        std::snprintf(b, sizeof(b), "    added mass of %s, diagonal (%.4g %.4g %.4g | %.4g %.4g %.4g)%s", bname_[k].c_str(),
+                      A(0,0), A(1,1), A(2,2), A(3,3), A(4,4), A(5,5), A.allFinite() ? "" : "  NON-FINITE");
+        os<<b;
+        if(As.any())
+        {
+            std::snprintf(b, sizeof(b), ", artificial (%.4g %.4g %.4g | %.4g %.4g %.4g)", As(0,0), As(1,1), As(2,2),
+                          As(3,3), As(4,4), As(5,5));
+            os<<b;
+        }
+        os<<std::endl;
+        // mass matrix at the CoG (global axes) with the added mass: its symmetric part must be positive definite
+        Mat6 M = Mat6::Zero();
+        M.block<3,3>(0,0) = bd.mass*Mat3::Identity();
+        M.block<3,3>(3,3) = bd.R*bd.inertia*bd.R.transpose();
+        const Mat6 S = M + 0.5*((A + As) + (A + As).transpose());
+        if(S.allFinite())
+        {
+            const Eigen::SelfAdjointEigenSolver<Mat6> es(S, Eigen::EigenvaluesOnly);
+            const auto &e = es.eigenvalues();
+            std::snprintf(b, sizeof(b), "    mass matrix of %s with it, eigenvalues %.4g %.4g %.4g %.4g %.4g %.4g (body: mass %.4g, "
+                          "inertia %.4g %.4g %.4g)%s", bname_[k].c_str(), e(0), e(1), e(2), e(3), e(4), e(5), bd.mass,
+                          bd.inertia(0,0), bd.inertia(1,1), bd.inertia(2,2), e(0) > 0.0 ? "" : "  NOT POSITIVE DEFINITE");
+            os<<b<<std::endl;
+        }
+    }
 }
 
 void fluid_load::set_attachment(const model &m, int k, const Vec3 &p)

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_tide_oblique",
+ "ctrl_add": [
+  "A 225 2"
+ ],
+ "description": "sflow_2d_tide_oblique (hydrostatic, Riemann and Flather edges) with the HLLC flux (A 225 2): the tangential face velocities without a non-hydrostatic model.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "hllc"
+ ],
+ "covers": [
+  "sflow_HLL::HLLC_x/HLLC_y hydrostatic",
+  "sflow_memory.h: sflow_tangential_faces without sflow_w_faces"
+ ],
+ "architect": "Hans Bihs"
+}

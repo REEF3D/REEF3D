@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_amr_shelf_sub",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_amr_shelf_sub with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of sflow_2d_amr_shelf_sub_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: the steps per level (msub) and the regrid count of G 7 1"
+ ],
+ "architect": "Hans Bihs"
+}

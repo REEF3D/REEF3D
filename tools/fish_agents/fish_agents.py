@@ -35,7 +35,7 @@
 #    "body": {"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
 #             "tau_coast": 11.0, "C_brake": 3.5, "r_fish": 0.15, "D_fish": 0.0},
 #    "brain": {"U_des": 0.5, "b_max": 1.0, "D": 1.5, "s0": 0.5, "k_turn": 1.3, "tau_u": 0.8, "tau_d": 0.8,
-#              "n_u": 0.0, "n_d": 0.0, "s_sd": 0.0, "tau_c": 0.0},
+#              "n_u": 0.0, "n_d": 0.0, "s_sd": 0.0, "tau_c": 0.0, "C_d": 0.0},   (C_d: X 209, the drag law of the glide)
 #    "flow": {"type": "uniform", "u": [0.2, 0.0]}  or  {"type": "reef3d", "run": "<dir>", "t0": 20, "t1": 40},
 #    "box": [0, 8, 0, 6], "walls": [0, 0, 1, 1], "cylinders": [[4.0, 3.0, 0.4]],
 #    "shelter": {"R": 1.5, "step": 0.3, "every": 10, "measure": 5, "v": 0.05, "gain": 0, "forget": 0,
@@ -45,12 +45,19 @@
 # Output: the tracks (t id x z heading_deg U f a b mode target_x target_z) every out_dt; the summary per fish.
 # 3D (a sea cage): fish_agents3d.py.
 #
+# A body fitted to resolved runs (plan 2, E: tools/fish_body/fit_body.py): "body_file": "body.json" (its constants;
+# the model of body2d.py: the stride with the frequency and the bend, the turn rate with the bend, the glide by a
+# drag law, the slip across the axis; tools/fish_body/bodies/ has the 2D swimmer at L/50), and "body": {"probes": kappa} for a lateral line with a probe at the head that gives the brain its speed
+# through the water (B1, patch 0039). "targets": [[t, x, z], ...] moves the target of every fish (linear, as X 192).
+#
 # Architect: Hans Bihs
 import argparse, json, math, os, random, re, sys, glob
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fish_brain"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fish_body"))
 import brain_server as bs                                          # noqa: E402
+import body2d as bd                                                # noqa: E402
 
 ANG = [0.0, 0.4363, -0.4363, 0.8727, -0.8727, 1.309, -1.309]       # the rays of the brain (sixdof_brain::rays)
 
@@ -203,8 +210,8 @@ class Fish:
                    "s0": brain.get("s0", 0.0), "k_turn": brain.get("k_turn", 0.0),
                    "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0),
                    "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0), "s_sd": brain.get("s_sd", 0.0),
-                   "tau_c": brain.get("tau_c", 0.0)}
-        self.acc_U = 0.0; self.acc_n = 0
+                   "tau_c": brain.get("tau_c", 0.0), "C_d": brain.get("C_d", 0.0)}
+        self.acc_U = 0.0; self.acc_n = 0; self.acc_W = 0.0
         self.mode = -1
         # sheltering: the offset of the target from the station, its direction, the effort (mean tail-beat
         # frequency) at the best offset so far, the effort summed since the last move
@@ -261,7 +268,14 @@ def shelter_move(f, sh, dt):
 
 def run(case):
     rnd = random.Random(case.get("seed", 1))
-    body = dict(BODY, **case.get("body", {}))
+    body = dict(BODY)
+    if "body_file" in case:
+        # a body fitted to resolved runs (tools/fish_body/fit_body.py, plan 2 E): the model of body2d.py
+        body.update(json.load(open(case["body_file"]))["body"]); body["model"] = 2
+    body.update(case.get("body", {}))
+    m2 = body.get("model", 1) == 2
+    if m2:
+        body = dict(bd.DEFAULT, **body)
     brain = dict({"U_des": 0.5, "b_max": 1.0, "D": 1.5}, **case.get("brain", {}))
     L, f0 = body["L"], body["f0"]
     T, dt, out_dt = case.get("T", 20.0), case.get("dt", 0.01), case.get("out_dt", 0.1)
@@ -299,7 +313,13 @@ def run(case):
     rows = []
     t, t_out = 0.0, 0.0
     n = len(fish)
+    tgts = np.array(case["targets"], float) if "targets" in case else None
     while t < T - 1e-9:
+        if tgts is not None:
+            # a target moving linearly between the points (as X 192), for every fish
+            tt = (float(np.interp(t, tgts[:, 0], tgts[:, 1])), float(np.interp(t, tgts[:, 0], tgts[:, 2])))
+            for f in fish:
+                f.target = tt
         X = np.array([f.x for f in fish]); Z = np.array([f.z for f in fish])
         uf, wf = flow(t, X, Z)
         for k, f in enumerate(fish):
@@ -314,7 +334,12 @@ def run(case):
                     f.g[key][2] = v; f.g[key][3] = f.second[4]
                 f.second = None
             fg, ag, bg = f.g["f"][0], f.g["a"][0], f.g["b"][0]
-            f.Ug, kt = body_step(f.Ug, fg, ag, bg, t, dt, body)
+            if m2:
+                # body2d: f.Ug is the speed through the water, the turn rate omega, the slip across the axis
+                U2, om, vsl = bd.step(f.Ug, fg, ag, bg, t, dt, body)
+                f.Ug, kt = U2, 0.0
+            else:
+                f.Ug, kt = body_step(f.Ug, fg, ag, bg, t, dt, body)
             if sh and sh.get("metric", "effort") == "current":
                 kx = f.st.get("kx", [0.0, 0.0, 0.0])
                 f.acc_f += math.hypot(kx[1], kx[2])
@@ -323,10 +348,16 @@ def run(case):
             f.acc_nf += 1
             if sh:
                 shelter_move(f, sh, dt)
-            Uw = body["s"] * f.Ug
-            f.h += dt * kt * bg * Uw / L
-            ex, ez = math.cos(f.h), math.sin(f.h)
-            nx, nz = f.x + dt * (Uw * ex + uf[k]), f.z + dt * (Uw * ez + wf[k])
+            if m2:
+                Uw = f.Ug
+                f.h += dt * om
+                ex, ez = math.cos(f.h), math.sin(f.h)
+                nx, nz = f.x + dt * (Uw * ex - vsl * ez + uf[k]), f.z + dt * (Uw * ez + vsl * ex + wf[k])
+            else:
+                Uw = body["s"] * f.Ug
+                f.h += dt * kt * bg * Uw / L
+                ex, ez = math.cos(f.h), math.sin(f.h)
+                nx, nz = f.x + dt * (Uw * ex + uf[k]), f.z + dt * (Uw * ez + wf[k])
             # held at the box and outside the solids
             nx = min(max(nx, box[0] + 0.05), box[1] - 0.05); nz = min(max(nz, box[2] + 0.05), box[3] - 0.05)
             for c in cyl:
@@ -335,6 +366,7 @@ def run(case):
                     s_ = (c[2] + 0.02) / max(dd, 1e-9)
                     nx, nz = c[0] + (nx - c[0]) * s_, c[1] + (nz - c[1]) * s_
             f.acc_U += ((nx - f.x) * ex + (nz - f.z) * ez) / dt; f.acc_n += 1
+            f.acc_W += Uw
             f.x, f.z = nx, nz
         # the bodies do not overlap: pairs closer than 2 r_fish are pushed apart (no brain involved)
         if n > 1 and body["r_fish"] > 0.0:
@@ -366,6 +398,12 @@ def run(case):
                   "axis": [ex, 0.0, ez], "lat": [-ez, 0.0, ex], "U": f.acc_U / max(1, f.acc_n),
                   "stride": f.st.get("kx", [0.5])[0], "target": [f.aim()[0], 0.0, f.aim()[1]],
                   "rays": rays, "ray_angles": ANG}
+            if body.get("probes", 0.0) > 0.0:
+                # a lateral line with a probe at the head on both sides (B1): the flow along the axis relative to the
+                # body there is kappa times its speed through the water (the mean over the interval)
+                uw = f.acc_W / max(1, f.acc_n)
+                sv.update({"ll_s": [0.05, 0.05], "ll_side": [1, -1], "ll_p": [0.0, 0.0],
+                           "ll_ua": [-body["probes"] * uw, -body["probes"] * uw]})
             d = bs.rules(sv, f.st, f.pr)
             ts = d.get("ts", 0.0) or 0.5 / max(f.g["f"][0], 0.1)
             for key in "fab":
@@ -373,10 +411,10 @@ def run(case):
             f.second = (d["t2"], d["f2"], d["a2"], d["b2"], d["ts2"]) if "t2" in d else None
             f.next = t + d.get("next", min(0.5 / d["f"], 0.5 / f.pr["f0"]))
             f.mode = d.get("mode", 0)
-            f.acc_U = 0.0; f.acc_n = 0
+            f.acc_U = 0.0; f.acc_n = 0; f.acc_W = 0.0
         if t >= t_out - 1e-9:
             for f in fish:
-                rows.append((t, f.i, f.x, f.z, math.degrees(f.h), body["s"] * f.Ug, f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode,
+                rows.append((t, f.i, f.x, f.z, math.degrees(f.h), (f.Ug if m2 else body["s"] * f.Ug), f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode,
                              f.aim()[0], f.aim()[1]))
             t_out += out_dt
     return fish, rows

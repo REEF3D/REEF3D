@@ -16,5 +16,8 @@
  "covers": [
   "nhflow_momentum_SI::si_stage_rhs wind",
   "wind_forcing_nhf_y"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

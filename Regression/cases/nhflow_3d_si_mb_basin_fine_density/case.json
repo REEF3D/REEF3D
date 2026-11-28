@@ -22,5 +22,8 @@
   "nhflow_amr::si_step with A 620: si_old_closed, si_tracer phase 1, si_density per block",
   "baroclinic_face across block faces (the outer columns from the filled tracer mask), curvilinear cell vector",
   "UNESCO equation of state"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

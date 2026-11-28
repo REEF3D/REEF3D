@@ -144,6 +144,7 @@ private:
     bool single;              // F 81 1: single phase (PICIN), p = 0 at the surface, no air in the momentum
     bool rkstages;            // F 76 1 (with F 81 1, 2): the particles move in the stages of the SSP-RK3 step
     bool staged;              // this step they did (pic_f::stage), pic_f::start does not move them
+    double redist_clock;      // F 78: the steps at CFL 0.25 since the last redistribution
     bool apic;                // F 81 1, 2 with F 77 1, 2: affine velocities (Jiang et al. 2015)
     bool relaxzones;          // the relaxation zones of the waves (B 90 with B 98 2, B 99 1, 2)
     std::vector<char> zcol;   // per cell column of the subdomain: in a relaxation zone

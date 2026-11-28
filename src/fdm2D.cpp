@@ -22,23 +22,24 @@ Author: Hans Bihs
 
 #include"fdm2D.h"
 #include"lexer.h"
+#include"sflow_memory.h"
 
 fdm2D::fdm2D(lexer *p)
 			: U(p),V(p),W(p),UH(p),VH(p),WH(p),UA(p),VA(p),MX(p),MY(p),
-            Fx(p),Fs(p),Fn(p),FEx(p),
-            Fy(p),Fe(p),Fw(p),FEy(p),
+            Fx(p),Fs(p,sflow_face_fluxes(p)),Fn(p,sflow_face_fluxes(p)),FEx(p),
+            Fy(p),Fe(p,sflow_face_fluxes(p)),Fw(p,sflow_face_fluxes(p)),FEy(p),
     
-            Ss(p),Sn(p),SSx(p),
-            Se(p),Sw(p),SSy(p),
+            Ss(p),Sn(p),
+            Se(p),Sw(p),
     
             Un(p),Us(p),
-            Ue(p),Uw(p),
+            Ue(p,sflow_tangential_faces(p)),Uw(p,sflow_tangential_faces(p)),
     
-            Vn(p),Vs(p),
+            Vn(p,sflow_tangential_faces(p)),Vs(p,sflow_tangential_faces(p)),
             Ve(p),Vw(p),
     
-            Wn(p),Ws(p),
-            We(p),Ww(p),
+            Wn(p,sflow_w_faces(p)),Ws(p,sflow_w_faces(p)),
+            We(p,sflow_w_faces(p)),Ww(p,sflow_w_faces(p)),
     
             UHn(p),UHs(p),
             UHe(p),UHw(p),
@@ -46,13 +47,13 @@ fdm2D::fdm2D(lexer *p)
             VHn(p),VHs(p),
             VHe(p),VHw(p),
     
-            WHn(p),WHs(p),
-            WHe(p),WHw(p), 
+            WHn(p,sflow_wh_faces(p)),WHs(p,sflow_wh_faces(p)),
+            WHe(p,sflow_wh_faces(p)),WHw(p,sflow_wh_faces(p)), 
             
-            QUn(p),QUs(p),
-            QUe(p),QUw(p),
-            QVn(p),QVs(p),
-            QVe(p),QVw(p),
+            QUn(p,sflow_bous_faces(p)),QUs(p,sflow_bous_faces(p)),
+            QUe(p,sflow_bous_faces(p)),QUw(p,sflow_bous_faces(p)),
+            QVn(p,sflow_bous_faces(p)),QVs(p,sflow_bous_faces(p)),
+            QVe(p,sflow_bous_faces(p)),QVw(p,sflow_bous_faces(p)),
             
             WL(p),
             ETAs(p),ETAn(p),
@@ -65,18 +66,18 @@ fdm2D::fdm2D(lexer *p)
     
     
             eta(p),eta_n(p),
-            P(p),Pn(p),Q(p),Qn(p),
+            P(p),Q(p),
             F(p),G(p),H(p),L(p),
             Fext(p),Gext(p),Hext(p),
             ws(p),
             press(p),
-            eddyv(p),kin(p),eps(p),
+            eddyv(p),kin(p),
             bed(p),bed0(p),depth(p),
             solidbed(p),topobed(p),
             bednode(p),
             hx(p),hy(p),hp(p),
             xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),pbh(p),Hs(p),fs(p),
+            test(p),pbh(p),Hs(p),fs(p),
             fx(p),fy(p),fz(p),
             breaking(p),breaking_print(p),vb(p),
             wet1(p),deep1(p),wet2(p),deep2(p),

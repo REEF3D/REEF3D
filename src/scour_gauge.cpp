@@ -68,6 +68,10 @@ scour_gauge::scour_gauge(lexer *p, int type_, const char *module) : type(type_)
     // P 89: the equilibrium scour depth, 0 Sumer & Fredsoe (2001), 1 Hoballah Jalloul et al. (2026)
     eq = p->P89==1 ? 1 : 0;
 
+    // P 90: the current-dominated limit of S_eq/D: 1.3 up to Ucw = u0, rising linearly to Sc at Ucw = 1
+    sc90 = p->P90_Sc;
+    u090 = std::min(std::max(p->P90_u0,0.0),0.99);
+
     const std::vector<double> zero(num,0.0);
     wsum=mub=mvb=muu=mvv=muc=mvc=maa=mh=ubp=vbp=hasp=tact=S=V=zero;
     nextprint = -1.0e20;
@@ -123,11 +127,15 @@ scour_gauge::~scour_gauge()
 }
 
 // the live-bed equilibrium depth S_eq/D from KC, Ucw and D/L: Sumer & Fredsoe (2001) or Hoballah Jalloul
-// et al. (2026, Eq. 29-31, An as corrected in the corrigendum); the current limit 1.3 blended in for
-// Ucw > 0.75 (both formulas go to zero for KC -> 0 also in a pure current)
+// et al. (2026, Eq. 29-31, An as corrected in the corrigendum); the current limit blended in for
+// Ucw > 0.75 (both formulas go to zero for KC -> 0 also in a pure current). P 90: the limit of
+// Sumer & Fredsoe (1.3, prefactor of eq 0 and current limit) rises linearly from Ucw = u0 to Sc at Ucw = 1
 double scour_gauge::seq_live(double KC, double Ucw, double DL) const
 {
     const double wc = std::min(std::max((Ucw-0.75)/0.2,0.0),1.0);
+
+    // P 90: the current limit, 1.3 (Sumer & Fredsoe) below Ucw = u0, rising linearly to P90_Sc at Ucw = 1
+    const double Sc = 1.3 + (sc90-1.3)*std::min(std::max((Ucw-u090)/(1.0-u090),0.0),1.0);
 
     double Sw = 0.0;
 
@@ -136,7 +144,7 @@ double scour_gauge::seq_live(double KC, double Ucw, double DL) const
         const double A = 0.03 + 0.75*pow(Ucw,2.6);
         const double B = 6.0*exp(-4.7*Ucw);
 
-        Sw = KC>B ? 1.3*(1.0-exp(-A*(KC-B))) : 0.0;
+        Sw = KC>B ? Sc*(1.0-exp(-A*(KC-B))) : 0.0;
     }
 
     if(eq==1 && KC>0.0)
@@ -147,7 +155,7 @@ double scour_gauge::seq_live(double KC, double Ucw, double DL) const
         Sw = KC>Bn ? 1.9*(1.0-exp(-An*(sqrt(KC) - sqrt(Bn)))) : 0.0;
     }
 
-    return std::max(Sw,1.3*wc);
+    return std::max(Sw,Sc*wc);
 }
 
 void scour_gauge::statistics(lexer *p, int n, stats &st) const

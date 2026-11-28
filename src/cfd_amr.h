@@ -266,6 +266,7 @@ struct cfd_amr_cf
     double kf, kc;      // flux coefficients of the fine and the coarse row
     double ap;          // D 1 2: the open fraction of the fine face (solid_aperture.h); 1 otherwise
     double rof;         // face density of the stage (pr_weights)
+    double rog;         // the same without the porosity factor (the weight of the face, G 17)
     double gs, gf;      // F 41 1, the ghost fluid method across the face (pr_weights): the gradient
                         // (gs x_coarse - gf x_fine)/dist (1, 1: no surface between; 0, 1/theta: the
                         // fine cell in the water, p = 0 at the surface; 1/theta, 0: the other way)
@@ -273,6 +274,7 @@ struct cfd_amr_cf
     int ns;             // the coarse value at the position of the fine cell: sum of sw x[sg][sq]
     int sg[5], sq[5];   // (the coarse cell and its leaf neighbours in the transverse directions,
     double sw[5];       // weights of the stage: pr_weights)
+    double sh[5];       // (the linear weights, before G 18: the hydrostatic columns of pr_hydro)
     int sc[5][3];       // (their local cell indices)
     double ufin;        // G 7 1 level projection: the corrected face velocity
     double hf, hs;      // hydrostatic pressure of the fine cell and at its position on the coarse side
@@ -314,6 +316,9 @@ public:
     int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
+    // the acceleration terms (maxF, maxG, maxH) of the last step over all patches: a patch made at a
+    // regrid has none of its own for its first step
+    double ts_acc[3] = {0.0,0.0,0.0};
     void velmax(lexer*);    // the largest |u|, |v|, |w| over the finest grids (timestep: printed, into umax, vmax, wmax)
     void print(lexer*, ghostcell*, bool after=false);
     bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
@@ -542,6 +547,7 @@ private:
     // composite volume of the level set (F 46 2/3): leaf cells of all grids
     void volume(double &V, double &dV);
     void volume_correct(lexer*, ghostcell*);
+    void volume_edge(lexer*);           // REEF3D_AMR_VOLEDGE=1: the volume through the patch edges, fine against coarse (a diagnostic)
     void rovisc_all();
     double vol_step = 0.0, vol_net = 0.0;
     bool vol_ini = false;
@@ -629,6 +635,11 @@ private:
     // the nets (X 320, of the bodies or fixed): their forces on the fluid on every patch, G 7 0
     sixdof *nets6 = nullptr;
     void net_forces();
+    // flexible rod trees (Z 20, G 7 0): sampled on the finest grid that holds a point, their reaction
+    // on the faces of the patches as well (rod_sample before, rod_forces after the momentum of level 0)
+    int rods = 0;
+    void rod_sample();
+    void rod_forces();
     void body_fit(int, int, double);
     void body_refit(int, int);
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g

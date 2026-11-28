@@ -48,6 +48,9 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"hydro_core.h"
 #include"hydro_couple.h"
+#include"slide2D.h"
+#include"sflow_level_file.h"
+#include"sflow_memory.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -87,6 +90,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	regression_dump rdump(p);
 	rdump.sflow_ini(p,b,pgc);
+
+    // the memory the set-up has freed back to the system (sflow_memory.h)
+    sflow_malloc_trim();
 	
 	// Mainloop
     if(p->mpirank==0)
@@ -141,7 +147,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         }
 
         // turbulence
-        pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
+        pturb->start(p,b,pgc,pdiff,psolv,pflow);
 
         // A 260 1/2 with mesh refinement: the models of the patches (sflow_amr_turb.cpp)
         if(pamr!=nullptr)
@@ -151,6 +157,15 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         // sediment transport
         psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
+
+        // two-layer landslide (W 150): the slide over the step, the bed of the water z_b + h_s
+        if(b->slide!=nullptr)
+        b->slide->start(p,b,pgc);
+
+        // F 74: the blocks released in this step leave the bed and join the water column
+        if(prelease!=nullptr)
+        prelease->step(p,b,pgc);
+
         pfsf->depth_update(p,b,pgc,b->WL);
 
         // timesave
@@ -166,6 +181,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // time step of the next step
         ptime->start(p,b,pgc);
 
+        // two-layer landslide (W 150): at most W 159 slide sub-steps per water step
+        if(b->slide!=nullptr && p->N48>0)
+        p->dt = MIN(p->dt, b->slide->dt_cap(p,pgc));
+        
         if(pamr!=nullptr)
         pamr->timestep(p,b,pgc);
 
@@ -184,16 +203,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         screen_timing(p,pgc,mtime);
 
-        SLICELOOP1
-        b->Pn(i,j) = b->P(i,j);
-
-        SLICELOOP2
-        b->Qn(i,j) = b->Q(i,j);
-
         emergency_stop(p,b,pgc);
 
         // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
-        // end of the step (Pn, Qn included)
+        // end of the step
         ckpt(p,b,pgc).step();
 	}
 

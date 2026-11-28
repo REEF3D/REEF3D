@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"met_forcing.h"
 #include"hydro_sflow.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include"sflow_print_wsf.h"
@@ -262,6 +263,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     if(b->hydro!=nullptr)
         b->hydro->offset_vtp(p,offset,n);
 
+    // slide layer (W 150)
+    if(b->slide!=nullptr)
+        b->slide->offset_vtp(p,offset,n);
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -318,6 +323,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
         b->met->name_vtp(result,offset,n);
     if(b->hydro!=nullptr)
         b->hydro->name_vtp(result,offset,n);
+    if(b->slide!=nullptr)
+        b->slide->name_vtp(result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -468,6 +475,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
         {std::ostringstream part(std::ios::out | std::ios::binary); b->met->print_vtp(p,part); bin.s += part.str();}
     if(b->hydro!=nullptr)
         {std::ostringstream part(std::ios::out | std::ios::binary); b->hydro->print_vtp(p,part); bin.s += part.str();}
+    if(b->slide!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); b->slide->print_vtp(p,part); bin.s += part.str();}
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;

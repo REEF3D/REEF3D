@@ -49,6 +49,13 @@ Architect: Hans Bihs
 // Boundaries: bed surface (cell face to a fluid cell): p = p_b, sigma'.n = 0; solids (structures, e.g. a
 // pipeline) and the bottom of the domain: u = 0, impermeable; lateral domain edges S 211 (1 roller:
 // u.n = 0, no shear; 2 fixed: u = 0), impermeable.
+//
+// Soil region (every step, the bed may move): left out are bed cells with fluid on both sides in a direction
+// (a cell of a staircase bed one cell wide or thick has no shear connection) and soil not connected through
+// faces to a wall (it would float); their bed pressure is that of the fluid above. The reference of the bed
+// pressure in cells that the bed uncovers later: the hydrostatic continuation of the fluid at the start.
+// A cell that enters or leaves the soil gives a short pore pressure transient (undrained response to the
+// sudden load or unloading of one cell), decaying within the consolidation time of a cell.
 
 #ifndef SOIL_STRESS_H_
 #define SOIL_STRESS_H_
@@ -69,6 +76,16 @@ public:
 
     // at the new time level of a CFD step (after simtime += dt)
     void step(lexer*, fdm*, ghostcell*);
+
+    // for other models (CPM Q 69 2): the model of the run (nullptr without S 200), whether it has started
+    // (S 213), the excess pore pressure of a cell of the rank (0 outside the soil)
+    static soil_stress *instance;
+    bool running() const {return active;}
+    double pore(int i, int j, int k) const
+    {
+        const int q = id(i,j,k);
+        return int(ctype[q])==SOIL ? X[3*N+q] : 0.0;
+    }
 
     enum celltype : int {NOCELL=0, SOIL=1, FREE=2, WALL=3, ROLLER=4};
     enum dofkind : int {NODOF=0, UNK=1, ZERO=2};

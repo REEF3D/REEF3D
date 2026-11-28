@@ -371,6 +371,27 @@ bool sixdof_nhflow::advance_early_ok(lexer *p) const
     return (p->X10==1 || p->X10==2) && p->X320==0 && p->X330==0 && p->X350==0 && p->X16==0;
 }
 
+// the semi-implicit NHFLOW (nhflow_momentum_SI::fb_step): the bodies were advanced once for the step
+void sixdof_nhflow::nhflow_mark_advanced(lexer *p, int iter)
+{
+    adv_count = p->count;
+    adv_iter = iter;
+    adv_time = p->simtime;
+}
+
+// the semi-implicit NHFLOW (nhflow_momentum_SI::df_predictor): the resistance of the porous floating body (X 16) on the
+// predictor, implicit over the step (sixdof_obj_nhflow::update_forcing_nhflow_porous, the stage weight alpha[0] 1 with
+// A 534 1); the drag reaction on the body (Xd .. Nd) and the linearised drag coefficients from these velocities
+void sixdof_nhflow::porous_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,
+                                          double *FX, double *FY, double *FZ, slice &WL)
+{
+    if(p->X16!=1 || (p->X10!=1 && p->X10!=2))
+    return;
+
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->update_forcing_nhflow_porous(p,d,pgc,U,V,W,FX,FY,FZ,WL,0);
+}
+
 bool sixdof_nhflow::advanced(lexer *p, int iter) const
 {
     return adv_count==p->count && adv_iter==iter && adv_time==p->simtime;

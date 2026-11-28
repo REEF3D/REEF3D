@@ -24,7 +24,7 @@ Author: Tobias Martin
 #include"beam.h"
 #include"lexer.h"
 
-void beam::print(lexer *p)
+bool beam::print(lexer *p)
 {
 	int num=0;
 	
@@ -115,6 +115,8 @@ void beam::print(lexer *p)
 		}
 		
         result.close();
+		return true;
 	}
+	return false;
 }
 

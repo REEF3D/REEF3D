@@ -248,6 +248,11 @@ private:
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)
     slice4 tU, tV, tUH, tVH;
+    // A 233 1: eta^n of the step before and its time, for the start value of the eta solve (eta_guess)
+    slice4 etaP;
+    double etaP_time, etaP_dt;
+    bool etaP_ok;
+    void eta_guess(lexer*);
 
     // water depth at the end of the step, the start of the next step (see start);
     // eta with the boundary values of ioflow / iowave (bc_setup)
@@ -346,6 +351,9 @@ private:
     slice4 phiN, WHp, Lc0, Unm1, Vnm1, WLh, WLo, AWo, WLq;
     slice4 nPW, nEb, nEo, nPo, nU, nV, nUs, nVs, nA, nsx, nsy, nE, nP, nL, nZ, nAE, nAP, nBE, nBP;   // scratch of the solve
     slice4 nGx, nGy;    // curvilinear grid: the depth gradient of the cells (bed acceleration phi)
+    // the slope term of the constraint with the change of eta over the step, implicit: - (U* d/dx + V* d/dy)(eta^{n+1} - eta^n);
+    // per cell (IJ) the coefficients of eta of the cell and of its east, west, north and south neighbour (nh_assemble)
+    std::vector<double> nh_sz;
     bool nh_first = true, nh_krylov = false, nh_x0 = false;
     int nh_cells_active = 0, nh_iter = 0, nh_wd_iter = 0, nh_wd_dry = 0;
     double nh_time = 0.0;
@@ -356,6 +364,7 @@ private:
     void nh_predictor(lexer*, fdm2D*, ghostcell*);
     void nh_solve(lexer*, fdm2D*, ghostcell*);
     void nh_assemble(lexer*, fdm2D*, ghostcell*);    // nA, face and cell coefficients of the coupled system
+    double nh_slope(lexer*, int, int, slice&);         // the implicit slope term (nh_sz) of a cell field
     void nh_cell(lexer*, fdm2D*, ghostcell*);
 
     // ship waves (X 10 3): the pressure of the moving body as the surface level it holds, in the face predictor and

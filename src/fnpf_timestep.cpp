@@ -133,7 +133,12 @@ double fnpf_timestep::theta_step(lexer *p, double cu)
     // gauges grow with the step, and the moving coastline A 343 2 fails at 2 x at the wetted front; larger steps
     // with a static coastline: N 48 2 with N 47 1.5-2.25). With resolved floating bodies (X 10 1) also at most the
     // RK3 step: the natural periods of the body set the step there.
-    const double dtmax = (p->A343>=1 || p->X10>0) ? 0.75*cu : 3.0*cu;
+    // N 64 1: the coastline bound is ignored (at most 4 x as without a coastline; the bound of the bodies stays). At
+    // the user's risk: in a 3D harbour case (Hs 10.4 m onto a steep shore, A 343 1) the steps of 3-5 x drained the
+    // columns next to the coastline within one step and the run stopped; Ting & Kirby and Mase & Kirby (lab
+    // beaches) were not stable either without further changes (validation FNPF Breaking/08)
+    const bool coastbound = (p->A343>=1 && p->N64==0);
+    const double dtmax = (coastbound || p->X10>0) ? 0.75*cu : 3.0*cu;
     const double T = theta_tref(p);
     
     if(T<=0.0 || cu<=0.0)
@@ -429,7 +434,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
         const double T = theta_tref(p);
         cout<<"FNPF time step N 48 1 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
             <<(p->N52>0.0 ? "N 52" : (T>0.0 ? "wave input" : "none: 2 x the RK3 step"))<<"), dt = "<<p->dt<<" s = "<<p->dt/(0.75*cu)
-            <<" x the RK3 step of N 48 2, N 47 0.75"<<(p->A343>=1 || p->X10>0 ? " (at most 1 x with a coastline, A 343 >= 1, or a floating body, X 10)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
+            <<" x the RK3 step of N 48 2, N 47 0.75"<<((p->A343>=1 && p->N64==0) || p->X10>0 ? " (at most 1 x with a coastline, A 343 >= 1 and N 64 0, or a floating body, X 10)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
         }
         said=true;
     }

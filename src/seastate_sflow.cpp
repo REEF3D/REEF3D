@@ -41,6 +41,17 @@ void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // mesh refinement (G 1): the coupling acts on level 0 (the environment from the restricted fields); the patches
     // take the wave force, div(M) and Hs, Tp from their parents (sflow_amr::wave_sync, sflow_amr_wave.cpp)
 
+    // curvilinear grids: the remote waves map at the physical cell centres (seastate_coupling_grids.cpp); the blocks of
+    // a multi-block grid get no wave fields yet, the in-process waves would run on the logical box
+    if((p->geo_mb>0 && p->A750>0) || (p->geo_curv==1 && p->A750==1))
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  "<<(p->geo_mb>0 ? "A 750 with SFLOW on a multi-block grid (G 50 1) is not available yet"
+                                                              : "A 750 1 with SFLOW on a curvilinear grid (G 50): use the remote waves (A 750 2)")<<endl<<endl;
+
+        pgc->final(true);
+    }
+
     // wave-dependent drag of the met forcing (W 207 7): the sea state of the coupling
     if(p->W207==7 && p->W200>0)
     {
@@ -58,6 +69,14 @@ void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->A750==2)
     {
     seastate_remote::link = this;
+
+        if(p->geo_curv==1)
+        {
+        std::vector<seastate_host_grid> G = {{p,&b->eta,&b->WL,&b->U,&b->V,this}};
+        remote_ini_grids(p,pgc,G);
+        return;
+        }
+
     remote_ini(p,pgc,b->eta,b->WL,b->U,b->V);
     return;
     }
@@ -76,7 +95,13 @@ void seastate_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(remote)
     {
-    remote_step(p,pgc,b->eta,b->WL,b->U,b->V,false);
+        if(hgrids)
+        {
+        std::vector<seastate_host_grid> G = {{p,&b->eta,&b->WL,&b->U,&b->V,this}};
+        remote_step_grids(p,pgc,G,false);
+        }
+        else
+        remote_step(p,pgc,b->eta,b->WL,b->U,b->V,false);
     return;
     }
 

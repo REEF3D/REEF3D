@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"solver.h"
+#include"nhflow_bcmom.h"
 #include"slice.h"
 #include"vrans.h"
 
@@ -90,34 +91,40 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             //  A 550 3: in all layers on all faces, the eddy viscosity of Kennedy et al. (2000) as a turbulent viscosity of
             //           the column (with the horizontal faces only, the surf zone depended on the number of layers)
             //  A 550 4: as A 550 3 with the depth profile of the orbital velocity (nhflow_breaking_profile.h)
+            //  A 556: share of vb on the faces between the layers (the vertical stress), 1 in full (nhflow_vbv). With A 556 < 1
+            //         vb acts along the sigma layers (horizontal faces only): the sigx, sigy parts of the sigma faces, the
+            //         sigxx terms and the explicit mixed terms do not take it (nhflow_vbsig)
             if(p->A550>=3 || k==p->knoz-1)
+            {
+            if(!nhflow_vbsig(p))
             {
             visc_IP +=  nhflow_vbz(p,d,i,j,p->ZP[KP]);
             visc_IPh += nhflow_vbz(p,d,i,j,p->ZP[KP]);
+            }
             visc_IM1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i-1,j,p->ZP[KP]));
             visc_IP1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i+1,j,p->ZP[KP]));
             }
 
             if(p->A550<3 && k==p->knoz-1)
             {
-            visc_KM1 += 0.5*d->vb(i,j);
-            visc_KP1 += d->vb(i,j);
-            visc_KM1h += 0.5*d->vb(i,j);
-            visc_KP1h += d->vb(i,j);
+            visc_KM1 += 0.5*nhflow_vbv(p)*d->vb(i,j);
+            visc_KP1 += nhflow_vbv(p)*d->vb(i,j);
+            if(!nhflow_vbsig(p)) visc_KM1h += 0.5*d->vb(i,j);
+            if(!nhflow_vbsig(p)) visc_KP1h += d->vb(i,j);
             }
 
             if(p->A550<3 && k==p->knoz-2)
             {
-            visc_KP1 += 0.5*d->vb(i,j);
-            visc_KP1h += 0.5*d->vb(i,j);
+            visc_KP1 += 0.5*nhflow_vbv(p)*d->vb(i,j);
+            if(!nhflow_vbsig(p)) visc_KP1h += 0.5*d->vb(i,j);
             }
 
             if(p->A550>=3)
             {
-            visc_KM1 += nhflow_vbz(p,d,i,j,p->ZN[KP]);
-            visc_KP1 += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
-            visc_KM1h += nhflow_vbz(p,d,i,j,p->ZN[KP]);
-            visc_KP1h += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
+            visc_KM1 += nhflow_vbv(p)*nhflow_vbz(p,d,i,j,p->ZN[KP]);
+            visc_KP1 += nhflow_vbv(p)*nhflow_vbz(p,d,i,j,p->ZN[KP1]);
+            if(!nhflow_vbsig(p)) visc_KM1h += nhflow_vbz(p,d,i,j,p->ZN[KP]);
+            if(!nhflow_vbsig(p)) visc_KP1h += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
             }
 
             
@@ -127,7 +134,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             
             // vertical faces: the sigx, sigy parts belong to the horizontal stresses (nu_h), the sigz part to the
             // vertical one (nu_v); identical to visc*sigxyz2 without the split
-            if(p->A561>0)
+            if(p->A561>0 || nhflow_vbv(p)<1.0)
             {
             cvt = visc_KP1h*(pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0)) + visc_KP1*pow(p->sigz[IJ],2.0);
             cvb = visc_KM1h*(pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0)) + visc_KM1*pow(p->sigz[IJ],2.0);
@@ -185,7 +192,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     
     // bed face (A 518), implicit, before A 513 (which takes the faces to solid or ghost cells with the values of the
     // stage input UH, explicitly: lagged by the stage, an error of the order nu dt/dz^2 of the bed cell)
-    //  1 wall-function bed: zero gradient, the bed shear is the friction of A 519 in F
+    //  1 wall-function bed: zero gradient, the bed shear is the friction of A 519 on the diagonal of the bed cell
     //  2 resolved no-slip bed: u = 0 on the bed face. The no-slip condition holds for the velocity of the stage,
     //    X + dt F: the explicit sources F (pressure gradient, convection) are added to the solution X of this
     //    system afterwards (nhflow_momentum_RK2/RK3). With dt F of zero gradient the ghost of X is -X - 2 dt F of
@@ -202,9 +209,36 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->rhsvec.V[n] += 2.0*d->M.b[n]*p->dt*CPORNH*d->F[IJK];
             }
             else
+            {
             d->M.p[n] += d->M.b[n];
             
+                // bed friction of the wall-function bed (A 519), implicit: gamma (X + dt F) in the bed cell
+                // (nhflow_bcmom::bed_gamma), so that bed shear and vertical diffusion are solved together
+                if(k==0 && nhflow_bcmom::bed_implicit(p))
+                {
+                const double gam = nhflow_bcmom::bed_gamma(p,d,i,j,k,WL(i,j));
+                
+                d->M.p[n] += gam;
+                d->rhsvec.V[n] -= gam*p->dt*CPORNH*d->F[IJK];
+                }
+            }
+            
         d->M.b[n] = 0.0;
+        }
+	++n;
+	}
+    
+    // free surface: zero gradient, implicit as the bed face, before A 513. With the value of the stage input
+    // (A 513 1) or its ghost cell (A 513 2) the face carried the flux nu (UH - X)/dz^2 = nu dt F/dz^2 in the
+    // steady state, a shear stress at the free surface in the direction of the forcing (uniform open-channel flow,
+    // k-epsilon, 10 layers, dt 1 s: the normal depth 4 % too small, in proportion to dt)
+    n=0;
+	LOOP
+	{
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && k==p->knoz-1)
+        {
+        d->M.p[n] += d->M.t[n];
+        d->M.t[n] = 0.0;
         }
 	++n;
 	}

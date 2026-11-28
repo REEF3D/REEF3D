@@ -5,7 +5,7 @@
   "A 227 0.55",
   "A 228 0.5"
  ],
- "description": "sflow_2d_curv_amr_lake_island semi-implicit: curvilinear grid with a patch whose boundary crosses the island; wetting and drying in the composite system (the island film drains as in sflow_2d_si_curv_lake_island).",
+ "description": "sflow_2d_curv_amr_lake_island semi-implicit: curvilinear grid with a patch whose boundary crosses the island; at rest to the tolerance of the eta solve (3e-8 m/s; before 1.1 m/s).",
  "tags": [
   "2d",
   "sflow",

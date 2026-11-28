@@ -126,6 +126,17 @@ protected:
     slice4 fric;
     int wbpatch;
     
+protected:
+    // S 98 (sflow_momentum_SI::stage_rhs as well)
+    void spiral_source(lexer*, fdm2D*, ghostcell*, slice&, int);   // S 98: dispersion of the main-flow momentum by the spiral flow
+    void spiral_intensity(lexer*, fdm2D*, ghostcell*, slice&);     // S 98 on a fixed bed: the intensity with adaptation
+    std::vector<double> spm;                           // S 98: the dispersion tensor of the cells (xx, xy, yy)
+    std::vector<double> spie, spcx, spcy;              // S 98 fixed bed: the equilibrium intensity, the upwind coefficients
+
+public:
+    bool spiral_lag = true;                            // S 98 fixed bed: the adaptation of the intensity (refined patches: off)
+protected:
+
 private:
     int q;
     int gd = 3;     // ghost depth of the current boundary entry: the solid depth, column [2] of gcbsl4 (gcb_seed)
@@ -141,7 +152,6 @@ private:
     void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
     void outflow_clip(lexer*, slice&, slice&, int);    // outflow ghost cells of boundary cell (i,j), side cs: no backflow
-    void spiral_source(lexer*, fdm2D*, slice&, int);   // S 98: dispersion of the main-flow momentum by the spiral flow
 };
 
 #endif

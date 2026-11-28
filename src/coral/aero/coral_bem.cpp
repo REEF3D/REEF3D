@@ -216,6 +216,22 @@ bem_result bem_solve(const bem_element &e, double Vx, double Vy, double rho, con
         res.a *= 1.0 + skew;
         phi = std::atan2(Vx*(1.0 - res.a), Vy*(1.0 + res.ap));
     }
+    // the inductions fade out towards Vx = 0 and Vy = 0, where the element switches to no induction
+    if(o.induction_fade > 0.0 && res.region >= 1 && res.region <= 4 && !(res.region == 4 && res.F == 0.0))
+    {
+        const double W0 = std::hypot(Vx, Vy);
+        auto s = [](double x) {x = std::clamp(x, 0.0, 1.0); return x*x*(3.0 - 2.0*x);};
+        const double w = W0 > 0.0 ? s(Vx/(o.induction_fade*W0))*s(Vy/(o.induction_fade*W0)) : 0.0;
+        if(w < 1.0)
+        {
+            // inside the fade the inductions are also bounded by 1/(1 - w) (no bound at its edge, w = 1): near Vy = 0 the
+            // tangential induction of a feathered blade passes a pole (k' = 1), which would turn the tangential flow
+            const double B = 1.0/(1.0 - w);
+            res.a = std::clamp(res.a, -B, B)*w;
+            res.ap = std::clamp(res.ap, -B, B)*w;
+            phi = std::atan2(Vx*(1.0 - res.a), Vy*(1.0 + res.ap));
+        }
+    }
     const double ux = Vx*(1.0 - res.a), uy = Vy*(1.0 + res.ap);
     res.W = std::hypot(ux, uy);
     res.phi = phi;

@@ -47,6 +47,7 @@ public:
 	void w_source(lexer*, fdm_nhf*, slice&) override final {};
     
     void implicit_drag(lexer*, fdm_nhf*, double*, double, int) override final {};
+    void si_coeff(lexer*, fdm_nhf*, int, int, int, double &A, double &B) override final { A = B = 0.0; }
     
     void ke_source(lexer*, fdm_nhf*, double*, double*) override final {};
     void kw_source(lexer*, fdm_nhf*, double*, double*) override final {};

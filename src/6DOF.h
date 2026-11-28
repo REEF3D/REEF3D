@@ -113,6 +113,17 @@ public:
     // the pressure of the step (the stored sign: minus the pressure on the water) into ps, all cells of the array;
     // false: none
     virtual bool sflow_press_step(lexer*, slice&) { return false; }
+    // NHFLOW ship waves (X 10 3) with the semi-implicit step (A 510 11/12/13): the pressure of the ship at the pose of
+    // the body (the stored sign: minus the pressure on the water) into ps, all cells of the array; false: none
+    virtual bool nhflow_press(lexer*, slice&) { return false; }
+    // the semi-implicit NHFLOW (A 510 11/12/13): the bodies were advanced for this step (fb_step), so that the level of
+    // the pierced columns (X 13 1, top_phi_nhflow) takes the pose without advancing them again
+    virtual void nhflow_mark_advanced(lexer*, int) {}
+    // the semi-implicit NHFLOW: the Darcy-Forchheimer resistance of the porous floating body (X 16) on the velocities
+    // U, V, W (the predictor), into FX, FY, FZ (as nhflow_forcing: added as dt CPORNH F WL to the momentum), with the
+    // reaction on the body for its loads
+    virtual void porous_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*,
+                                       slice&) {}
 };
 
 #endif

@@ -38,7 +38,7 @@ Author: Hans Bihs
 // on a flat bed only). The face term pg_k: the conservative form of -grad(h phi) + [phi grad z] with the
 // face differences of the interface heights (slopes limited to tan 30 deg, max_slope), times H_f/(mean h) of the face.
 // [u . grad(z)]_k with the interface slopes of the cell (centred) and u_k on the upper, u_{k-1} on the lower interface;
-// with A 505 1 (tl2) u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
+// with tl2 u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
 //
 // Time levels: phi fully implicit, it acts on the velocities over dt; the constraint holds for the velocities of
 // t^{n+1}, the layer discharges Q_k^{n+1} and w^{n+1} = w* - dt [phi]_k/h_k (Popinet 2020: those of t^{n+theta}; with them
@@ -57,6 +57,17 @@ Author: Hans Bihs
 // Non-hydrostatic cells: wet, deeper than 10 A 544, p->deep, wet neighbours; phi = 0 elsewhere. Open boundary faces
 // carry no pressure term.
 //
+// [u . grad z]_k with the interface slopes of the geometry of t^{n+1} from the solve itself: z_m = z_b + sig_m (WL^n +
+// eta^{n+1} - eta^n), centred (nh_prepare: the part of t^n, NSX/NSY, and the cells whose eta enters; nh_residual,
+// nh_assemble: the change of eta, implicit). Before, the geometry was extrapolated to t^{n+1} (2 WLh - WL^n): in a
+// current the waves of 5 - 6 cells grew by 6 - 8 % per step from a gravity Courant number of about 1 (2D flume, h 0.109
+// m, U 0.42 m/s, dx 1 cm, dt 0.012 s; one layer or ten). A linear (von Neumann) analysis of the one-layer step (Keller
+// box, the two passes of tl2, the multilayer flux, theta) gives the same growth and locates it in this term: the
+// extrapolation of an oscillation of omega_abs dt ~ 1 over a step. With eta^{n+1} the step is stable there up to the
+// advective limit of the predictor (Courant 0.6 with SSP-RK2 and WENO5, 0.84 with SSP-RK3 tested), for theta 0.55
+// and 0.5. A slope that already exceeds the limit at t^n (tan 30 deg, nh_lim) stays at the limit, without eta^{n+1}, so
+// that the rows stay linear.
+//
 // Solution (nh_solve): the operator is the residual F(x) of the full step with x = (eta, phi_0 .. phi_{K-1}) per
 // column; A x = F(x) - F(0), A assembled directly from the derivatives of the face discharges (nh_dfaces, nh_assemble;
 // checked against probing F with three or five colours with the environment variable NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
@@ -67,11 +78,13 @@ Author: Hans Bihs
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
+#include"gcsl_yskip.h"
 #include"sflow_curv.h"
 #include"si_eta2D.h"
 #include"nhflow_drywall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"sflow_momentum_SI_nh.h"
 #include"nhflow_si_nhmg.h"
@@ -99,6 +112,9 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     if(!nh)
     return;
 
+    p->Darray_lazy(NSFx,lN);
+    p->Darray_lazy(NSFy,lN);
+
     nh_brk = p->A558;   // A 558: the breaking limiter |w| <= A 558 sqrt(g H) of Popinet 2020 (nh_cell)
 
     const int N = lN;
@@ -110,11 +126,22 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     nWLo.assign((size_t)p->imax*p->jmax,-1.0);
     nAct.assign((size_t)p->imax*p->jmax,0);
     nPw.assign((size_t)p->imax*p->jmax,1.0);
+
+    // one curvilinear grid (nhflow_momentum_SI_nhcurv.cpp)
+    nhcv = (p->geo_curv==1);
+    nhco = nhcv && p->A539==1;
+
+    if(nhcv)
+    {
+    nCL1.assign((size_t)p->imax*p->jmax,0.0);
+    nCL2.assign((size_t)p->imax*p->jmax,0.0);
+    nCT.assign((size_t)4*p->imax*p->jmax,0.0);
+    }
 }
 
 void nhflow_momentum_SI::nh_free()
 {
-    double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY};
+    double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY,&NSFx,&NSFy};
     for(double **a : arr)
     if(*a!=nullptr)
     {
@@ -272,7 +299,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     if(!in(ii,jj))
-    nWLh[(ii-p->imin)*p->jmax + (jj-p->jmin)] = MAX(d->WL(ii,jj),0.0);
+    nWLh[(ii-p->imin)*p->jmax + (jj-p->jmin)] = MAX(d->WL(ii,gcsl_yrow(p,jj)),0.0);
 
     // MPI: nWLh of the columns of the neighbouring ranks (nh_faces, the slopes)
     if(p->mpi_size>1)
@@ -295,7 +322,19 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const bool a = p->wet[IJ]==1 && WL0(i,j)>10.0*p->A544 && p->deep[IJ]==1
                 && (nhflow_drywall::cliff(p,d,i,j,WL0(i,j))
                     || (!dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)))));
-    nAct[IJ] = a ? 1 : 0;
+    nAct[IJ] = (a && !df_col(p,i,j)) ? 1 : 0;
+
+    // A 505 1: the inner part of a relaxation zone (sigma dt > rz_nhcut, the zone takes more than 95 % per step) is
+    // hydrostatic, the targets carry the non-hydrostatic pressure of the wave there. With phi there too, its terms damped
+    // by 1/(1 + sigma dt), the solve made phi (1 + sigma dt) times larger (up to some 700 next to the wall at the end of
+    // a generation zone, where the zone weight goes to 0), and the small difference between the damping of the faces and
+    // of the cells drove the velocity of single cells there to 1.5 m/s (case 2 tank, dt 0.04 s; 0.4 m/s in the waves)
+    if(rzimp && nAct[IJ])
+    {
+    k=0;
+    if(MAX(rzSL[IJ],rzSU[PIJK])>rz_nhcut)
+    nAct[IJ] = 0;
+    }
     }
 
     // w*: the vertical advection of the step (column operator without viscosity), as cell_update
@@ -309,7 +348,17 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         wb[k] = WHp[PIJK];
         }
 
+        if(ld)
+        ld_cell(p,2);
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
+
+        // A 505 1: the damping of the relaxation zones, as cell_update
+        if(rzimp)
+        for(k=0;k<K;++k)
+        {
+        wcd[k] += rzSW[PIJK];
+        wb[k] += rzSW[PIJK]*rzWH[PIJK];
+        }
 
         if(thv<1.0)
         {
@@ -350,10 +399,27 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    // interface heights z_m = z_b + sig_m WL1, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
-    // constraint holds at t^{n+1}, so its geometry is that of t^{n+1}: WL1 = WL^n + r (WL^n - WL^{n-1}) = 2 WLh - WL^n
-    // (with t^{n+1/2} the Stokes-5 wave ran 0.15 % slower)
-    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*nh_wl1(p,a,c); };
+    // interface heights z_m = z_b + sig_m WL, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
+    // constraint holds at t^{n+1}, so its geometry is that of t^{n+1}: WL^n + (eta^{n+1} - eta^n), the change of eta
+    // from the solve (nh_residual, nh_assemble; see the top of the file). Here the part of t^n (NSX, NSY) and the
+    // cells whose eta enters (nSx, nSy: the east and west, north and south cell, -9 none: an open boundary ghost or the
+    // column itself one-sided on both sides; NSFx, NSFy 0 where the slope stays at its limit)
+    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*WL0(a,c); };
+
+    nSx.assign((size_t)2*p->imax*p->jmax,-9);
+    nSy.assign((size_t)2*p->imax*p->jmax,-9);
+    nSdx.assign((size_t)p->imax*p->jmax,0.0);
+    nSdy.assign((size_t)p->imax*p->jmax,0.0);
+
+    // a side with an open boundary face (inflow, outflow, open edge): centred as in the interior, the ghost column
+    // with the boundary state of the step (WLb of bc_faces: the inflow level, the outflow level, the open edge) on the
+    // bed of the boundary cell. One-sided, the slope of the boundary column was twice that of its faces (the face
+    // towards the ghost has the level of the boundary, as the face discharge): [u . grad z] of the constraint drove a
+    // downward w in the column behind a fixed-discharge inflow, which the phi of the step held up as a steady jump of
+    // the level at the inflow (abutment flume, 16 l/s, dx 1 cm: +21 mm in the first column, a lee wave behind it)
+    wall_sides(p);
+
+    auto zob = [&](int a, int c, int m) { return d->bed(i,j) + p->ZN[m+marge]*MAX(WLb(a,c),0.0); };
 
     SLICELOOP4
     for(int m=0; m<=K; ++m)
@@ -362,18 +428,54 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // (a column in front of dry land, A 541: one-sided next to the dry cells too, their level is that of the land)
     const bool cl = nhflow_drywall::cliff(p,d,i,j,WL0(i,j));
     auto ok = [&](int a, int c) { return cl ? wt(a,c) : in(a,c); };
-    const int ie = ok(i+1,j) ? i+1 : i, iw = ok(i-1,j) ? i-1 : i;
-    const double dx = p->XP[ie+marge] - p->XP[iw+marge];
-    NSX[PIJK] = dx>0.0 ? nh_lim(zif(ie,j,m) - zif(iw,j,m),dx)/dx : 0.0;
+    const unsigned char ws = wSide[(i-p->imin)*p->jmax + (j-p->jmin)];
+
+    const bool oe = !ok(i+1,j) && (ws&2), ow = !ok(i-1,j) && (ws&1);
+    const int ie = (ok(i+1,j) || oe) ? i+1 : i, iw = (ok(i-1,j) || ow) ? i-1 : i;
+    // curvilinear grid: the centre distances along the index directions, the velocity transform (once per cell)
+    if(nhcv && m==0)
+    {
+    const bool on_ = !ok(i,j+1) && (ws&8), os_ = !ok(i,j-1) && (ws&4);
+    nh_curv_metric(p,ie,iw,oe,ow,(ok(i,j+1) || on_) ? j+1 : j,(ok(i,j-1) || os_) ? j-1 : j,on_,os_);
+    }
+
+    const double dx = nhcv ? nCL1[(i-p->imin)*p->jmax + (j-p->jmin)] : p->XP[ie+marge] - p->XP[iw+marge];
+    const double ze = oe ? zob(ie,j,m) : zif(ie,j,m), zw = ow ? zob(iw,j,m) : zif(iw,j,m);
+    NSX[PIJK] = dx>0.0 ? nh_lim(ze - zw,dx)/dx : 0.0;
+    NSFx[PIJK] = (dx>0.0 && fabs(ze - zw)<nh_max_slope*dx) ? 1.0 : 0.0;
     NSY[PIJK] = 0.0;
+    NSFy[PIJK] = 0.0;
+
+        if(m==0)
+        {
+        const size_t q = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+        nSx[2*q]   = oe ? -9 : ie-i;
+        nSx[2*q+1] = ow ? -9 : iw-i;
+        nSdx[q] = dx;
+        }
 
         if(p->j_dir==1)
         {
-        const int jn = ok(i,j+1) ? j+1 : j, js = ok(i,j-1) ? j-1 : j;
-        const double dy = p->YP[jn+marge] - p->YP[js+marge];
-        NSY[PIJK] = dy>0.0 ? nh_lim(zif(i,jn,m) - zif(i,js,m),dy)/dy : 0.0;
+        const bool on = !ok(i,j+1) && (ws&8), os = !ok(i,j-1) && (ws&4);
+        const int jn = (ok(i,j+1) || on) ? j+1 : j, js = (ok(i,j-1) || os) ? j-1 : j;
+        const double dy = nhcv ? nCL2[(i-p->imin)*p->jmax + (j-p->jmin)] : p->YP[jn+marge] - p->YP[js+marge];
+        const double zn = on ? zob(i,jn,m) : zif(i,jn,m), zs = os ? zob(i,js,m) : zif(i,js,m);
+        NSY[PIJK] = dy>0.0 ? nh_lim(zn - zs,dy)/dy : 0.0;
+        NSFy[PIJK] = (dy>0.0 && fabs(zn - zs)<nh_max_slope*dy) ? 1.0 : 0.0;
+
+            if(m==0)
+            {
+            const size_t q = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+            nSy[2*q]   = on ? -9 : jn-j;
+            nSy[2*q+1] = os ? -9 : js-j;
+            nSdy[q] = dy;
+            }
         }
     }
+
+    // curvilinear grid: the velocities of [u . grad z] along the index directions
+    if(nhcv)
+    nh_curv_vel(p);
 }
 
 void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
@@ -416,15 +518,19 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
         const double br = (s*hL - sl)*fL - (s*hR + sl)*fR + (s*hL + su)*uL - (s*hR - su)*uR;
 
         NQ[PIJK] = dt*br*c/s;
+
+        // VRANS: the inertia factor and the drag of the face layer
+        if(vr)
+        NQ[PIJK] *= (NQ==NQx ? vrSx : vrSy)[PIJK];
         }
     };
 
     SLICELOOP1
-    face(i,j,i+1,j,p->DXP[IP],Hx(i,j),NQx);
+    face(i,j,i+1,j,nhcv ? fdn(p,1,i,j) : p->DXP[IP],Hx(i,j),NQx);
 
     if(p->j_dir==1)
     SLICELOOP2
-    face(i,j,i,j+1,p->DYP[JP],Hy(i,j),NQy);
+    face(i,j,i,j+1,nhcv ? fdn(p,2,i,j) : p->DYP[JP],Hy(i,j),NQy);
 
     // open boundary faces: no pressure term
     for(const bc_face &f : bcf)
@@ -472,7 +578,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     pexchF(p,pgc,NQy);
     }
 
-    if(ho)
+    if(ho || nhco)
     ho_phi_add(p);
 
     face_update(p,d,pgc);
@@ -496,6 +602,14 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
     y[(size_t)B*n] = nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - w;
 
+    // A 505 1: the damping of the water level in the relaxation zones (as si_rhs, eta_update)
+    if(rzimp)
+    y[(size_t)B*n] += rzSL[IJ]*(etaI(i,j) - rzEL[IJ]);
+
+    // VRANS: the storage n_s
+    if(vr)
+    y[(size_t)B*n] += (d->PORS(i,j) - 1.0)*(nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - WL0(i,j));
+
         if(!nAct[IJ])
         {
         for(k=0;k<K;++k)
@@ -508,10 +622,23 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         const double H0 = nh_wl1(p,i,j), Hh = H0;
         const double iH0 = 1.0/H0;
 
+        // the interface slopes of the geometry of t^{n+1}: NSX + sig_m (de_e - de_w)/dx, de = eta^{n+1} - eta^n
+        const size_t qc = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+        auto de = [&](int di, int dj) { return etaI(i+di,j+dj) - eta0(i+di,j+dj); };
+        const double gx = nSdx[qc]>0.0 ? ((nSx[2*qc]>-9 ? de(nSx[2*qc],0) : 0.0) - (nSx[2*qc+1]>-9 ? de(nSx[2*qc+1],0) : 0.0))/nSdx[qc] : 0.0;
+        const double gy = (yd && nSdy[qc]>0.0) ? ((nSy[2*qc]>-9 ? de(0,nSy[2*qc]) : 0.0) - (nSy[2*qc+1]>-9 ? de(0,nSy[2*qc+1]) : 0.0))/nSdy[qc] : 0.0;
+        auto SX = [&](int m) { k=m; return NSX[PIJK] + NSFx[PIJK]*p->ZN[m+marge]*gx; };
+        auto SY = [&](int m) { k=m; return NSY[PIJK] + NSFy[PIJK]*p->ZN[m+marge]*gy; };
+
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
-        const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
-        double wlo = UU[PIJK]*iH0*NSX[PIJK] + (yd ? VV[PIJK]*iH0*NSY[PIJK] : 0.0);
+        const double *UU = (tl2 || nhcv) ? nUZx.data() : UHD, *VV = (tl2 || nhcv) ? nUZy.data() : VHD;
+        double wlo = UU[PIJK]*iH0*SX(0) + (yd ? VV[PIJK]*iH0*SY(0) : 0.0);
+
+        // the slide layer (W 150): the bed moves, w_b = dz_b/dt + u_0 . grad(z_b)
+        if(d->slide!=nullptr)
+        wlo += d->slide->wb(i,j);
+        k=0;
 
         for(k=0;k<K;++k)
         {
@@ -523,28 +650,27 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         double D = ds*layer_div_p(p,Qx,Qy);
 
         // [u . grad z]_k: u_k on the upper interface (k+1), u_{k-1} on the lower one, u_0 on the bed
+        const int kc = k;
         const double uk = UU[PIJK]*iH0, vk = yd ? VV[PIJK]*iH0 : 0.0;
-        double uz = uk*NSX[PIJKp1] + vk*NSY[PIJKp1];
-
-            if(k>0)
-            {
-            const double um = UU[PIJKm1]*iH0, vm = yd ? VV[PIJKm1]*iH0 : 0.0;
-            uz -= um*NSX[PIJK] + vm*NSY[PIJK];
-            }
-
-            else
-            uz -= uk*NSX[PIJK] + vk*NSY[PIJK];
+        const double um = kc>0 ? UU[PIJKm1]*iH0 : uk, vm = kc>0 ? (yd ? VV[PIJKm1]*iH0 : 0.0) : vk;
+        double uz = uk*SX(kc+1) + (yd ? vk*SY(kc+1) : 0.0);
+        uz -= um*SX(kc) + (yd ? vm*SY(kc) : 0.0);
+        k=kc;
 
         D -= uz;
 
-        // [w]_k, Keller box, with w^{n+1}
-        const double wk = WHS[PIJK]*iH0 - dt*(ph_up - PHI[PIJK])/h;
+        // [w]_k, Keller box, with w^{n+1}; 6DOF: in a cell of a body the body velocity (fb_wcell)
+        const int fbc = fbon ? fb_wcell(p) : 0;
+        const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;     // A 505 1: the phi term of w damped in a relaxation zone
+        const double dtw = vr ? dt*vr_sw(p) : dt;    // VRANS: the inertia factor and the drag of w
+        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - fw*dtw*(ph_up - PHI[PIJK])/h;
         const double wup = 2.0*wk - wlo;
         D += wup - wlo;
         wlo = wup;
 
-        // the scaling of the row (2 h/(theta dt) with theta 1, as Popinet 2020)
-        y[(size_t)B*n+1+k] = D*2.0*h/dt;
+        // the scaling of the row (2 h/(theta dt) with theta 1, as Popinet 2020); 6DOF: a cell of a body above another
+        // one, phi_k = phi_{k-1}
+        y[(size_t)B*n+1+k] = fbc==2 ? PHI[PIJK] - PHI[PIJKm1] : D*2.0*h/dt;
         }
         }
     ++n;
@@ -625,13 +751,33 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const double sg = p->DZN[KP];
             const double sl = nh_lim(zif(iR,jR,k) - zif(iL,jL,k),dxp);
             const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dxp);
-            const double f = dt*c/sg;
+            const double f = vr ? dt*c/sg*(iR!=iL ? vrSx : vrSy)[PIJK] : dt*c/sg;
 
             pL0[ci()] = act(iL,jL) ? f*(sg*hL - sl) : 0.0;
             pR0[ci()] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
             pL1[ci()] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
             pR1[ci()] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
+
+                // A 505 1: the phi terms of a face in a relaxation zone damped (face_update)
+                if(rzimp)
+                {
+                const double fz = (iR!=iL ? rzFx : rzFy)[PIJK];
+                pL0[ci()] *= fz;
+                pR0[ci()] *= fz;
+                pL1[ci()] *= fz;
+                pR1[ci()] *= fz;
+                }
             }
+        }
+
+        // 6DOF: a layer blocked by a body carries the discharge of the body motion (face_update), independent of the
+        // unknowns
+        if(fbon)
+        for(k=0;k<K;++k)
+        if(fb_blocked(p,iR!=iL ? 1 : 2))
+        {
+        dL[ci()] = dR[ci()] = 0.0;
+        pL0[ci()] = pR0[ci()] = pL1[ci()] = pR1[ci()] = 0.0;
         }
 
         i=il; j=jl;
@@ -639,12 +785,12 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP1
     if(Hx(i,j)>0.0)
-    face(i,j,i+1,j,fdn(p,1,i,j),p->DXP[IP],Hx(i,j),kx(i,j),Rx,dQxL.data(),dQxR.data(),pQxL0.data(),pQxR0.data(),pQxL1.data(),pQxR1.data());
+    face(i,j,i+1,j,fdn(p,1,i,j),nhcv ? fdn(p,1,i,j) : p->DXP[IP],Hx(i,j),kx(i,j),Rx,dQxL.data(),dQxR.data(),pQxL0.data(),pQxR0.data(),pQxL1.data(),pQxR1.data());
 
     if(p->j_dir==1)
     SLICELOOP2
     if(Hy(i,j)>0.0)
-    face(i,j,i,j+1,fdn(p,2,i,j),p->DYP[JP],Hy(i,j),ky(i,j),Ry,dQyL.data(),dQyR.data(),pQyL0.data(),pQyR0.data(),pQyL1.data(),pQyR1.data());
+    face(i,j,i,j+1,fdn(p,2,i,j),nhcv ? fdn(p,2,i,j) : p->DYP[JP],Hy(i,j),ky(i,j),Ry,dQyL.data(),dQyR.data(),pQyL0.data(),pQyR0.data(),pQyL1.data(),pQyR1.data());
 
     // open boundary faces: no pressure term, the discharge as face_update
     for(const bc_face &f : bcf)
@@ -708,6 +854,25 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,int,int,int,double)> &sink)
 {
+    // entry by entry: the nonzero entries of the blocks of every column (nh_assemble_col)
+    const int B = p->knoz+1;
+    const int nd = (p->j_dir==1) ? 5 : 3;
+
+    nh_assemble_col(p,[&](int ii, int jj, const double *A)
+    {
+        for(int dd=0;dd<nd;++dd)
+        for(int tr=0;tr<B;++tr)
+        for(int t=0;t<B;++t)
+        {
+        const double v = A[((size_t)dd*B + tr)*B + t];
+        if(v!=0.0)
+        sink(ii,jj,dd,tr,t,v);
+        }
+    });
+}
+
+void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,int,const double*)> &sink)
+{
     // the rows of the coupled system of every column (as nh_residual, linear in x = (eta, phi_0 .. phi_{K-1})), as
     // blocks of the five columns: 0 the column, 1 +x, 2 -x, 3 +y, 4 -y; sink(i, j, block, row, unknown, value)
     const double dt = p->dt;
@@ -743,20 +908,30 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
     // a row with the divergence of the layer discharges k: east and west, north and south faces
     auto adddiv = [&](int tr, double w, int kk)
     {
-        const double ax = w/p->DXN[IP];
+        // (curvilinear grid: the face lengths over the cell area, as div)
+        const double ax = nhcv ? w*flen(p,1,i,j)/carea(p,i,j) : w/p->DXN[IP];
+        const double axw = nhcv ? w*flen(p,1,i-1,j)/carea(p,i,j) : ax;
         addf(tr, ax,i,  j,0,1,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
-        addf(tr,-ax,i-1,j,2,0,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
+        addf(tr,-axw,i-1,j,2,0,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
 
             if(yd)
             {
-            const double ay = w/p->DYN[JP];
+            const double ay = nhcv ? w*flen(p,2,i,j)/carea(p,i,j) : w/p->DYN[JP];
+            const double ays = nhcv ? w*flen(p,2,i,j-1)/carea(p,i,j) : ay;
             addf(tr, ay,i,j,  0,3,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
-            addf(tr,-ay,i,j-1,4,0,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
+            addf(tr,-ays,i,j-1,4,0,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
             }
     };
 
     // mass row: eta + d - WL^n + dt sum_k dsig_k div(theta Q_k)
     at(0,0,0) += nPw[IJ];
+
+    // A 505 1: the damping of the water level in the relaxation zones
+    if(rzimp)
+    at(0,0,0) += rzSL[IJ];
+
+    if(vr)
+    at(0,0,0) += ((*psi->stor)(i,j) - 1.0)*nPw[IJ];    // VRANS: the storage n_s (d->PORS)
     for(int kk=0;kk<K;++kk)
     adddiv(0,dt*theta*p->DZN[kk+marge],kk);
 
@@ -781,32 +956,73 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
 
             adddiv(1+kk,sc*ds,kk);
 
+                // -[u . grad z]_k: the change of eta of the cells of the interface slopes (implicit geometry of t^{n+1})
+                {
+                const double *UU = (tl2 || nhcv) ? nUZx.data() : UHD, *VV = (tl2 || nhcv) ? nUZy.data() : VHD;
+                const double iH = 1.0/H1;
+                const size_t qc = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+                k=kk;
+                const double uk = UU[PIJK]*iH, vk = yd ? VV[PIJK]*iH : 0.0;
+                const double um = kk>0 ? UU[PIJKm1]*iH : uk, vm = kk>0 ? (yd ? VV[PIJKm1]*iH : 0.0) : vk;
+                const double su = p->ZN[kk+1+marge], sl = p->ZN[kk+marge];
+                auto blk = [&](int dir, int off) { return off==0 ? 0 : (dir==1 ? (off>0 ? 1 : 2) : (off>0 ? 3 : 4)); };
+
+                    if(nSdx[qc]>0.0)
+                    {
+                    k=kk+1; const double fu = NSFx[PIJK];
+                    k=kk;   const double fl = NSFx[PIJK];
+                    const double cx = (uk*su*fu - um*sl*fl)/nSdx[qc];
+                    if(nSx[2*qc]>-9)   at(blk(1,nSx[2*qc]),1+kk,0)   -= sc*cx;
+                    if(nSx[2*qc+1]>-9) at(blk(1,nSx[2*qc+1]),1+kk,0) += sc*cx;
+                    }
+
+                    if(yd && nSdy[qc]>0.0)
+                    {
+                    k=kk+1; const double fu = NSFy[PIJK];
+                    k=kk;   const double fl = NSFy[PIJK];
+                    const double cy = (vk*su*fu - vm*sl*fl)/nSdy[qc];
+                    if(nSy[2*qc]>-9)   at(blk(2,nSy[2*qc]),1+kk,0)   -= sc*cy;
+                    if(nSy[2*qc+1]>-9) at(blk(2,nSy[2*qc+1]),1+kk,0) += sc*cy;
+                    }
+                k=kk;
+                }
+
+            // 6DOF: w of a cell of a body is the body velocity, independent of phi (fb_wcell)
+            k=kk;
+            const int fbc = fbon ? fb_wcell(p) : 0;
+
             std::fill(wc.begin(),wc.end(),0.0);
-            wc[kk] += dt/h;
+
+            if(fbc==0)
+            {
+            // A 505 1: the phi term of w damped in a relaxation zone (nh_residual, nh_cell); VRANS (k = kk)
+            const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;
+            const double dtw = vr ? dt*vr_sw(p) : dt;
+            wc[kk] += fw*dtw/h;
             if(kk<K-1)
-            wc[kk+1] -= dt/h;
+            wc[kk+1] -= fw*dtw/h;
+            }
 
                 for(int m=0;m<K;++m)
                 {
                 at(0,1+kk,1+m) += sc*(2.0*wc[m] - 2.0*wl[m]);
                 wl[m] = 2.0*wc[m] - wl[m];
                 }
+
+                // a cell of a body above another one: phi_k - phi_{k-1}
+                if(fbc==2)
+                {
+                for(int dd=0;dd<5;++dd)
+                for(int t=0;t<B;++t)
+                at(dd,1+kk,t) = 0.0;
+
+                at(0,1+kk,1+kk) = 1.0;
+                at(0,1+kk,kk) = -1.0;
+                }
             }
         }
 
-        for(int dd=0;dd<5;++dd)
-        {
-        if(!yd && dd>2)
-        continue;
-
-            for(int tr=0;tr<B;++tr)
-            for(int t=0;t<B;++t)
-            {
-            const double v = at(dd,tr,t);
-            if(v!=0.0)
-            sink(i,j,dd,tr,t,v);
-            }
-        }
+    sink(i,j,A.data());
     }
 }
 
@@ -821,6 +1037,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // fourth order: the explicit part of the phi face terms of this step
     if(ho)
     ho_phi_corr(p,d,pgc);
+
+    // curvilinear grid with A 539 1: the non-orthogonal part of the phi face terms
+    if(nhco)
+    nh_curv_phi_corr(p,d,pgc);
 
     int N=0;
     SLICELOOP4
@@ -1047,6 +1267,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(f.type==bc_riemann || f.type==bc_flather)
     faces_set = false;
 
+    // the same on all ranks: face_update exchanges the face discharges (with an absorbing edge B 99 3-5 on one rank
+    // only, the ranks went different ways and waited for each other)
+    faces_set = pgc->globalimin(faces_set ? 1 : 0)==1;
+
     FLOOP
     d->P[FIJK] = 0.0;
 
@@ -1064,6 +1288,13 @@ void nhflow_momentum_SI::nh_cell_faces(lexer *p, fdm_nhf *d, double *cx, double 
     // cell_update; fourth order: (-1, 9, 9, -1)/16 of four faces
     const int K = p->knoz;
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
+
+    // curvilinear grid: the Cartesian vector from the face terms along the normals
+    if(nhcv)
+    {
+    nh_cell_faces_curv(p,d,cx,cy);
+    return;
+    }
 
     const bool h4x = ho && ho_cell(p,d,1,i,j);
     const bool h4y = ho && ho_cell(p,d,2,i,j);
@@ -1111,7 +1342,8 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(nAct[IJ])
             {
             const double ph_up = (k<K-1) ? PHI[PIJKp1] : 0.0;
-            d->WH[IJK] -= dt*(ph_up - PHI[PIJK])/p->DZN[KP];
+            const double fw = rzimp ? 1.0/(1.0 + rzSW[PIJK]) : 1.0;
+            d->WH[IJK] -= fw*(vr ? dt*vr_sw(p) : dt)*(ph_up - PHI[PIJK])/p->DZN[KP];
             }
 
             // the breaking parameter of Popinet 2020: |w| <= b sqrt(g H)
@@ -1202,10 +1434,17 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     const bool probe = getenv("NHCHECK")!=nullptr;
     std::vector<double> e(probe ? (size_t)N*B : 0), y(probe ? (size_t)N*B : 0);
 
+    // rows in metres (below): the constraint rows of an active column times rs, here with the assembly of the column
+    const double rs = 0.5*p->dt*p->dt;
+
     if(!probe)
     {
     nh_dfaces(p,d,pgc);
-    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ M.set(ii,jj,dd,tr,t,v); });
+    nh_assemble_col(p,[&](int ii, int jj, const double *A)
+    {
+        const int qq = (ii-p->imin)*p->jmax + (jj-p->jmin);
+        M.set_column(ii,jj,nc==5 ? 5 : 3,A,1,nAct[qq] ? rs : 1.0);
+    });
     }
 
     if(probe)
@@ -1271,8 +1510,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // rows in metres: the mass row is the error of eta; a constraint row k (D_k 2 h_k/dt) times dt^2/2 is D_k h_k dt, the
     // change of the layer thickness in the step that the error of the divergence makes. Block Gauss-Seidel and the
     // coarse levels do not change with the same scaling of every column; FGMRES and the stopping test measure metres
-    const double rs = 0.5*p->dt*p->dt;
-
+    if(probe)
     for(int n=0; n<N; ++n)
     {
     i = cix[n]; j = ciy[n];

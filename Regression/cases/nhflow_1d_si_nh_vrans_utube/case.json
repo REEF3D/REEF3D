@@ -1,0 +1,20 @@
+{
+ "description": "As nhflow_1d_si_vrans_utube with the non-hydrostatic pressure (A 520 2), the inertia factor of the porous medium (B 260 0.34, B 265 1: C = n/(1 + c_A)) and a Forchheimer part (beta 1.1), SSP-RK2 predictor (A 510 12): the explicit terms of the predictor and the rows of the column operator times C, the gravity term with r = A^-1 C, the face terms of the pressure and its term of w times C/(1 + dt C (A + B |u|)) in the coupled eta-phi system.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "vrans",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_vrans.cpp: vr_predictor, vr_ones, vr_sw, vrSx",
+  "nhflow_momentum_SI::nh_faces, nh_dfaces, nh_residual, nh_assemble_col with VRANS",
+  "mass rows of the coupled system with the storage n_s"
+ ],
+ "architect": "Hans Bihs"
+}

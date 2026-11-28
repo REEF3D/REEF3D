@@ -1,0 +1,15 @@
+{
+ "np": 2,
+ "steps": 60,
+ "description": "Still water with a refined box whose sides run through the free surface, placed for the load of the ranks (G 40 1) on 2 ranks, G 8 1, G 29 1, G 28 3: the pressure of G 29 goes from the shadow of a patch to the rank of its level-0 cells (restrict_scalars). Before, level 0 kept the plain mean under a patch on another rank: 1.3e-3 m/s after 0.5 s, with it 5e-7 m/s.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::restrict_scalars: the pressure of G 29 from the shadows (G 40)"
+ ]
+}

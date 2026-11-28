@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 60,
+ "description": "cfd_2d_slosh_amr_band_edge_g17 with subcycling (G 7 1): the projection of the level takes the same columns (pr_level). Without G 17 the air under the top of the band reaches 1.1 m/s, with it 0.31 m/s.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "cfd_amr::pr_level with G 17 1"
+ ]
+}

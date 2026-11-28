@@ -113,13 +113,19 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
             uc = 0.5*(u(i-1,j,k)+u(i,j,k));
             wc = 0.5*(w(i,j,k-1)+w(i,j,k));
 
-            ugradp = uc*(a->press(i+1,j,k)-a->press(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1])
-                   + wc*(a->press(i,j,k+1)-a->press(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
+            // First-order upwind.  With central differences the term is unstable forward in time:
+            // the one-step schemes (N 40 5, 6), which take it once with the velocity and the
+            // pressure of the start of the step, grow by 1 + CFL^2/2 per step, SSP-RK2 (N 40 2)
+            // by 1 + CFL^4/8.  In an air jet through a gap under a deck, an air pocket behind it,
+            // the pressure of the pocket oscillated and grew to 500 m/s in 0.02 s with N 40 5
+            // (Regression: cfd_2d_deck_hanging_water_amr).  One form for all schemes
+            ugradp = uc*(uc>0.0 ? (a->press(i,j,k)-a->press(i-1,j,k))/p->DXP[IM1] : (a->press(i+1,j,k)-a->press(i,j,k))/p->DXP[IP])
+                   + wc*(wc>0.0 ? (a->press(i,j,k)-a->press(i,j,k-1))/p->DZP[KM1] : (a->press(i,j,k+1)-a->press(i,j,k))/p->DZP[KP]);
 
                 if(p->j_dir==1)
                 {
                 vc = 0.5*(v(i,j-1,k)+v(i,j,k));
-                ugradp += vc*(a->press(i,j+1,k)-a->press(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]);
+                ugradp += vc*(vc>0.0 ? (a->press(i,j,k)-a->press(i,j-1,k))/p->DYP[JM1] : (a->press(i,j+1,k)-a->press(i,j,k))/p->DYP[JP]);
                 }
 
             a->rhsvec.V[n] -= kappa*ugradp*fac_c;

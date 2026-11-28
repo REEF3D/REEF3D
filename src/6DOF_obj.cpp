@@ -149,7 +149,9 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     zeta[2] = 0.0;
     }
     
-    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
+    // NHFLOW A 510 11 (A 510 1 with A 534 1): the semi-implicit step, one body step (nhflow_momentum_SI::fb_step) with
+    // the stage weight 1 of the forcing
+    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || ((p->A510==2 || (p->A510==1 && p->A534==1)) && p->A10==5) || (p->A210==2 && p->A10==2)) 
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;

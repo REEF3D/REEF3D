@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_curv_bend_ke",
+ "np": 2,
+ "steps": 150,
+ "ctrl_add": [
+  "A 212 1"
+ ],
+ "description": "sflow_2d_si_curv_bend_ke with the explicit horizontal diffusion (A 212 1, sflow_ediff::curv_stress): the diffusion limit of sflow_timestep_SI applies.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "semi_implicit",
+  "mpi",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_ediff::curv_stress with A 210 11",
+  "sflow_timestep_SI diffusion limit (A 212 1)"
+ ]
+}

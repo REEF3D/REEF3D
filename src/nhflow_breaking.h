@@ -61,6 +61,12 @@ public:
 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     
+    // A 553: no breaking viscosity in thin water (h < A 553, full from 2 A 553)
+    void swash_taper(lexer*, fdm_nhf*, slice&);
+    
+    // S 137: impact of the plunging jet in column (i,j) of an event of age t_b, breaker height H_b, wavenumber k, speed c
+    void plunge(lexer*, fdm_nhf*, int, int, double, double, double, double);
+    
     // A 550 3: eddy viscosity of Kennedy et al. (2000)
     void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
     // its parts (multi-block grid: nhflow_amr::breaking_level0 runs them on all blocks): 0 the ages of the last step,
@@ -102,6 +108,16 @@ private:
     sliceint4 brkseed;          // A 550 4: seeded columns
     slice4 brkkseed, brkk, brkk_n;   // A 550 4: wavenumber of the seed, of the event, at the end of the last step
     slice4 brkr, brkr_n;        // A 550 4: initial threshold of the event / c, at the end of the stage and of the last step
+    slice4 brkh, brkh_n;        // S 137: breaker height H_b of the event (from the crest at the onset), carried with the front
+    slice4 plk_n, plh_n;        // S 137, S 142: impact turbulence of the last step, decayed over the step
+    slice4 crc, crp;            // S 143: crest of the wave passing the column (max eta since the up-crossing), crest of the last wave
+    slice4 etf, etf2;           // A 542: deta/dt filtered over A 542 h (onset of breaking independent of the grid)
+    int on_count = 0;           // onsets (new events) of the stage and the sum of their x (log)
+    double on_xsum = 0.0;
+    void onset_filter(lexer*, fdm_nhf*, ghostcell*, slice&);
+    int pl_count = 0;           // S 137: plunge-impact columns of the stage and the sum of their x (log)
+    double pl_xsum = 0.0;
+    double pl_hsum = 0.0;       // S 137: sum of H_b of the impact columns (log)
     slice4 bt_vbd, bt_kwd;      // A 550 5: viscosity and wavenumber of the deep-water breakers (at t^n, for the step)
     slice4 bt_pa;               // A 550 5: absorbing-pressure field of breaking_crest3d (not used: the viscosity takes eps)
     int bt_count = -1;

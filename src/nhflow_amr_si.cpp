@@ -391,10 +391,11 @@ void nhflow_amr::si_hooks(bool on)
 }
 
 // q^E and q^n of the coarse faces next to the patches: the means of the fine faces (the right-hand side of the coarse
-// cell takes the fine fluxes)
+// cell takes the fine fluxes); the gradient of eta^n of the face as well, which the cell momentum takes (a covered
+// cell at the shoreline holds the mean water level of its children over their mean bed, above the lake at rest)
 void nhflow_amr::si_match_faces()
 {
-    rsm_begin(2);
+    rsm_begin(3);
 
     for(int g : rsi_grids())
     {
@@ -410,6 +411,7 @@ void nhflow_amr::si_match_faces()
             double *s = rsm_slot(g,side,r);
             s[0] = (dir==1) ? m->qxE(fi,fj) : m->qyE(fi,fj);
             s[1] = (dir==1) ? m->qxn(fi,fj) : m->qyn(fi,fj);
+            s[2] = (dir==1) ? m->gx0(fi,fj) : m->gy0(fi,fj);
         }
     }
 
@@ -425,11 +427,13 @@ void nhflow_amr::si_match_faces()
             {
             m->qxE(fi,fj) = sgn*v[0];
             m->qxn(fi,fj) = sgn*v[1];
+            m->gx0(fi,fj) = sgn*v[2];
             }
             else
             {
             m->qyE(fi,fj) = sgn*v[0];
             m->qyn(fi,fj) = sgn*v[1];
+            m->gy0(fi,fj) = sgn*v[2];
             }
         });
     }
@@ -548,94 +552,124 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         m->nh_begin(q,dd,pgc);
     });
 
-    // the advection hooks (face matching with the patches)
-    if(si_lv)
-    si_hooks(true);
+    // tp2: two passes as step_single, the first (the estimate) gives the advecting transport of the step,
+    // theta Q^{n+1} + (1 - theta) Q^n, the second advects with it and solves again (the faces back to t^n)
+    const int npass = gsi(-1)->tp2 ? 2 : 1;
 
-    // predictor: the velocities of a stage around the grids before its fluxes
-    const int ns = gsi(-1)->si_stages();
-
-    for(int s=0; s<ns; ++s)
+    for(int pass=0; pass<npass; ++pass)
     {
+        const bool estimate = (pass<npass-1);
+
         si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
         {
-            m->si_stage_vel(q,dd,pgc,S,s);
+            m->si_pass = pass;
+            if(pass>0)
+            m->si_corrector(q,dd,pgc);
         });
 
-        si_fill3(pgc,3,7601+s,[&](int g, int c) -> double*
-        {
-            fdm_nhf *dd = gfd(g);
-            return c==0 ? dd->U : (c==1 ? dd->V : dd->W);
-        });
-
-        // the explicit terms, finest level first: the coarse faces next to the patches take the fine fluxes
+        // the advection hooks (face matching with the patches)
         if(si_lv)
+        si_hooks(true);
+
+        // predictor: the velocities of a stage around the grids before its fluxes
+        const int ns = gsi(-1)->si_stages();
+
+        for(int s=0; s<ns; ++s)
         {
-            rsm_begin(3*p0->knoz);
-            for(int l=maxlev; l>=1; --l)
+            si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
             {
-                si_level(pgc,l,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+                m->si_stage_vel(q,dd,pgc,S,s);
+            });
+
+            si_fill3(pgc,3,7601+s,[&](int g, int c) -> double*
+            {
+                fdm_nhf *dd = gfd(g);
+                return c==0 ? dd->U : (c==1 ? dd->V : dd->W);
+            });
+
+            // the explicit terms, finest level first: the coarse faces next to the patches take the fine fluxes
+            if(si_lv)
+            {
+                rsm_begin(3*p0->knoz);
+                for(int l=maxlev; l>=1; --l)
                 {
-                    m->si_stage_rhs(q,dd,pgc,S,s);
-                });
-                rsm_send(l,8740);
+                    si_level(pgc,l,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+                    {
+                        m->si_stage_rhs(q,dd,pgc,S,s);
+                    });
+                    rsm_send(l,8740);
+                }
             }
+
+            si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+            {
+                m->si_stage_rhs(q,dd,pgc,S,s);
+            });
         }
 
-        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        if(si_lv)
+        si_hooks(false);
+
+        // the cell predictor around the grids, then the face coefficients and the eta system of every grid
+        si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
         {
-            m->si_stage_rhs(q,dd,pgc,S,s);
+            m->si_predictor_end(q,dd,pgc);
         });
+
+        si_fill3(pgc,2,7610,[&](int g, int c) -> double*
+        {
+            return c==0 ? gsi(g)->UHD : gsi(g)->VHD;
+        });
+
+        // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
+        // transport (forward-backward with the step after the momentum); tracers on the level-0 grids only
+        if(p->A620>0 && !estimate)
+        {
+            si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+            {
+                m->si_old_closed(q,pgc);
+                m->ptrc->save(dd);
+            });
+
+            si_tracer(p,pgc,1);
+
+            si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+            {
+                m->si_density(q,dd);
+                m->ptrc->restore(dd);
+            });
+        }
+
+        si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_assemble(q,dd,pgc);
+        });
+
+        if(si_lv)
+        si_match_faces();
+
+        si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_rhs(q,dd,pgc);
+        });
+
+        // one eta system over all grids
+        si_solve(p,pgc);
+
+        // the estimate: the face discharges of t^{n+1} and with them the transport of the step (Tx, Ty), the coarse
+        // faces next to the patches from the fine faces
+        if(estimate)
+        {
+            si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+            {
+                m->face_update(q,dd,pgc);
+                m->df_faces(q,dd,pgc,false);
+            });
+
+            if(si_lv)
+            si_match_layers();
+        }
     }
-
-    if(si_lv)
-    si_hooks(false);
-
-    // the cell predictor around the grids, then the face coefficients and the eta system of every grid
-    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-    {
-        m->si_predictor_end(q,dd,pgc);
-    });
-
-    si_fill3(pgc,2,7610,[&](int g, int c) -> double*
-    {
-        return c==0 ? gsi(g)->UHD : gsi(g)->VHD;
-    });
-
-    // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
-    // transport (forward-backward with the step after the momentum); tracers on the level-0 grids only
-    if(p->A620>0)
-    {
-        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-        {
-            m->si_old_closed(q,pgc);
-            m->ptrc->save(dd);
-        });
-
-        si_tracer(p,pgc,1);
-
-        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-        {
-            m->si_density(q,dd);
-            m->ptrc->restore(dd);
-        });
-    }
-
-    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-    {
-        m->si_assemble(q,dd,pgc);
-    });
-
-    if(si_lv)
-    si_match_faces();
-
-    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-    {
-        m->si_rhs(q,dd,pgc);
-    });
-
-    // one eta system over all grids
-    si_solve(p,pgc);
 
     // faces, water level, cells
     si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)

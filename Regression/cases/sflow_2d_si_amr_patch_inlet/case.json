@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_si_patch_inlet",
+ "np": 1,
+ "steps": 300,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 10 300.0 700.0 0.0 40.0"
+ ],
+ "description": "sflow_2d_si_patch_inlet with a static refined box (G 1 1, x 300-700 m over the full width) around the lateral patch inlet (x 400-440 m, y+ wall): the mesh refinement keeps 4 cells off the patch faces (reefamr::setup, as off the in- and outflow), the patch inlet acts on level 0 (patch 261125/0003; before, the semi-implicit step refused patch boundary conditions with G 1).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "patchbc",
+  "amr"
+ ],
+ "covers": [
+  "reefamr::setup forbid around patch faces",
+  "sflow_momentum_SI::check patch BCs with G 1"
+ ]
+}

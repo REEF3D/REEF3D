@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"seastate_coupling.h"
 
 class fdm_nhf;
+class nhflow_amr;
 
 using namespace std;
 
@@ -55,6 +56,14 @@ depth-averaged quantities:
 With surfbeat the x- edge is open for the NHFLOW ghost cells (lexer
 open_xm = 1, as the Flather/Riemann edges of iowave), so that ghostcell
 keeps the long-wave values. Not with mesh refinement (G 1).
+
+Curvilinear and multi-block grids (G 50): the remote waves only (A 750 2,
+SEASTATE on its own grid). The host maps between its grids and the wave
+grid at the physical cell centres (seastate_coupling_grids.cpp); on a
+multi-block grid every block has a seastate_nhflow of its own that holds
+its wave fields (Fw, Gw, divM, Hs, Tp; no wave model), so the momentum of
+the block applies them as level 0 does. The set-up exchange waits for the
+blocks (attach, after nhflow_amr::ini).
 --------------------------------------------------------------------*/
 
 class seastate_nhflow : public seastate_coupling
@@ -64,6 +73,10 @@ public:
     virtual ~seastate_nhflow() = default;
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
+
+    // multi-block grid (G 50 1): the blocks of nhflow_amr (after its ini) get their seastate_nhflow, then the set-up
+    // exchange with the remote waves
+    void attach(lexer*, fdm_nhf*, ghostcell*, nhflow_amr*);
 
     // every NHFLOW step, before the momentum step: wave step when due
     void start(lexer*, fdm_nhf*, ghostcell*);
@@ -80,7 +93,13 @@ public:
 private:
     void average(lexer*, fdm_nhf*);
 
+    // the grids of a curvilinear or multi-block host on this rank (level 0 first), their depth-averaged velocities
+    void host_grids(lexer*, fdm_nhf*, std::vector<seastate_host_grid>&);
+
     slice4 Ub,Vb;
+
+    nhflow_amr *pamr = nullptr;     // multi-block grid: the blocks
+    bool pending = false;           // the set-up exchange waits for the blocks (attach)
 };
 
 #endif

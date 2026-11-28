@@ -131,7 +131,7 @@ void seastate_coupling::wave_step(lexer *p, ghostcell *pgc, double dt)
     tnext = tlast + p->A706;
     ++nstep;
 
-    if(p->mpirank==0 && (!surfbeat() || p->count%p->P12==0))
+    if(p->mpirank==0 && (!surfbeat() || (p->P12>0 && p->count%p->P12==0)))
     cout<<"SEASTATE wave step "<<nstep<<" at simtime "<<p->simtime<<" (dt "<<dt<<" s), forcing ramp "<<ramp(p)<<endl;
 }
 
@@ -496,6 +496,12 @@ void seastate_coupling::bilinear(const std::vector<double> &xs, const std::vecto
 
 void seastate_coupling::remote_ini(lexer *p, ghostcell *pgc, slice &eta, slice &WL, slice &U, slice &V)
 {
+    remote_setup(p,pgc);
+    remote_step(p,pgc,eta,WL,U,V,true);
+}
+
+void seastate_coupling::remote_setup(lexer *p, ghostcell *pgc)
+{
     remote = true;
 
     // host-side checks (the waves check their keys in seastate_f)
@@ -528,10 +534,12 @@ void seastate_coupling::remote_ini(lexer *p, ghostcell *pgc, slice &eta, slice &
     }
 
     // set-up: the keys both sides must share, the grid of this model; then the grid of the waves
+    // a curvilinear or multi-block host (hgrids) sends no lattice: -1 cells in x, it maps the fields itself
     std::vector<double> xs, ys;
+    if(!hgrids)
     centres(p,pgc,xs,ys);
 
-    const double mine[9] = {double(xs.size()), double(ys.size()), p->A706, double(p->A751), double(p->A753),
+    const double mine[9] = {hgrids ? -1.0 : double(xs.size()), hgrids ? 0.0 : double(ys.size()), p->A706, double(p->A751), double(p->A753),
                             (p->W200>0 || p->A570>0) ? 1.0 : 0.0, p->W203, p->A780, double(p->A10)};
     double theirs[9] = {0,0,0,0,0,0,0,0,0};
 
@@ -567,7 +575,12 @@ void seastate_coupling::remote_ini(lexer *p, ghostcell *pgc, slice &eta, slice &
     if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D::SEASTATE remote (A 750 2): waves on their own grid "<<rx.size()<<" x "<<ry.size()<<" cells ("
-        <<(rx.size()>1 ? rx[1]-rx[0] : 0.0)<<" m), host "<<xs.size()<<" x "<<ys.size()<<"; exchange every "<<p->A706
+        <<(rx.size()>1 ? rx[1]-rx[0] : 0.0)<<" m), host ";
+    if(hgrids)
+    cout<<"curvilinear or multi-block (the fields mapped at the physical cell centres)";
+    else
+    cout<<xs.size()<<" x "<<ys.size();
+    cout<<"; exchange every "<<p->A706
         <<" s, wave forcing "<<(p->A751==1 ? "radiation stress" : "vortex force")<<", ramp-up "<<p->A752<<" s"<<endl;
 
         // the clock of each model: A 780, else W 203 (0: none)
@@ -590,8 +603,6 @@ void seastate_coupling::remote_ini(lexer *p, ghostcell *pgc, slice &eta, slice &
     tlast = p->simtime;
     tnext = p->simtime;
     nstep = 0;
-
-    remote_step(p,pgc,eta,WL,U,V,true);
 }
 
 void seastate_coupling::remote_step(lexer *p, ghostcell *pgc, slice &eta, slice &WL, slice &U, slice &V, bool force)
@@ -603,47 +614,7 @@ void seastate_coupling::remote_step(lexer *p, ghostcell *pgc, slice &eta, slice 
     exchange(p,pgc,sbuf,rbuf,4961,4962);
 
     // the wave fields at the host cells: bilinear between the wet wave cell centres
-    const int nxw = int(rx.size()), nyw = int(ry.size());
-    const size_t Nw = size_t(nxw)*size_t(nyw);
-    const double *F[5] = {&rbuf[2], &rbuf[2+Nw], &rbuf[2+2*Nw], &rbuf[2+3*Nw], &rbuf[2+4*Nw]};
-    const double *W = &rbuf[2+5*Nw];
-    slice4 *T[5] = {&Fw, &Gw, &divM, &Hsw, &Tpw};
-
-    IMALOOP
-    JMALOOP
-    {
-    int a, b;
-    double wx, wy, v[5] = {0,0,0,0,0}, ws = 0.0;
-
-        // host cells outside the wave grid: no waves
-        if(!covers(rx,ry,p->XP[IP],p->YP[JP]))
-        {
-            for(int n=0; n<5; ++n)
-            (*T[n])(i,j) = 0.0;
-        continue;
-        }
-
-    bilinear(rx,ry,p->XP[IP],p->YP[JP],a,b,wx,wy);
-
-        for(int da=0; da<2; ++da)
-        for(int db=0; db<2; ++db)
-        {
-        const double w = (da==0 ? 1.0-wx : wx)*(db==0 ? 1.0-wy : wy);
-        const int ia = std::min(a+da,nxw-1), jb = std::min(b+db,nyw-1);
-        const size_t q = size_t(ia)*nyw + jb;
-
-            if(w<=0.0 || W[q]<0.5)
-            continue;
-
-            for(int n=0; n<5; ++n)
-            v[n] += w*F[n][q];
-
-        ws += w;
-        }
-
-        for(int n=0; n<5; ++n)
-        (*T[n])(i,j) = ws>0.0 ? v[n]/ws : 0.0;
-    }
+    fields_at(p,this,false);
 
     ++nupd;
 
@@ -661,6 +632,64 @@ void seastate_coupling::remote_step(lexer *p, ghostcell *pgc, slice &eta, slice 
     cout<<"SEASTATE remote exchange "<<nstep<<" at simtime "<<std::fixed<<std::setprecision(1)<<p->simtime<<" s (wave time "<<rbuf[1]
         <<" s), forcing ramp "<<std::setprecision(3)<<ramp(p)<<endl;
     cout.copyfmt(fmt);
+    }
+}
+
+void seastate_coupling::fields_at(lexer *p, seastate_coupling *w, bool phys)
+{
+    // the receive buffer of this object (rbuf: the wave fields and the wet cells of the wave grid), the fields of w
+    const int nxw = int(rx.size()), nyw = int(ry.size());
+    const size_t Nw = size_t(nxw)*size_t(nyw);
+    const double *F[5] = {&rbuf[2], &rbuf[2+Nw], &rbuf[2+2*Nw], &rbuf[2+3*Nw], &rbuf[2+4*Nw]};
+    const double *W = &rbuf[2+5*Nw];
+    slice4 *T[5] = {&w->Fw, &w->Gw, &w->divM, &w->Hsw, &w->Tpw};
+
+    IMALOOP
+    JMALOOP
+    {
+    int a, b;
+    double wx, wy, v[5] = {0,0,0,0,0}, ws = 0.0;
+    double xc, yc;
+
+        if(phys && p->geo_curv==1)
+        {
+        xc = p->XC2D[IJ];
+        yc = p->YC2D[IJ];
+        }
+        else
+        {
+        xc = p->XP[IP];
+        yc = p->YP[JP];
+        }
+
+        // host cells outside the wave grid: no waves
+        if(!covers(rx,ry,xc,yc))
+        {
+            for(int n=0; n<5; ++n)
+            (*T[n])(i,j) = 0.0;
+        continue;
+        }
+
+    bilinear(rx,ry,xc,yc,a,b,wx,wy);
+
+        for(int da=0; da<2; ++da)
+        for(int db=0; db<2; ++db)
+        {
+        const double ww = (da==0 ? 1.0-wx : wx)*(db==0 ? 1.0-wy : wy);
+        const int ia = std::min(a+da,nxw-1), jb = std::min(b+db,nyw-1);
+        const size_t q = size_t(ia)*nyw + jb;
+
+            if(ww<=0.0 || W[q]<0.5)
+            continue;
+
+            for(int n=0; n<5; ++n)
+            v[n] += ww*F[n][q];
+
+        ws += ww;
+        }
+
+        for(int n=0; n<5; ++n)
+        (*T[n])(i,j) = ws>0.0 ? v[n]/ws : 0.0;
     }
 }
 

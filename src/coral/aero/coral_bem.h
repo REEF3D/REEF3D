@@ -36,7 +36,13 @@ Architect: Hans Bihs
 // sign change that is a root; without one: no induction and converged = false.
 // Loads per unit span: fn = 1/2 rho W^2 c cn (along Vx, thrust), ft = 1/2 rho W^2 c ct (along Vy, driving torque),
 // mz = 1/2 rho W^2 c^2 cm (pitching moment, nose up positive), W^2 = (Vx (1 - a))^2 + (Vy (1 + a'))^2.
-// Without inflow normal to the plane or in it (Vx <= 0 or Vy <= 0), or with induction off: no induction. At the tip
+// Without inflow normal to the plane or in it (Vx <= 0 or Vy <= 0), or with induction off: no induction. Towards these
+// limits the inductions fade out: a and a' are multiplied by s(Vx/(e W0)) s(Vy/(e W0)), W0 = |(Vx, Vy)|,
+// s(x) = 3x^2 - 2x^3 on [0, 1], and bounded by 1/(1 - w) before (w the product; near Vy = 0 a feathered blade's a' passes a
+// pole) (induction_fade e, default 0.05: the inflow within about 3 deg of the rotor plane or of
+// the axis, e.g. a rotor turning in still air, or an idling rotor at rest), so that the load stays continuous where the
+// solution switches to no induction (an implicit time step needs that; an operating rotor's stations stay outside the
+// fade down to a local speed ratio 0.05 and up to 20). At the tip
 // (r >= R) with the tip loss, and at the hub (r <= R_hub) with the hub loss, F = 0: a = 1, a' = 0 as AeroDyn (the
 // limit of the momentum balance for F -> 0): the element's load without axial inflow (phi = 0, W = Vy; region 4).
 // Where the windmill root has passed phi = 0 (a -> 1: the residual positive from eps on, no root in (0, pi/2]),
@@ -66,6 +72,7 @@ namespace coral
         bool drag_in_induction = true; // cd in cn and ct of the momentum balance (AeroDyn's AIDrag, TIDrag)
         bool buhl = true;              // Buhl's high-induction correction, else the momentum relation a = k/(1 + k) for all k
         double tol = 1.0e-10;          // on phi
+        double induction_fade = 0.05;  // the inductions fade out within this fraction of W0 from Vx = 0 and Vy = 0 (0: off)
     };
 
     struct bem_element

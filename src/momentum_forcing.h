@@ -58,6 +58,10 @@ public:
     // every grid of the refinement (cfd_amr_cpm.cpp; psed is the sediment of one grid)
     inline static std::function<void(lexer*,fdm*,double,field&,field&,field&)> amr_psed;
 
+    // the rod trees of level 0 (Z 20; nullptr before the first forcing), for the patches of the CFD
+    // mesh refinement (cfd_amr::rod_sample, rod_forces)
+    rodtree_coupling* rodtrees() const {return prodtree;}
+
 private:
 	double uplus,ks_plus,dist,ks,ustar;
 	int ii,jj,kk;

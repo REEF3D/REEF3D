@@ -119,56 +119,6 @@ void decomp::partition(lexer* p, dive* a)
     ddout<<"xcount"<<aa<<" : "<<xcount[aa]<<"  xnode: "<<a->xnode[aa]<<"  xorig: "<<a->xorig[aa]<<endl;
 }
 
-void decomp::partition_voidcheck(lexer* p, dive* a)
-{
-    int check=1;
-
-    for(q=0;q<p->M10;++q)
-    subcell[q]=0;
-
-    q=0;
-    NLOOP
-    {
-        SUBLOOP
-        if(a->flag(i,j,k)>0)
-        ++subcell[q];
-
-        ++q;
-    }
-
-    for(q=0;q<p->M10;++q)
-    if(subcell[q]==0)
-    check=0;
-
-    if(check==0)
-    {
-        ddout<<"Void partition detected !!!"<<endl;
-
-        if(maindir==1)
-        {
-            p->M11=1;
-            p->M12=0;
-            p->M13=0;
-        }
-        else if(maindir==2)
-        {
-            p->M11=0;
-            p->M12=1;
-            p->M13=0;
-        }
-        else if(maindir==3)
-        {
-            p->M11=0;
-            p->M12=0;
-            p->M13=1;
-        }
-
-        costfunc(p,a);
-        partition(p,a);
-        partition_correction(p,a);
-    }
-}
-
 void decomp::rank(lexer *p, dive *a, int &dc_i, int &dc_j, int &dc_k, int &rank1, int &rank2, int &rank3)
 {
     if(dc_i>=dc_j)

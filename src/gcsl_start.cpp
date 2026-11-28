@@ -35,6 +35,13 @@ static inline int gcsl_depth(int d, int m0)
     return (d>0 && d<m0) ? d : m0;
 }
 
+// the y sides (cs 2, 3) at most jmargin deep (grid.h: one ghost row for the semi-implicit NHFLOW with one cell in y)
+static inline int gcsl_depth(const lexer *p, int d, int m0, int cs)
+{
+    const int m = gcsl_depth(d,m0);
+    return (cs==2 || cs==3) && p->jmargin<m ? p->jmargin : m;
+}
+
 namespace
 {
 // the label of an entry (gcsleval*) depends on gcv, its bc and side cs and the settings of the run,
@@ -107,13 +114,13 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 
     // (labels 4 and 5 inline, the others through gcsldistro1)
     gcsl_labels L;
-    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     QQGCSL1LOOP
     {
     const int ii = p->gcbsl1[qq][0], jj = p->gcbsl1[qq][1], bc = p->gcbsl1[qq][4], cs = p->gcbsl1[qq][3];
     if(ysk && (cs==2 || cs==3))
     continue;
-    const int mg = gcsl_depth(p->gcbsl1[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl1[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval1(p,gcv,bc,cs); });
     if(lab==4)
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -156,7 +163,7 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
     QQGCSL2LOOP
     {
     const int ii = p->gcbsl2[qq][0], jj = p->gcbsl2[qq][1], bc = p->gcbsl2[qq][4], cs = p->gcbsl2[qq][3];
-    const int mg = gcsl_depth(p->gcbsl2[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl2[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval2(p,gcv,bc,cs); });
     if(lab==4)
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -194,13 +201,14 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
     starttime=timer();
     // (labels 4, 14 and 5 inline, the others through gcsldistro4)
     gcsl_labels L;
-    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
+    // (one cell in y: the y sides skipped, gcsl_yskip.h; NHFLOW: in the time loop, the initialisation fills them)
+    const bool ysk = gcsl_yskip(p) && (p->A10!=5 || p->count>0);
     QQGCSL4LOOP
     {
     const int ii = p->gcbsl4[qq][0], jj = p->gcbsl4[qq][1], bc = p->gcbsl4[qq][4], cs = p->gcbsl4[qq][3];
     if(ysk && (cs==2 || cs==3))
     continue;
-    const int mg = gcsl_depth(p->gcbsl4[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl4[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval4(p,gcv,bc,cs); });
     if(lab==4 || (lab==14 && (cs==1 || cs==4)))
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -238,7 +246,7 @@ void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL1LOOP
-    gcsl_neumann_at(&f(p->gcbsl1[qq][0],p->gcbsl1[qq][1]),p->jmax,p->gcbsl1[qq][3],gcsl_depth(p->gcbsl1[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl1[qq][0],p->gcbsl1[qq][1]),p->jmax,p->gcbsl1[qq][3],gcsl_depth(p,p->gcbsl1[qq][2],m0,p->gcbsl1[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -258,7 +266,7 @@ void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL2LOOP
-    gcsl_neumann_at(&f(p->gcbsl2[qq][0],p->gcbsl2[qq][1]),p->jmax,p->gcbsl2[qq][3],gcsl_depth(p->gcbsl2[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl2[qq][0],p->gcbsl2[qq][1]),p->jmax,p->gcbsl2[qq][3],gcsl_depth(p,p->gcbsl2[qq][2],m0,p->gcbsl2[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -278,7 +286,7 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL4LOOP
-    gcsl_neumann_at(&f(p->gcbsl4[qq][0],p->gcbsl4[qq][1]),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl4[qq][0],p->gcbsl4[qq][1]),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p,p->gcbsl4[qq][2],m0,p->gcbsl4[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -297,24 +305,48 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
+    // (one cell in y, the semi-implicit NHFLOW in the time loop: the y sides and the corners, all in the y ghost rows,
+    // skipped as in gcsl_start4, gcsl_yskip.h)
+    const bool ysk = p->A10==5 && gcsl_yskip(p) && p->count>0;
     QQGCSL4LOOP
-    gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
+    if(!ysk || (p->gcbsl4[qq][3]!=2 && p->gcbsl4[qq][3]!=3))
+    gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p,p->gcbsl4[qq][2],m0,p->gcbsl4[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
-    SLICELOOP4
+    // corner ghost cells: only next to a cell with an inactive neighbour in x and one in y
+    if(!ysk)
     {
-        if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]<0)
-        f[Im1Jm1] = f[IJ];
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const bool xm = flag[q-nj]<0, xp = flag[q+nj]<0;
+        
+        if(!xm && !xp)
+        continue;
+        
+        const bool ym = flag[q-1]<0, yp = flag[q+1]<0;
+        
+        if(xm && ym && flag[q-nj-1]<0)
+        f[q-nj-1] = f[q];
 
-        if(p->flagslice4[Im1Jp1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJp1]<0)
-        f[Im1Jp1] = f[IJ];
+        if(xm && yp && flag[q-nj+1]<0)
+        f[q-nj+1] = f[q];
 
-        if(p->flagslice4[Ip1Jm1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJm1]<0)
-        f[Ip1Jm1] = f[IJ];
+        if(xp && ym && flag[q+nj-1]<0)
+        f[q+nj-1] = f[q];
 
-        if(p->flagslice4[Ip1Jp1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJp1]<0)
-        f[Ip1Jp1] = f[IJ];
+        if(xp && yp && flag[q+nj+1]<0)
+        f[q+nj+1] = f[q];
+        }
+    }
     }
 
     //  MPI Boundary Swap

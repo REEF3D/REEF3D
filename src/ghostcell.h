@@ -152,6 +152,7 @@ public:
     void gcparacoxV(lexer*, double*, int);
     void gcparacoxV1(lexer*, double*, int);
     void gcperiodicx(lexer*, field&, int);
+    void gc_periodic_corners(lexer*, field&, int);
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     double timer();

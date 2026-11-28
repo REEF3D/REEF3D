@@ -179,6 +179,7 @@ void reefamr::rsi_setup()
 {
     rsi_free();
     rsi_layout = regrids;
+    rsi_ix.assign(P.size()+1,-1);
 
     rsig.push_back(-1);
     for(int id : lev[0])
@@ -269,6 +270,9 @@ void reefamr::rsi_setup()
         }
 
         rsg.push_back(c);
+        if((int)rsi_ix.size()<g+2)
+        rsi_ix.resize(g+2,-1);
+        rsi_ix[g+1] = (int)rsg.size()-1;
     }
 
     // the coarse space (G 57) and the rows of the patch multigrids are made per solve
@@ -276,7 +280,11 @@ void reefamr::rsi_setup()
 
 // ------------------------------------------------------------------------------------------- fills
 // covered cells: the mean of their children (curvilinear grid: area weighted), finest first; the parent may lie on
-// another rank (block plans)
+// another rank (block plans).  At the shoreline the mean of the children with an open face only (a_f > 0 on one of
+// their faces): eta of a dry child is its bed level, which would lift the covered cell above the lake at rest and,
+// through the slopes of the interpolation, the fine cells around the patch (as the restricted surface of the wet
+// children, sfc, of the explicit refinement).  The weights depend on the faces of the step only: the fills of the
+// Krylov vectors stay linear
 void reefamr::rsi_restrict(int tag, const std::function<slice&(int)> &F)
 {
     for(int l=maxlev; l>=1; --l)
@@ -287,6 +295,36 @@ void reefamr::rsi_restrict(int tag, const std::function<slice&(int)> &F)
                  slice &x = F(id);
                  const int nby = c->ny>>sy;
                  const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
+                 const rsi_g *g = (id+1<(int)rsi_ix.size() && rsi_ix[id+1]>=0) ? rsg[rsi_ix[id+1]] : nullptr;
+
+                 // the children with an open face
+                 double w[2][2] = {{1.0,1.0},{1.0,1.0}};
+                 bool all = true, any = false;
+                 if(g!=nullptr)
+                 for(int u=0; u<2; ++u)
+                 for(int d=0; d<=sy; ++d)
+                 {
+                     const int ii = i0+u, jj = j0+d;
+                     slice &ax = *g->R.ax, &ay = *g->R.ay;
+                     const bool open = ax(ii-1,jj)>0.0 || ax(ii,jj)>0.0 || (sy==1 && (ay(ii,jj-1)>0.0 || ay(ii,jj)>0.0));
+                     w[u][d] = open ? 1.0 : 0.0;
+                     all = all && open;
+                     any = any || open;
+                 }
+
+                 if(!all && any)
+                 {
+                     double s=0.0, a=0.0;
+                     for(int u=0; u<2; ++u)
+                     for(int d=0; d<=sy; ++d)
+                     {
+                         const double A = w[u][d]*(pp->geo_curv==1 ? pp->AREA2D[lij(pp,i0+u,j0+d)] : 1.0);
+                         s += A*x(i0+u,j0+d);
+                         a += A;
+                     }
+                     v[0] = s/a;
+                     return;
+                 }
 
                  if(pp->geo_curv==1)
                  {
@@ -310,8 +348,26 @@ void reefamr::rsi_restrict(int tag, const std::function<slice&(int)> &F)
              });
 }
 
-// linear interpolation of the coarse cell (ic,jc) of a grid into its child in quadrant (ox,oy) (central slopes,
-// none across a wall: as sflow_amr::nh_eval)
+// linear interpolation of the coarse cell (ic,jc) of grid g into its child in quadrant (ox,oy) (central slopes,
+// none across a wall: as sflow_amr::nh_eval).  None across a closed face either (a_f = 0: dry, H_f <= the
+// wetting criterion): eta of a dry cell is its bed level, and a slope toward it would give the fine cells around a
+// patch at the shoreline a water level above the lake at rest, a gradient on their open faces and a flow
+double reefamr::rsi_interp(int g, slice &x, int ic, int jc, int ox, int oy)
+{
+    lexer *q = glex(g);
+    const rsi_g *c = (g+1<(int)rsi_ix.size() && rsi_ix[g+1]>=0) ? rsg[rsi_ix[g+1]] : nullptr;
+    const double x0 = x(ic,jc);
+
+    auto val = [&](int a, int b, bool open) { return (q->flagslice4[lij(q,a,b)]<0 || !open) ? x0 : x(a,b); };
+    auto ox_ = [&](int a, int b) { return c==nullptr || (*c->R.ax)(a,b)>0.0; };
+    auto oy_ = [&](int a, int b) { return c==nullptr || (*c->R.ay)(a,b)>0.0; };
+
+    return x0 + 0.125*(val(ic+1,jc,ox_(ic,jc))-val(ic-1,jc,ox_(ic-1,jc)))*ox
+              + 0.125*(val(ic,jc+1,oy_(ic,jc))-val(ic,jc-1,oy_(ic,jc-1)))*oy;
+}
+
+// the same without the faces of the eta system (the slopes across every fluid face): the non-hydrostatic correction
+// of SFLOW (sflow_amr_sinh.cpp)
 double reefamr::rsi_interp(lexer *q, slice &x, int ic, int jc, int ox, int oy)
 {
     const double x0 = x(ic,jc);
@@ -351,7 +407,7 @@ void reefamr::rsi_fill(int tag, const std::function<slice&(int)> &F)
                  if(f.kind==0)
                  v[0] = F(f.g)(f.si,f.sj);
                  else if(f.kind==1)
-                 v[0] = rsi_interp(glex(f.g),F(f.g),f.si,f.sj,f.ox,f.oy);
+                 v[0] = rsi_interp(f.g,F(f.g),f.si,f.sj,f.ox,f.oy);
                  else
                  v[0] = 0.0;
              },
@@ -666,7 +722,7 @@ void reefamr::rsi_prec(int r, int z)
                          if(f.kind==0)
                          v[0] = Zf(f.g)(f.si,f.sj);
                          else if(f.kind==1)
-                         v[0] = rsi_interp(glex(f.g),Zf(f.g),f.si,f.sj,f.ox,f.oy);
+                         v[0] = rsi_interp(f.g,Zf(f.g),f.si,f.sj,f.ox,f.oy);
                          else
                          v[0] = 0.0;
                      },
@@ -777,10 +833,9 @@ void reefamr::rsi_prolong(int l, int v)
     block_down(l,4,8660+l,
                [&](const reefamr_block &B, int key, double *w)
                {
-                   lexer *q = glex(B.g);
                    for(int a=0;a<2;++a)
                    for(int d=0;d<=sy;++d)
-                   w[2*a+d] = rsi_interp(q,Vf(B.g),B.ic,B.jc,a==0 ? -1 : 1,(sy==0) ? 0 : (d==0 ? -1 : 1));
+                   w[2*a+d] = rsi_interp(B.g,Vf(B.g),B.ic,B.jc,a==0 ? -1 : 1,(sy==0) ? 0 : (d==0 ? -1 : 1));
                },
                [&](reefamr_patch *q, int n, int kb, const double *w)
                {

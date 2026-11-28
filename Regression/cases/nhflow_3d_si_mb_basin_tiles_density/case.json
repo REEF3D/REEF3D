@@ -22,5 +22,8 @@
  ],
  "covers": [
   "the pressure gradient and the split tracer step across the faces between tiles"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<cstring>
+#include<unordered_map>
 #include"cfd_airband_dt.h"
 #include"cell_index.h"
 #include"cfd_amr.h"
@@ -33,6 +34,7 @@ Architect: Hans Bihs
 #include"heaviside.h"
 #include"interface_width.h"
 #include"momentum_rk.h"
+#include"rodtree_coupling.h"
 #include"pjm_corr.h"
 #include"poisson_pcorr.h"
 #include"convection.h"
@@ -212,8 +214,10 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = cpm_why(p);
     else if(p->E10>0)
     why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
-    else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
-    why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
+    else if(p->X10>1 || p->Z10!=0 || p->Z30!=0)
+    why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 30)";
+    else if(p->Z20!=0 && p->G7!=0)
+    why = "rod trees (Z 20) with G 7 0 (their forces on the patches are not built for the subcycling G 7 1 yet)";
     else if(p->X320>0 && p->G7!=0)
     why = "nets (X 320) with G 7 0 (their forces on the patches are not built for the subcycling G 7 1 yet)";
     else if(p->B200!=0 && p->B200!=1)
@@ -289,6 +293,82 @@ void cfd_amr::net_forces()
     }
 }
 
+// --------------------------------------------------------------------- rod trees
+//  The rod trees (Z 20) live on level 0 (momentum_forcing, rodtree_coupling::start_cfd): sampled
+//  there, loaded, their reaction spread to the faces of level 0, advanced in the final stage.  With
+//  the refinement every point takes the velocity of the patch whose leaf cells hold it (the level of
+//  kernel_level, as the kernel of the nets), sampled before the momentum of level 0 (the velocity of
+//  the patch at the start of the stage; level 0 samples its own after its momentum).  After the
+//  momentum of level 0 the reaction it evaluated goes to the faces of the patches (Fext, Gext, Hext)
+//  with the kernel of net_forces, so the momentum of the patches in the same stage takes it.
+void cfd_amr::rod_sample()
+{
+    rodtree_coupling *rc = mom0->rodtrees();
+    if(rc==nullptr)
+    return;
+
+    rc->amr_sample_begin();
+
+    for(int id=0; id<npat; ++id)
+    {
+        if(CP(id)->shadow)
+        continue;
+
+        lexer *pp = CP(id)->pp;
+        const int L = CP(id)->lev;
+        double lo[3], hi[3];
+        for(int d=0; d<3; ++d)
+        {
+            lo[d] = node(L,d,CP(id)->lo[d]);
+            hi[d] = node(L,d,CP(id)->hi[d]+1);
+        }
+
+        const std::function<bool(const double*)> mine = [&](const double *x)
+        {
+            for(int d=0; d<3; ++d)
+            if((d!=1 || pp->j_dir==1) && (x[d]<lo[d] || x[d]>=hi[d]))
+            return false;
+            return kernel_level(x)==L;
+        };
+
+        cfd_amr_scope ps(pgc0,CP(id)->a,a0);
+        rc->amr_sample(pp,CP(id)->a,mine);
+    }
+}
+
+void cfd_amr::rod_forces()
+{
+    rodtree_coupling *rc = mom0->rodtrees();
+    if(rc==nullptr)
+    return;
+
+    for(int id=0; id<npat; ++id)
+    {
+        lexer *pp = CP(id)->pp;
+        fdm *fa = CP(id)->a;
+        const int L = CP(id)->lev;
+
+        // net_forces zeroes the external forces of the patches before the momentum of level 0
+        if(nets6==nullptr)
+        {
+        const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
+        std::fill(fa->Fext.V, fa->Fext.V + n, 0.0);
+        std::fill(fa->Gext.V, fa->Gext.V + n, 0.0);
+        std::fill(fa->Hext.V, fa->Hext.V + n, 0.0);
+        }
+
+        const std::function<void(const double*,int*)> width = [&](const double *x, int *f)
+        {
+            const int lk = CP(id)->shadow ? L : kernel_level(x);
+            for(int d=0; d<3; ++d)
+            f[d] = (lk>L) ? 1 : ratio(L-lk,d);
+        };
+
+        cfd_amr_scope ps(pgc0,fa,a0);
+        rc->amr_spread(pp,fa,width);
+    }
+}
+
 cfd_amr_scope::cfd_amr_scope(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
 {
     oldc = g->set_comms(false);
@@ -320,6 +400,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // nets (X 320): their forces on the fluid on the patches as well (net_forces)
     nets6 = (p->X320>0) ? p6dof : nullptr;
+
+    // rod trees (Z 20): sampled and forced on the patches as well (rod_sample, rod_forces)
+    rods = (p->Z20>0) ? 1 : 0;
 
     mom0 = dynamic_cast<momentum_rk*>(pmom);
     press0 = dynamic_cast<pjm_corr*>(ppress);
@@ -1643,11 +1726,36 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     const bool airband = (p->N57>0.0 && p->F30>0);
     double dta = 1.0e10;
 
+    // A patch made at the last regrid has not taken a step: its acceleration terms are zero, and its
+    // criterion was that of the velocity alone (a step up to twice too large after a regrid with all
+    // patches of the finest level new).  It takes the largest terms of the patches that have stepped,
+    // and when there are none (all patches new) those of the step before.
+    {
+        double acc[3] = {0.0,0.0,0.0};
+        for(int id=0; id<npat; ++id)
+        {
+            fdm *fa = CP(id)->a;
+            acc[0] = MAX(acc[0],fabs(fa->maxF));
+            acc[1] = MAX(acc[1],fabs(fa->maxG));
+            acc[2] = MAX(acc[2],fabs(fa->maxH));
+        }
+        MPI_Allreduce(MPI_IN_PLACE,acc,3,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        if(acc[0]>0.0 || acc[1]>0.0 || acc[2]>0.0)
+        for(int d=0; d<3; ++d)
+        ts_acc[d] = acc[d];
+    }
+
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         fdm *fa = c->a;
+        if(fa->maxF==0.0 && fa->maxG==0.0 && fa->maxH==0.0)
+        {
+            fa->maxF = ts_acc[0];
+            fa->maxG = ts_acc[1];
+            fa->maxH = ts_acc[2];
+        }
         double umax=0.0, vmax=0.0, wmax=0.0;
         double cp = 1.0e10;
 
@@ -1992,6 +2100,13 @@ void cfd_amr::restrict_press_hydro(int l)
         const int nch = rr[0]*rr[1];
         vector<double> hf(nch), phf(nch), wf(nch);
 
+        // G 17 (pr_hydro): the faces on top of the patch, by their fine cell
+        std::unordered_map<long long,const cfd_amr_cf*> topf;
+        if(p0->G17==1)
+        for(const cfd_amr_cf &F : cf)
+        if(F.pid==id && F.d==2 && F.dir>0)
+        topf[(long long)F.fi[0]*1048576 + F.fi[1]] = &F;
+
         int P[3];
         for(P[0]=Plo[0]; P[0]<=Phi[0]; ++P[0])
         for(P[1]=Plo[1]; P[1]<=Phi[1]; ++P[1])
@@ -2022,7 +2137,38 @@ void cfd_amr::restrict_press_hydro(int l)
                 const double w = interface_width(q,ac->phi,i,j,k);
                 const double dz = q->DZN[k+marge];
                 if(P[2]==Phi[2])
-                hc = g*rho(q,ph,w)*0.5*dz;
+                {
+                    hc = g*rho(q,ph,w)*0.5*dz;
+                    // G 17: the coarse column from the coarse cell above the plane, as pr_hydro (the
+                    // density of the faces of the patch edge of the last projection)
+                    if(p0->G17==1)
+                    {
+                        const double hold = hc;
+                        double A = 0.0;
+                        int na = 0;
+                        const cfd_amr_cf *F0 = nullptr;
+                        for(int a=0; a<rr[0]; ++a)
+                        for(int b=0; b<rr[1]; ++b)
+                        {
+                            const int fi = P[0]*rr[0]+a-c->lo[0], fj = P[1]*rr[1]+b-c->lo[1], fk = pp->knoz-1;
+                            auto it = topf.find((long long)fi*1048576 + fj);
+                            if(it==topf.end())
+                            continue;
+                            F0 = it->second;
+                            A += g*rho(pp,af->phi(fi,fj,fk),interface_width(pp,af->phi,fi,fj,fk))*0.5*pp->DZN[fk+marge] - g*F0->rog*F0->dist;
+                            ++na;
+                        }
+                        if(na==nch && F0!=nullptr)
+                        {
+                            lexer *qa = glex(F0->gc);
+                            fdm *aa = gfd(F0->gc);
+                            const int *ci = F0->ci;
+                            hc = A/double(na) + g*rho(qa,0.5*(aa->phi(ci[0],ci[1],ci[2]-1)+aa->phi(ci[0],ci[1],ci[2])),interface_width_face(qa,aa->phi,ci[0],ci[1],ci[2]-1,0,0,1))*qa->DZP[ci[2]-1+marge];
+                            if(fabs(hc-hold)<=1.0e-12*(fabs(hold)+1.0e-30))
+                            hc = hold;
+                        }
+                    }
+                }
                 else
                 hc += g*rho(q,0.5*(ph+phc),0.5*(w+wc))*0.5*(dz+dzc);
                 phc = ph;
@@ -2076,6 +2222,17 @@ void cfd_amr::restrict_scalars(int s)
     {
         restrict_level(l,cells,none);
         restrict_press_hydro(l);
+
+        // G 40: the pressure of G 29 from the shadows to the ranks that hold the level-0 cells.
+        // restrict_level has given the plain mean before; without this the cells of level 0 under a
+        // patch on another rank kept it, as with G 29 0 (still water, a patch edge through the free
+        // surface: 3.6e-2 m/s after 0.5 s with G 28 0, 1.3e-3 m/s with G 28 3)
+        if(place && l==1 && p0->G29==1 && rr[2]==2)
+        {
+            vector<std::function<field&(int)>> pr;
+            pr.push_back([this](int g) -> field& { return gfd(g)->press; });
+            sh_run(pu_cell,pr,false);
+        }
     }
 
     if(turb)
@@ -2360,11 +2517,19 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         if(nets6!=nullptr)
         net_forces();
 
+        // the rod trees: the velocity of the patches at their points, for level 0
+        if(rods)
+        rod_sample();
+
         if(tp)
         mom0->amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,s==0,1);
         else
         mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
         t0l[1] += MPI_Wtime()-tb;
+
+        // the rod trees: the reaction of this stage (level 0) on the faces of the patches
+        if(rods)
+        rod_forces();
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -2474,6 +2639,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         mom_block(s);
         end_block(s);
     }
+
+    // REEF3D_AMR_VOLEDGE=1: the volume through the patch edges as the two levels see it (a diagnostic)
+    volume_edge(p);
 
     // the volume correction over the leaf cells of all grids (F 46 2, 3)
     volume_correct(p,pgc);

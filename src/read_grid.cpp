@@ -327,6 +327,19 @@ void lexer::read_grid()
     gcpara_sum=gcpara1_count+gcpara2_count+gcpara3_count+gcpara4_count+gcpara5_count+gcpara6_count;
     gcparaco_sum=gcparaco1_count+gcparaco2_count+gcparaco3_count+gcparaco4_count+gcparaco5_count+gcparaco6_count;
     
+    // the vertical margin of the 3D arrays (grid.h): one ghost layer for the semi-implicit NHFLOW on one Cartesian grid
+    // (A 10 5, A 534 1, no mesh refinement G 1, no curvilinear or multi-block grid G 50)
+    kmargin = margin;
+    if(A10==5 && A534==1 && G1==0 && G50==0)
+    kmargin = 1;
+
+    // the margin in y: one ghost row for the semi-implicit NHFLOW with one cell in y (the same grids), whose kernels and
+    // ghost cells reach one row; their slices keep the y ghost rows of the initialisation (gcsl_yskip); not with the
+    // REEF3D::SEASTATE coupling (A 750), whose wave model works on the full margin
+    jmargin = margin;
+    if(A10==5 && A534==1 && G1==0 && G50==0 && gknoy==1 && A750==0)
+    jmargin = 1;
+
     grid::assign_margin();
     
     Iarray(flag4,imax*jmax*kmax);

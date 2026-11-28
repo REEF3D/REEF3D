@@ -827,10 +827,13 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
     const int nzl=L.nz;
     const int *rm=&rowmap[0];
 
-    for(int ii=0;ii<L.nx;++ii)
-    for(int jj=0;jj<L.ny;++jj)
+    //  the active columns only (reefmg_core::fine_activity): the entries of the
+    //  others are zero in x and y and stay so
+    const long nac=(long)L.acol.size();
+    for(long a=0;a<nac;++a)
     {
-        const long col=L.idx(ii,jj,0);
+        const int ii=L.acol[a]/L.ny, jj=L.acol[a]%L.ny;
+        const long col=L.aoff[a];
         const int r0=colrow0[(long)ii*L.ny+jj];
 
         //  Fully active column with consecutive rows: contiguous slices of M,

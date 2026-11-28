@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase30_amr",
+ "np": 2,
+ "description": "seastate_2d_phase30_amr on 2 ranks (level by level, the ranks sweep from the halo of the last exchange: its own reference): the marks of the ring cells held by the other rank through the exchange plans of the fills.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_amr::active_end: the marks of ring cells on other ranks (fill_run_sub)"
+ ]
+}

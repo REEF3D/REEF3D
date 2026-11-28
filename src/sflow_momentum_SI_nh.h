@@ -102,17 +102,33 @@ struct sflow_si_nh_lu
     std::vector<double> h3c;    // h^3 of the cells (the A 220 3 preconditioner)
     std::vector<int> fxs, fys;  // the faces of the cells, each once
     std::vector<double> FX1, FX2, FY1, FY2;   // their discharges in the operator
+    // work vectors of sflow_momentum_SI::nh_solve, kept from step to step (no allocation per step)
+    std::vector<double> xv, yv, rv, zv, wv[13];
+    std::vector<int> cq;
+    std::vector<char> mk;
 
+    // the basis vectors V[k], Z[k] get their memory when the iteration reaches them (kvec): a solve takes 4 to 10 of
+    // the 30 of a restart cycle, and a vector that is allocated is written (zeros), so all 61 at once are
+    // 976 bytes per cell of resident memory
     void workspace(int m, int n2)
     {
-        if((int)V.size()!=m+1 || (V.size()>0 && (int)V[0].size()!=n2))
+        if((int)V.size()!=m+1 || kn!=n2)
         {
-        V.assign(m+1,std::vector<double>(n2));
-        Z.assign(m,std::vector<double>(n2));
+        V.assign(m+1,std::vector<double>());
+        Z.assign(m,std::vector<double>());
+        kn = n2;
         }
         H.assign((m+1)*m,0.0);
         cs.assign(m,0.0); sn.assign(m,0.0); g.assign(m+1,0.0);
     }
+
+    std::vector<double>& kvec(std::vector<double> &v)
+    {
+        if((int)v.size()!=kn)
+        v.resize(kn);
+        return v;
+    }
+    int kn=-1;
 
     // open boundary face of x-face / y-face (i,j): index into bcf, -1 none
     std::vector<int> bfx, bfy;
@@ -122,6 +138,13 @@ struct sflow_si_nh_lu
     std::unique_ptr<reefmg2D> mg1, mg2;
     std::unique_ptr<matrix2D> M1, M2;
     std::unique_ptr<vec2D> r1, r2;
+
+    // A 234 > 1: the preconditioner in use: steps since its set-up, the time step, the iterations and the
+    // non-hydrostatic cells of that step, the iterations of the last step
+    bool pc_ok=false;
+    int pc_age=0, pc_it=0, pc_last=0;
+    double pc_dt=0.0;
+    std::vector<char> pc_pat;
 };
 
 #endif

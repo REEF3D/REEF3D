@@ -57,6 +57,10 @@ struct sc_level
                                          // super-diagonal and reciprocal pivots
     std::vector<char>   colact;          // 1 if the column has any active cell
     std::vector<long>   zcol[2];         // active columns by red-black colour
+    std::vector<int>    acol;            // active columns i*ny+j in (i,j) order, and the
+    std::vector<long>   aoff;            // index idx(i,j,0) of each: the loops of the solve
+                                         // skip the other columns (dry, solid), whose entries
+                                         // stay zero in every vector (column_activity)
 
     //  Coefficients live in exactly one of the two sets, depending on the
     //  storage precision chosen before setup: p..b and tc,ti in fp64 mode,
@@ -316,6 +320,8 @@ private:
     void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
     void cycle_step(int pre,int post);   // one stationary step, defect correction in fp32
     void factor_lines();
+    void column_activity(sc_level &L);   // colact, acol, aoff from act
+    void fine_activity();                // the same for the fine level, vectors cleared on a change
 
     //  device path (N 16), see set_device()
     void device_setup(int maxlevel,int perx,int pery);
@@ -341,6 +347,8 @@ private:
     MPI_Win devwin;          // shared memory: the device's fine level
     char *dev0;              // its start on this rank
     bool dev0copy;           // rank 0: the device keeps its own fine level, copied
+    bool devfull=true;       // device_precondition: write the whole block of the right-hand side once (fine_activity)
+    bool devclear=false;     // device_upload: clear the fine level on the device (fine_activity)
     int devgx,devgy;         // global fine extent
     int devox,devoy;         // offset of this rank's block in it
     int devnlev;             // levels of the device hierarchy

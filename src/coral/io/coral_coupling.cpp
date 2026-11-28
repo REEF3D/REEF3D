@@ -32,7 +32,10 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<cmath>
 #include<cstdint>
+#include<cstdio>
+#include<sstream>
 #include<stdexcept>
+#include<Eigen/Eigenvalues>
 
 namespace coral
 {
@@ -128,7 +131,7 @@ void coupling::ini(double t0, const std::string &dir)
     if(out_on_)
     {
         out_ = std::make_unique<time_series>();
-        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m, restart_);
+        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m, restart_, c_.run.out_only);
         if(!restart_)
         out_->write(c_.m, t_);
     }
@@ -179,17 +182,43 @@ void coupling::advance_to(double t1)
         const double t = t_ + k*h;
         if(!ti_->step(c_.m, t, h))
         {
-            // sub-steps of the failed step
+            const std::string why_h = ti_->failure();
+            // sub-steps of the failed step, every level from the state at t (the failed step left the model
+            // there; a level that failed part-way has moved it on)
+            std::vector<double> s0;
+            ti_->save_state(s0);
+            c_.m.save_state(s0);
+            auto back_to_t = [&]()
+            {
+                const timeint_stats st = ti_->stats;
+                size_t j = 0;
+                if(!ti_->load_state(c_.m, s0, j) || !c_.m.load_state(s0, j))
+                    throw std::runtime_error("the state of t = " + std::to_string(t) + " s could not be restored");
+                ti_->stats = st;
+            };
             bool ok = false;
+            std::string why_sub;
             for(int level=1; level<=6 && !ok; ++level)
             {
                 const int m = 1<<level;
+                if(level > 1)
+                    back_to_t();
                 ok = true;
                 for(int s=0; s<m && ok; ++s)
+                {
                     ok = ti_->step(c_.m, t + s*h/m, h/m);
+                    if(!ok)
+                        why_sub = "h/" + std::to_string(m) + ", sub-step " + std::to_string(s+1) + " from t = "
+                                + std::to_string(t + s*h/m) + " s:\n" + ti_->failure();
+                }
             }
             if(!ok)
-                throw std::runtime_error("time step failed at t = " + std::to_string(t) + " s");
+            {
+                back_to_t();
+                diagnose(t, h, k, n, t1, why_h, why_sub);
+                throw std::runtime_error("time step failed at t = " + std::to_string(t) + " s (the reason: CORAL's message"
+                                         " before this one in the log)");
+            }
         }
         ++nstep_;
         track_.record(c_.m, t + h);
@@ -204,6 +233,132 @@ void coupling::advance_to(double t1)
     t_ = t1;
     if(jout_.is_open())
         jout_.flush();
+}
+
+// ---- messages
+
+void coupling::check_sample(double t, const VecX &f, const MatX &A, bool provisional)
+{
+    if(sample_warnings_ > 20)
+        return;
+    const int N = (int)c_.fluid_bodies.size();
+    const double g = c_.m.gravity.norm();
+    std::ostringstream os;
+    for(int k=0; k<N && 6*k+6 <= f.size(); ++k)
+    {
+        const auto &spec = c_.fluid_bodies[k];
+        const rigid_body &b = c_.m.body(spec.body);
+        const Vec6 F = f.segment<6>(6*k);
+        const char *what = nullptr;
+        double jump = 0.0, scale = 0.0;
+        if(!F.allFinite())
+            what = "non-finite";
+        else if(f_checked_.size() == f.size())
+        {
+            const Vec6 F0 = f_checked_.segment<6>(6*k);
+            scale = std::max(F0.head<3>().cwiseAbs().maxCoeff(), b.mass*g);
+            jump = (F - F0).head<3>().cwiseAbs().maxCoeff();
+            if(jump > 100.0*scale)
+                what = "a jump in the";
+        }
+        if(what)
+        {
+            char s[256];
+            std::snprintf(s, sizeof(s), "CORAL: WARNING %s fluid load of %s at t = %.9g s (%s): F = (%.4g %.4g %.4g), M = (%.4g %.4g %.4g)",
+                          what, b.name.c_str(), t, provisional ? "provisional, the predicted pose of the next stage" : "committed",
+                          F(0), F(1), F(2), F(3), F(4), F(5));
+            os<<s;
+            if(jump > 0.0)
+            {
+                std::snprintf(s, sizeof(s), ", %.3g N from the last committed sample (scale %.3g N)", jump, scale);
+                os<<s;
+            }
+            os<<std::endl;
+        }
+        // the added mass (two-way bodies): the mass matrix with it must stay positive definite
+        if(A.rows() >= 6*k+6 && !spec.one_way)
+        {
+            const Mat6 Ak = A.block<6,6>(6*k, 6*k);
+            if(!Ak.allFinite())
+                os<<"CORAL: WARNING non-finite added mass of "<<b.name<<" at t = "<<t<<" s"<<std::endl;
+            else
+            {
+                Mat6 M = Mat6::Zero();
+                M.block<3,3>(0,0) = b.mass*Mat3::Identity();
+                M.block<3,3>(3,3) = b.R*b.inertia*b.R.transpose();
+                const Mat6 S = M + 0.5*(Ak + Ak.transpose());
+                const double e0 = Eigen::SelfAdjointEigenSolver<Mat6>(S, Eigen::EigenvaluesOnly).eigenvalues()(0);
+                if(!(e0 > 0.0) && b.mass > 0.0)
+                    os<<"CORAL: WARNING the added mass at t = "<<t<<" s leaves the mass matrix of "<<b.name
+                      <<" not positive definite (smallest eigenvalue "<<e0<<"; diagonal of the added mass "
+                      <<Ak.diagonal().transpose()<<")"<<std::endl;
+            }
+        }
+    }
+    if(!provisional && f.allFinite())
+        f_checked_ = f;
+    if(!os.str().empty())
+    {
+        log_<<os.str();
+        if(++sample_warnings_ > 20)
+            log_<<"CORAL: further warnings on the fluid samples suppressed"<<std::endl;
+    }
+}
+
+void coupling::diagnose(double t, double h, int k, int n, double t1, const std::string &why_h, const std::string &why_sub)
+{
+    char b[512];
+    std::ostringstream os;
+    os<<"\nCORAL: the step from t = "<<t<<" s failed (h = "<<h<<" s, step "<<k+1<<" of "<<n<<" to t = "<<t1
+      <<" s), also in sub-steps down to h/64"<<std::endl;
+    os<<"  Newton in the step of h:"<<std::endl<<why_h;
+    os<<"  the last sub-step: "<<why_sub;
+    os<<"  state at t (CORAL frame; the fluid frame adds "<<c_.fluid_origin.transpose()<<"):"<<std::endl;
+    for(const auto &bd : c_.m.bodies)
+    {
+        std::snprintf(b, sizeof(b), "    %s: x (%.6g %.6g %.6g), v (%.4g %.4g %.4g), w (%.4g %.4g %.4g), dv/dt (%.4g %.4g %.4g), "
+                      "dw/dt (%.4g %.4g %.4g)", bd.name.c_str(), bd.x(0), bd.x(1), bd.x(2), bd.v(0), bd.v(1), bd.v(2),
+                      bd.w(0), bd.w(1), bd.w(2), bd.vd(0), bd.vd(1), bd.vd(2), bd.wd(0), bd.wd(1), bd.wd(2));
+        os<<b<<(bd.x.allFinite() && bd.v.allFinite() && bd.w.allFinite() && bd.vd.allFinite() && bd.wd.allFinite()
+                ? "" : "  NON-FINITE")<<std::endl;
+    }
+    // every load by itself on the state of t (its accelerations those of the last step), at t and at t + h
+    os<<"  loads on the state at t: the largest entry of each (the generalized forces of the bodies)"<<std::endl;
+    for(const auto &l : c_.m.load_list)
+        for(const double tt : {t, t + h})
+        {
+            VecX f = VecX::Zero(c_.m.ndof());
+            std::string err;
+            try
+            {
+                l->eval(c_.m, tt, f);
+            }
+            catch(const std::exception &e)
+            {
+                err = e.what();
+            }
+            os<<"    "<<l->name()<<" at t = "<<tt<<": ";
+            if(!err.empty())
+                os<<"throws: "<<err<<std::endl;
+            else if(!f.allFinite())
+            {
+                int i = 0;
+                while(i < f.size() && std::isfinite(f(i))) ++i;
+                os<<"NON-FINITE at "<<c_.m.dof_name(i)<<std::endl;
+            }
+            else
+            {
+                int i = 0;
+                const double fm = f.size() ? f.cwiseAbs().maxCoeff(&i) : 0.0;
+                os<<fm<<(f.size() ? " at " + c_.m.dof_name(i) : std::string())<<std::endl;
+            }
+        }
+    if(c_.fluid)
+        c_.fluid->describe(os, c_.m, t, t + h);
+    if(c_.fluid_record.empty())
+        os<<"  with fluid_coupling ... record <file> the run writes a journal of the fluid input; the standalone CORAL"
+            " repeats this step from it: CORAL coral.txt replay <file>"<<std::endl;
+    log_<<os.str()<<std::endl;
 }
 
 // ---- the bodies of the fluid solver
@@ -386,6 +541,7 @@ void coupling::fluid_loads(double t, const std::vector<Vec6> &F, const std::vect
                     break;
                 }
         am_told_ = true;
+        check_sample(t, f, Am, provisional);
         c_.fluid->set_sample(t, f, Am, provisional, acc);
     }
     // first loads: consistent accelerations of the start with the fluid loads, masses of the fluid

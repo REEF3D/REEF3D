@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_2d_si_6dof_heave_nh with X 13 1: the level of the columns pierced by the box from the surrounding free surface after the water level update of the step (nhflow_fsf_body::level, momentum, print; the body pose of the step without a second advance, sixdof_nhflow::nhflow_mark_advanced; NHFLOW_SI_6DOF v50).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "nhflow_fsf_body with the semi-implicit step (si_end_cells)",
+  "sixdof_nhflow::nhflow_mark_advanced"
+ ],
+ "architect": "Hans Bihs"
+}

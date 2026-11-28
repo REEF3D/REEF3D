@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<memory>
+#include<functional>
 
 class lexer;
 class ghostcell;
@@ -36,17 +37,19 @@ class vec2D;
 
 // The eta system of the semi-implicit NHFLOW with one row of cells (j_dir 0) on one rank: tridiagonal in the
 // SLICELOOP4 order, solved directly (Thomas). Rows coupled to a non-neighbouring row (or a coupling in y): the
-// iterative solver of the slice (fallback) for that solve.
+// iterative solver of the slice (fallback) for that solve, built on its first use (the multigrid hierarchy of a
+// long row is several MB per 10^4 cells and a plain 1D run never needs it).
 class si_tridiag2D : public solver2D, public increment
 {
 public:
-    si_tridiag2D(lexer*, ghostcell*, solver2D *fallback);
+    si_tridiag2D(lexer*, ghostcell*, std::function<solver2D*()> fallback);
     virtual ~si_tridiag2D();
 
     void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
 
 private:
-    solver2D *fb;
+    solver2D *fb = nullptr;
+    std::function<solver2D*()> make_fb;
     std::vector<double> c, d;
     std::vector<int> ci;
 };

@@ -1,0 +1,22 @@
+{
+ "description": "As nhflow_3d_si_nh_curv_slosh_rot30 on a grid sheared by 22 deg (x lines displaced by 0.4 y) with the non-orthogonal part of the face gradients (A 539 1): that of eta^{n+1} from eta of the estimate pass, that of phi explicit in the solve, with the extrapolated phi in the first solve of the step and with phi of that solve in a second one. Without A 539 1 the period is 4.6 % short; with it the wave loses 2 % of its height in 34 periods.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_curv_phi_corr and the second solve of the step (step_single)",
+  "si_assemble: the non-orthogonal part of grad eta^{n+1} from the estimate pass (cvE)"
+ ],
+ "architect": "Hans Bihs"
+}

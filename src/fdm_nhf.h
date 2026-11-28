@@ -40,6 +40,7 @@ class nhflow_fsf_hull;
 class nhflow_hullbody;
 class seastate_nhflow;
 class met_forcing;
+class slide2D;
 
 using namespace std;
 
@@ -67,6 +68,7 @@ public:
     slice4 PORS;                // VRANS: porosity at the free surface n(eta), storage of the continuity
     slice4 vb;
     slice4 vbk;     // A 550 4: wavenumber of the breaking crest for the depth profile of vb
+    slice4 plk,plh; // S 137: turbulent kinetic energy of the plunging jet at the surface and the breaker height of the impact
     slice4 test2D;
     slice4 fs;
     
@@ -154,6 +156,7 @@ public:
 
     // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
     met_forcing *met = nullptr;
+    slide2D *slide = nullptr;   // two-layer landslide: the slide layer under the water (W 150)
 };
 
 #endif

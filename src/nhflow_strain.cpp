@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_strain.h"
+#include"nhflow_breaking_profile.h"
 #include"nhflow_stratification.h"
 #include"nhflow_wall.h"
 #include"lexer.h"
@@ -110,6 +111,26 @@ void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         PK0[IJK] = d->EV0[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
         PK[IJK]  =  d->EV[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
+        
+        // A 543: the energy the breaking viscosity vb (A 550) takes out of the mean flow becomes turbulence: the share
+        // A 543 of vb (2 s11^2 + 2 s22^2 + s12^2) as production of k (and of eps/omega through PK0). vb acts along
+        // the layers (A 556 < 1), so only the horizontal strain; the vertical mixing, the sediment diffusivity
+        // (EV0) and the bed shear of S 16 2 then come from k
+        if(p->A543>0.0 && p->A550>0 && p->A561!=1)
+        {
+        const double vbl = nhflow_vb_layer(p,d,i,j,k);
+        
+            if(vbl>0.0)
+            {
+            const double hs = dudx(d->U);
+            const double vs = (p->j_dir==1) ? dvdy(d->V) : 0.0;
+            const double cs = (p->j_dir==1) ? (dudy(d->U) + dvdx(d->V)) : 0.0;
+            const double pb = p->A543*vbl*(2.0*hs*hs + 2.0*vs*vs + cs*cs);
+            
+            PK[IJK]  += pb;
+            PK0[IJK] += pb;
+            }
+        }
     }
 }
 

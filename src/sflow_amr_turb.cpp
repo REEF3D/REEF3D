@@ -210,7 +210,7 @@ void sflow_amr::turb_fill(ghostcell *pgc, int l)
 void sflow_amr::turb_run(ghostcell *pgc, sflow_amr_patch &c)
 {
     tscope ts(pgc,c.pp);
-    c.pturb->start(c.pp,c.b,pgc,nullptr,c.pdiff,c.ptsolv,pflow_void);
+    c.pturb->start(c.pp,c.b,pgc,c.pdiff,c.ptsolv,pflow_void);
 }
 
 void sflow_amr::turb_save(ghostcell *pgc, sflow_amr_patch &c)
