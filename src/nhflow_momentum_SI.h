@@ -364,6 +364,8 @@ private:
     std::vector<double> rzDV;                                 // columns: the water depth the damping added in the step
     static constexpr double rz_nhcut = 3.0;                   // sigma dt above which a zone column is hydrostatic
     void rz_targets(lexer*, fdm_nhf*, ghostcell*);
+    void rz_auto(lexer*, ghostcell*, fdm_nhf*);   // B 95 0 with A 505 1: the reference step of the zones from the grid
+    bool rz_auto_done = false;
     void finish(lexer*, fdm_nhf*, ghostcell*);
     void level_ghosts(lexer*, fdm_nhf*, ghostcell*);
     void log(lexer*, fdm_nhf*, ghostcell*);

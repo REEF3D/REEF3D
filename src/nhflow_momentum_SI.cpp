@@ -4466,6 +4466,50 @@ void nhflow_momentum_SI::df_reforce(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // with f = 0 it gives (1 - r) f_T, with f = 1 (1 - r) f_T + r. Not with the low-passed zones (B 98 6, B 99 6), whose
 // targets depend on the state, and not on curvilinear, multi-block and refined grids: there the zones stay blended
 // after the step.
+// The reference step of the zone weights with A 505 1 and B 95 0 (the default): dt_ref = 0.2 dx_min/sqrt(g h_max),
+// so a zone relaxes by the same amount per unit time whatever the step, as strongly as in the explicit RK2 step (at N 47 0.5
+// about 0.4 dx/sqrt(g h_max), two relaxations per step). With the weights of one step instead (B 95 0 before), a zone got
+// weaker the larger the step: the solitary wave of the conical island (H/d 0.181, a 2 m zone) left it at 0.87 H at C 2 and
+// 0.95 H at C 1 (first order in dt), and the run-up error was 0.099 d / 0.071 d against 0.044 d of Basilisk ML; the regular
+// waves of the aquaculture tank (T 1.4 s, H 0.15 m, 1 m, dx 0.05 m) came out 6.5 % / 7.5 % high at dt 0.02 / 0.04 s. With the
+// reference step from the grid: the run-up error 0.048 - 0.052 d at C 2 and C 1, the tank waves within 1.2 % at dt 0.02 and
+// 0.04 s. A given B 95 (> 0, or -1: the weight of one step) is kept. The blend after the step (A 505 0) keeps B 95 as given:
+// with the weights per unit time it stops at gravity-wave Courant numbers above about 1.5 (the tank in 2D at dt 0.04 s)
+void nhflow_momentum_SI::rz_auto(lexer *p, ghostcell *pgc, fdm_nhf *d)
+{
+    if(rz_auto_done)
+    return;
+
+    rz_auto_done = true;
+
+    if(p->B95!=0.0)
+    return;
+
+    double dx=1.0e20, h=0.0;
+
+    SLICELOOP4
+    {
+    dx = MIN(dx,p->DXN[IP]);
+
+    if(p->j_dir==1)
+    dx = MIN(dx,p->DYN[JP]);
+
+    h = MAX(h,d->WL(i,j));
+    }
+
+    dx = pgc->globalmin(dx);
+    h = pgc->globalmax(h);
+
+    if(h<=p->A544 || dx>=1.0e19)
+    return;
+
+    p->B95 = 0.2*dx/sqrt(g*h);
+
+    if(p->mpirank==0)
+    cout<<"NHFLOW SI relaxation zones in the step (A 505 1): B 95 "<<p->B95<<" s from the grid, 0.2 dx/sqrt(g h_max) with dx "
+        <<dx<<" m, h_max "<<h<<" m: the zones relax per unit time, as strongly as in the explicit step, whatever the time step"<<endl;
+}
+
 void nhflow_momentum_SI::rz_targets(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     rzimp = false;
@@ -4479,8 +4523,8 @@ void nhflow_momentum_SI::rz_targets(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     rzimp = true;
 
-    if(p->B95==0.0 && p->count<=1 && p->mpirank==0)
-    cout<<"NHFLOW A 505 1 without B 95: the zone weight of one step (B 95 -1), dt-dependent"<<endl;
+    // B 95 0: the zone strength per unit time from the grid (rz_auto)
+    rz_auto(p,pgc,d);
 
     // the targets of t^{n+1}
     if(p->B95!=0.0)

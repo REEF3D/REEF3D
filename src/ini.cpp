@@ -224,7 +224,7 @@ void control::ini_default()
     A535=0.5;   // double NHFLOW semi-implicit: theta
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
-    A505=0;      // int NHFLOW semi-implicit: relaxation zones (B 98 2, B 99 1/2, B 520) 0 blended once after the step, 1 inside the step as an implicit damping term of momentum and water level, sigma dt = -ln r of the zone weight of the step; with B 95 (half the explicit time step: the zone strength of RK2) for a time step several times the explicit one
+    A505=0;      // int NHFLOW semi-implicit: relaxation zones (B 98 2, B 99 1/2, B 520) 0 blended once after the step (B 95 as given), 1 inside the step as an implicit damping term of momentum and water level (one Cartesian grid, else blended), sigma dt = -ln r of the zone weight of the step; with B 95 0 the zones relax per unit time with the reference step 0.2 dx/sqrt(g h_max) from the grid, the zone strength of the explicit RK2 step, for any time step
     A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A506=1.0e-4; // double NHFLOW semi-implicit with A 520 > 0 (2D, MPI): tolerance of the coupled eta-phi solve relative to the residual of the step's guess (FGMRES, max |r| <= A 506 max |r0|, rows in metres); the band LU of one row of columns is direct
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
@@ -528,7 +528,7 @@ void control::ini_default()
 	B93_2=0.0;      // double wave period
     B94=0;     // int set water depth for wave theory
     B94_wdt=0.0;    // double water depth for wave theory
-    B95=0.0;        // double SFLOW, NHFLOW and FNPF (RK3, RK4) relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
+    B95=0.0;        // double SFLOW, NHFLOW and FNPF (RK3, RK4) relaxation zones (B 98 2): 0 as before (NHFLOW semi-implicit with A 505 1: from the grid, 0.2 dx/sqrt(g h_max)); >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0;          // int NHFLOW and CFD numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
