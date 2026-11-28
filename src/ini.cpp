@@ -1008,6 +1008,7 @@ void control::ini_default()
     N50=1;          // int adaptive timestepping method
     N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 3 as 2 with the face density above that of the upwind control volume carrying the velocity of the receiving control volume (air flowing into a face the level set makes heavier no longer gives the water its velocity), 0 the velocity
     N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
+    N64=0;          // int FNPF time step N 48 1 (theta-Robin A 310 5): 1 the step ignores the coastline bound (A 343 >= 1): at most 4 x the RK3 step (N 48 2, N 47 0.75) as without a coastline; 0 at most 1 x with a coastline
     N65=0;          // int CFD N 40 5, 6 with N 57: 1 the momentum of the air beyond the band of N 57 semi-Lagrangian (stable at any Courant number), the air out of the time step but for the reach of the departure point (2 cells); 0 the Godunov convection
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53

@@ -2013,6 +2013,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = N63;
     ii++;
+    ictrl[ii] = N64;
+    ii++;
     ictrl[ii] = N65;
     ii++;
     dctrl[dd] = N56;
