@@ -49,6 +49,13 @@ Architect: Hans Bihs
 // Boundaries: bed surface (cell face to a fluid cell): p = p_b, sigma'.n = 0; solids (structures, e.g. a
 // pipeline) and the bottom of the domain: u = 0, impermeable; lateral domain edges S 211 (1 roller:
 // u.n = 0, no shear; 2 fixed: u = 0), impermeable.
+//
+// Soil region (every step, the bed may move): left out are bed cells with fluid on both sides in a direction
+// (a cell of a staircase bed one cell wide or thick has no shear connection) and soil not connected through
+// faces to a wall (it would float); their bed pressure is that of the fluid above. The reference of the bed
+// pressure in cells that the bed uncovers later: the hydrostatic continuation of the fluid at the start.
+// A cell that enters or leaves the soil gives a short pore pressure transient (undrained response to the
+// sudden load or unloading of one cell), decaying within the consolidation time of a cell.
 
 #ifndef SOIL_STRESS_H_
 #define SOIL_STRESS_H_
