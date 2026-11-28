@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), crc(p), crp(p), etf(p), etf2(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), brkx(p), brkx_n(p), brky(p), brky_n(p), plk_n(p), plh_n(p), crc(p), crp(p), etf(p), etf2(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -47,6 +47,10 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkr_n(i,j)=0.0;
     brkh(i,j)=0.0;
     brkh_n(i,j)=0.0;
+    brkx(i,j)=0.0;
+    brkx_n(i,j)=0.0;
+    brky(i,j)=0.0;
+    brky_n(i,j)=0.0;
     plk_n(i,j)=0.0;
     plh_n(i,j)=0.0;
     crc(i,j)=0.0;
@@ -191,6 +195,8 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     brkk_n(i,j) = brkk(i,j);
     brkr_n(i,j) = brkr(i,j);
     brkh_n(i,j) = brkh(i,j);
+    brkx_n(i,j) = brkx(i,j);
+    brky_n(i,j) = brky(i,j);
     
     // S 142: the impact turbulence decays over the time S 142 sqrt(H_b/g) (0: only in the impact window)
     const double td = p->S142*sqrt(MAX(d->plh(i,j),0.0)/g);
@@ -224,6 +230,8 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     pgc->gcsl_start4(p,brkk_n,1);
     pgc->gcsl_start4(p,brkr_n,1);
     pgc->gcsl_start4(p,brkh_n,1);
+    pgc->gcsl_start4(p,brkx_n,1);
+    pgc->gcsl_start4(p,brky_n,1);
     
     count_n=p->count;
     }
@@ -249,6 +257,8 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     brkk(i,j) = 0.0;
     brkr(i,j) = 0.0;
     brkh(i,j) = 0.0;
+    brkx(i,j) = 0.0;
+    brky(i,j) = 0.0;
     brkflag(i,j) = 0;
     d->vb(i,j) = 0.0;
     d->plk(i,j) = p->wet[IJ]==1 ? plk_n(i,j) : 0.0;
@@ -264,8 +274,10 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         double kw = brkk_n(i,j);
         double r0 = brkr_n(i,j);
         double hb = brkh_n(i,j);
+        double x0 = brkx_n(i,j);
+        double y0 = brky_n(i,j);
         
-        auto take = [&](int ii, int jj) { if(brkage_n(ii,jj)>age) { age = brkage_n(ii,jj); kw = brkk_n(ii,jj); r0 = brkr_n(ii,jj); hb = brkh_n(ii,jj); } };
+        auto take = [&](int ii, int jj) { if(brkage_n(ii,jj)>age) { age = brkage_n(ii,jj); kw = brkk_n(ii,jj); r0 = brkr_n(ii,jj); hb = brkh_n(ii,jj); x0 = brkx_n(ii,jj); y0 = brky_n(ii,jj); } };
         take(i-1,j);
         take(i+1,j);
         
@@ -321,6 +333,26 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         hb = -1.0;
         }
         
+        // S 145 1: the onset column of a new event, carried with the front for the plunge distance
+        if(age<=0.0)
+        {
+        x0 = p->XP[IP];
+        y0 = p->YP[JP];
+        }
+        
+        // S 137: the impact window has not opened yet (S 145 0: the time S 138 H_b/c; 1: the distance S 138 H_b)
+        auto before_impact = [&]()
+        {
+            if(p->S145==1)
+            {
+            const double dx0 = p->XP[IP] - x0;
+            const double dy0 = p->j_dir==1 ? p->YP[JP] - y0 : 0.0;
+            return sqrt(dx0*dx0 + dy0*dy0) < p->S138*hb;
+            }
+            
+            return age + p->dt < p->S138*hb/c;
+        };
+        
             if(et>ets && ets>0.0)
             {
             const double B = (et>=2.0*ets) ? 1.0 : et/ets - 1.0;
@@ -331,13 +363,15 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             // the front is still a slope and eta of the onset column well below the crest (Baldock et al. 2011 M_E,
             // A 550 3, A 542 1: eta/0.75 = 0.29 m at the onset, H = 0.64 m), so the jet landed 0.6 m past the onset
             // with S 138 2
-            if(p->S143>0.0 && p->S137>0.0 && hb>0.0 && age + p->dt < p->S138*hb/c)
+            if(p->S143>0.0 && p->S137>0.0 && hb>0.0 && before_impact())
             hb = MAX(hb, MAX(MAX(d->eta(i,j),0.0), crp(i,j))/0.75);
             
             brkage(i,j) = age + p->dt;
             brkk(i,j) = kw;
             brkr(i,j) = r0;
             brkh(i,j) = hb;
+            brkx(i,j) = x0;
+            brky(i,j) = y0;
             brkflag(i,j) = 1;
             ++kn_count;
             
@@ -347,7 +381,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             on_xsum += p->XP[IP];
             }
             
-            plunge(p,d,i,j,age + p->dt,hb,kw,c);
+            plunge(p,d,i,j,age + p->dt,hb,kw,c,x0,y0);
             }
             
             // A 550 4: the event of a seeded column ages also below the threshold, so the threshold relaxes from
@@ -359,6 +393,8 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             brkk(i,j) = kw;
             brkr(i,j) = r0;
             brkh(i,j) = hb;
+            brkx(i,j) = x0;
+            brky(i,j) = y0;
             }
         }
     }
@@ -534,22 +570,48 @@ in Baldock M_E it is a quarter to a half of H, and the impact lands too close to
 with the crest eta_c of the last wave at the column (the largest eta between an up- and a down-crossing of the still
 water level), taken at the onset and over the front's columns until the impact window opens; no plunge for an event that starts where the
 still-water depth is below H_b/2 (swash, wetting fronts), and no impact where the still-water depth is below H_b/4.
+S 145 1: the impact window is placed by distance instead of time: the columns S 138 H_b to (S 138 + 1) H_b from the
+onset column of the event, whose position is carried with the front as H_b. With S 145 0 the front covers c t_b
+with the local c = sqrt(g h) of the column it has reached; in Baldock M_E (T17, S 138 2.5) the jet first landed
+4.6 H_b past the onset and, as the bar grew, 2.5 H_b, so the impact and the trough moved 1.6 m offshore in 23 min
+while the onset moved 0.25 m.
 Breaker type: with the wavenumber k of the crest (A 550 4, 5) only plunging breakers, Iribarren number
 xi_b = tan(beta)/sqrt(H_b/L_0) >= 0.4 (Battjes 1974), L_0 = 2 pi/(k tanh(k h)); A 550 3 has no k: every event.
 --------------------------------------------------------------------*/
-void nhflow_breaking::plunge(lexer *p, fdm_nhf *d, int ii, int jj, double age, double hb, double kw, double c)
+void nhflow_breaking::plunge(lexer *p, fdm_nhf *d, int ii, int jj, double age, double hb, double kw, double c, double x0, double y0)
 {
     if(p->S137<=0.0 || hb<=1.0e-4 || c<=0.0)
     return;   // hb < 0: an event of the swash (no plunge)
     
+    const int i0=i, j0=j;
+    i=ii; j=jj;
+    
+    // S 145 0: the window of the time S 138 H_b/c after the onset, H_b/c wide; S 145 1: the columns at the distance
+    // S 138 H_b to (S 138 + 1) H_b from the onset column of the event
+    bool window;
+    
+    if(p->S145==1)
+    {
+    const double dx0 = p->XP[IP] - x0;
+    const double dy0 = p->j_dir==1 ? p->YP[JP] - y0 : 0.0;
+    const double ds = sqrt(dx0*dx0 + dy0*dy0);
+    
+    window = ds>=p->S138*hb && ds<(p->S138+1.0)*hb;
+    }
+    
+    else
+    {
     const double tp = p->S138*hb/c;
     const double tw = hb/c;
     
-    if(age<tp || age>=tp+tw)
-    return;
+    window = age>=tp && age<tp+tw;
+    }
     
-    const int i0=i, j0=j;
-    i=ii; j=jj;
+    if(!window)
+    {
+    i=i0; j=j0;
+    return;
+    }
     
     // the jet lands in water: still-water depth at the impact at least H_b/4 (not in the swash)
     bool plunging = d->WL(i,j) - d->eta(i,j) >= 0.25*hb;

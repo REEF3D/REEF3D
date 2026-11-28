@@ -2818,6 +2818,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = S134;
     ii++;
+    ictrl[ii] = S145;
+    ii++;
     dctrl[dd] = S130;
     dd++;
     dctrl[dd] = S131;

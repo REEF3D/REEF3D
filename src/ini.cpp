@@ -1437,6 +1437,7 @@ void control::ini_default()
     S142=0.0;              // double NHFLOW S 137: decay time of the impact turbulence after the impact, S 142 sqrt(H_b/g); 0: only while the front crosses the impact point
     S143=0.0;              // double NHFLOW S 137: 1: the breaker height H_b of an event from the crest of the last wave at its columns, H_b = eta_c/0.75 (eta_c the largest eta between an up- and a down-crossing of the still water level), at the onset and over the front until the impact window opens; 0: eta/0.75 of the onset column (the front, well below the crest)
     S144=1.0;              // double NHFLOW S 137: share of the impact turbulence in the suspended-load diffusivity (0.1 H_b sqrt(k)); the bed shear keeps it in full; 1: as before, 0: the impact lifts sand but does not mix it up the column
+    S145=0;                // int NHFLOW S 137: impact point of the plunging jet, 0: after the time S 138 H_b/c since the onset (the front with the local c), 1: at the distance S 138 H_b from the onset column (carried with the event)
     S133=0.0;              // double NHFLOW: upper limit of the Shields number of the bed shear stress, 0: off
     S134=0;                // int NHFLOW: the solids of the grid (DIVEMesh, A 580 0) are part of the sediment bed: 0 erodible as sediment (as before), 1 not erodible: where the bed has come down to the solid surface no bed load, no pick-up and no sand slide from the column (as SFLOW); a rigid apron or sill
     S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)

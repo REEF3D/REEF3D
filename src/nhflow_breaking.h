@@ -65,7 +65,7 @@ public:
     void swash_taper(lexer*, fdm_nhf*, slice&);
     
     // S 137: impact of the plunging jet in column (i,j) of an event of age t_b, breaker height H_b, wavenumber k, speed c
-    void plunge(lexer*, fdm_nhf*, int, int, double, double, double, double);
+    void plunge(lexer*, fdm_nhf*, int, int, double, double, double, double, double, double);
     
     // A 550 3: eddy viscosity of Kennedy et al. (2000)
     void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
@@ -109,6 +109,7 @@ private:
     slice4 brkkseed, brkk, brkk_n;   // A 550 4: wavenumber of the seed, of the event, at the end of the last step
     slice4 brkr, brkr_n;        // A 550 4: initial threshold of the event / c, at the end of the stage and of the last step
     slice4 brkh, brkh_n;        // S 137: breaker height H_b of the event (from the crest at the onset), carried with the front
+    slice4 brkx, brkx_n, brky, brky_n;  // S 145 1: position of the onset column of the event, carried with the front
     slice4 plk_n, plh_n;        // S 137, S 142: impact turbulence of the last step, decayed over the step
     slice4 crc, crp;            // S 143: crest of the wave passing the column (max eta since the up-crossing), crest of the last wave
     slice4 etf, etf2;           // A 542: deta/dt filtered over A 542 h (onset of breaking independent of the grid)
