@@ -59,6 +59,7 @@
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_ckpt_fields.h"/>
         <File Name="nhflow_ckpt_fields.h"/>
+        <File Name="nhf_kcheck.h"/>
         <File Name="sflow_ckpt_fields.h"/>
         <File Name="sflow_memory.h"/>
         <File Name="fnpf_amr_fill.h"/>
@@ -832,7 +833,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <File Name="fnpf_hj_godunov.h"/>
           <File Name="fnpf_hires.h"/>
           <File Name="fnpf_weno5_wd.h"/>
           <File Name="fnpf_weno5.h"/>
@@ -1685,6 +1685,7 @@
           <File Name="seastate_coupling.cpp"/>
           <File Name="seastate_remote.cpp"/>
           <File Name="seastate_coupling_bed.cpp"/>
+          <File Name="seastate_coupling_grids.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
