@@ -36,6 +36,13 @@ Author: Hans Bihs
 // bending, torsion and junction stiffness follow from the same model.
 // Root nodes are clamped to the bed (joint to a fixed world frame).
 //
+// Contact with rigid vertical cylinders (global keyword 'cylinder x y R',
+// e.g. the pile that soft marine growth is attached to): after every
+// sub-step an element whose centre lies closer than R + r to the axis is
+// moved radially out to R + r and its inward velocity removed (position
+// projection, inelastic, frictionless).  Elements attached to a clamped
+// node are exempt (their root sits on the surface by definition).
+//
 // Hydrodynamics (unresolved, Morison-type, per element with relative
 // velocity):  normal/tangential drag, Froude-Krylov + added-mass inertia
 // Cm*rho*V*a_f,n, added mass Ca*rho*V in the normal directions of the
@@ -138,6 +145,8 @@ public:
     void set_mode(int m){mode=m;}               // 0 dynamic, 1 quasi-static, 2 rigid
     int get_mode() const {return mode;}
     void set_linear_solver(int s){linsolver=s;} // 0 sparse LU, 1 tree block elimination
+    int ncylinder() const {return (int)cyl.size();}
+    int contacts() const {return ncontact_last;}  // elements projected out of a cylinder in the last step
     int get_linear_solver() const {return linsolver;}
     bool tree_topology();                        // element graph is a forest (tree solver applicable)
     int static_iterations() const {return qs_it_last;}
@@ -192,6 +201,13 @@ private:
 
     std::vector<element> el;
     std::vector<joint> jt;
+
+    // rigid vertical cylinders for contact: x, y, R
+    struct cylinder_info {double x, y, R;};
+    std::vector<cylinder_info> cyl;
+    std::vector<char> rootel;                    // element attached to the world frame (exempt from contact)
+    int ncontact_last;
+    int contact_project();
     std::vector<colony_info> col;
 
     Vec3 g;

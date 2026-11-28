@@ -41,7 +41,7 @@ namespace
     }
 }
 
-rodtree::rodtree() : g(0.0,0.0,-9.81), rhof(1000.0), t(0.0), integrator(0), substeps(1), nsub_last(1), reaction_mode(0), mode(0), linsolver(1), qs_it_last(0), hsub_prev(0.0), pattern_ready(false), tree_built(false), tree_ok(false)
+rodtree::rodtree() : g(0.0,0.0,-9.81), rhof(1000.0), t(0.0), integrator(0), substeps(1), nsub_last(1), reaction_mode(0), mode(0), linsolver(1), qs_it_last(0), hsub_prev(0.0), ncontact_last(0), pattern_ready(false), tree_built(false), tree_ok(false)
 {
 }
 
@@ -77,6 +77,15 @@ void rodtree::read(std::istream& in)
             else throw input_error(lineno,"integrator must be 'implicit' or 'explicit'");
             continue;
         }
+        if(!cur && key=="cylinder")
+        {
+            cylinder_info c;
+            if(!(ls>>c.x>>c.y>>c.R) || c.R<=0.0)
+            throw input_error(lineno,"cylinder needs: x y R  (vertical axis through (x,y), R > 0)");
+            cyl.push_back(c);
+            continue;
+        }
+
         if(!cur && key=="substeps")
         {
             if(!(ls>>substeps) || substeps<1)
@@ -382,7 +391,44 @@ void rodtree::finalize_setup()
         }
     }
 
+    rootel.assign(el.size(),0);
+    for(const joint& j : jt)
+    if(j.a<0)
+    rootel[j.b] = 1;
+
     pattern_ready = false;
+}
+
+// contact with the rigid vertical cylinders: position projection of the element centres (see rodtree.h)
+int rodtree::contact_project()
+{
+    int n = 0;
+    if(cyl.empty())
+    return n;
+
+    for(int e=0; e<nelem(); ++e)
+    {
+        if(rootel[e])
+        continue;
+
+        element& E = el[e];
+        for(const cylinder_info& c : cyl)
+        {
+            const double dx = E.c(0)-c.x, dy = E.c(1)-c.y;
+            const double d = std::sqrt(dx*dx + dy*dy);
+            const double dmin = c.R + E.r;
+            if(d>=dmin || d<1.0e-12)
+            continue;
+
+            const Vec3 nrm(dx/d,dy/d,0.0);
+            E.c += (dmin-d)*nrm;
+            const double vn = E.v.dot(nrm);
+            if(vn<0.0)
+            E.v -= vn*nrm;
+            ++n;
+        }
+    }
+    return n;
 }
 
 // ---------------------------------------------------------------------------
@@ -671,8 +717,12 @@ void rodtree::advance(double dt)
                                  "(damping beta too large or joints too stiff); use the implicit integrator");
         int n = std::max(1,(int)nd);
         nsub_last = n;
+        ncontact_last = 0;
         for(int s=0; s<n; ++s)
+        {
         step_explicit(dt/n);
+        ncontact_last += contact_project();
+        }
     }
     else
     {
@@ -688,6 +738,7 @@ void rodtree::advance(double dt)
         double rem = dt;
         int nacc = 0;
         std::vector<element> save;
+        ncontact_last = 0;
 
         while(rem>1.0e-12*dt)
         {
@@ -713,6 +764,7 @@ void rodtree::advance(double dt)
             if(!ok)
             throw std::runtime_error("rodtree: implicit sub-step below dt/65536 still rejected (structure unstable)");
 
+            ncontact_last += contact_project();
             rem -= h;
             ++nacc;
             hsub_prev = h;
