@@ -2820,6 +2820,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = S143;
     dd++;
+    dctrl[dd] = S144;
+    dd++;
     dctrl[dd] = S140;
     dd++;
     dctrl[dd] = S141;
