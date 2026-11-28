@@ -1,0 +1,21 @@
+{
+ "base": "sflow_1d_si_steep_fast_rk3",
+ "ctrl_set": {
+  "A 210": "12"
+ },
+ "description": "sflow_1d_si_steep_fast_rk3 with the SSP-RK2 predictor (A 210 12): the flow Courant number of the fast cells is at most 0.5 (sflow_timestep_SI::flowfac_cell).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "river"
+ ],
+ "covers": [
+  "sflow_momentum_SI::fast_discharge (A 210 12)",
+  "sflow_timestep_SI::flowfac_cell (A 210 12: 0.5)"
+ ]
+}

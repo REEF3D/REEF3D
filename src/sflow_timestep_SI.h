@@ -58,6 +58,9 @@ public:
     // the factor of the advective limit (A 210 11, A 220 2/3, A 235 the flow Courant number)
     static double flowfac(lexer*);
 
+    // the factor of a cell with the velocities u, v and the depth h (A 236 1: fast flow)
+    static double flowfac_cell(lexer*, double fac, double u, double v, double h);
+
 	double wd_criterion,cfl;
     double capw;        // the wave limit of the step (A 228 <= 0)
 };

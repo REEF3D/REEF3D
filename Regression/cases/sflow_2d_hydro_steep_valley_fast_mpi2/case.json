@@ -1,0 +1,23 @@
+{
+ "description": "REEF3D::HYDRO on 2 ranks: a valley of 200 m x 60 m (4 m cells, slope 0.1, channel 4 m wide, side slopes 0.4, Manning n 0.0445) with a point source of 60 m3/s at its head (R 40) and 30 mm/h rain (R 10), free outfall, semi-implicit (A 210 13, flow Courant number 0.8): fast flow in the channel, sheet flow on the banks; the coarse version of the flume of HYDRO/validation/14_benchmark_anuga. The stage state of fast flow (A 236 1) in 2D, with the weights and the momentum of t^n of the cells across the rank boundary.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 1500,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI::fast_begin (exchange of fwc, UH0, VH0)",
+  "sflow_momentum_SI::fast_discharge on the y-faces",
+  "face_weights in fast_discharge"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

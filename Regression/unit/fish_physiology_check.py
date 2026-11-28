@@ -8,6 +8,8 @@
 #     at 80 and 100 % U_crit most fish endure 4 h, at 140 % none does
 #   * fish_agents3d.py with "physiology" and "stages": in a weak current the school circles, in a current above every
 #     fish's preferred speed every fish stands on it facing upstream, and exhausted fish end on the downstream net
+#   * the glide by a drag law (C_glide); in 0.9 m/s the fish burst and glide, at a lower cost than steady swimming, and
+#     hold their station; a fish pressed against the net escapes (patch 0044)
 #   python3 fish_physiology_check.py        exit 1 on a failure
 # Architect: Hans Bihs
 import math, os, sys
@@ -99,6 +101,33 @@ check(np.all(Rs[:, 11] >= 1) and up > 0.9, "cage, 0.6 m/s: every fish stands on 
 xr = (Re[:, 2] - 10.0) / 4.0
 check(np.all(Re[:, 11] == 3) and np.mean(xr > 0.7) > 0.9,
       "cage, 0.95 m/s, little capacity: every fish exhausted, %.0f %% on the downstream net (x > 0.7 r)" % (100 * np.mean(xr > 0.7)))
+
+
+# 6. the burst and glide, the glide by a drag law, the escape from the net (patch 0044)
+Ug, t, C, L_ = 1.0 / 0.55, 0.0, 0.13, 0.6
+bd = dict(base["body"], C_glide=C, k=1.3, k_brake=1.77)
+for _ in range(100):
+    Ug, _k = f3.body_step3(Ug, 1.6, 0.0, 0.0, 1.0, 0.01, bd); t += 0.01
+Ue = 1.0 / (1.0 + C * 1.0 * t / L_)
+check(abs(0.55 * Ug - Ue) < 2e-3, "the glide by the drag law C_glide 0.13: %.4f m/s after 1 s (U0/(1 + C U0 t/L) = %.4f)" % (0.55 * Ug, Ue))
+out = {}
+for name, bg, cg in (("steady", 0, 0.0), ("bg", 1, 0.13)):
+    c = dict(base, flow={"type": "uniform", "u": [0.9, 0.0, 0.0]}, body=dict(base["body"], C_glide=cg),
+             stages=dict(base["stages"], burst_glide=bg))
+    fish, rows = f3.run(c)
+    R = np.array(rows); out[name] = R[R[:, 0] > 60.0]
+Rst, Rbg = out["steady"], out["bg"]
+gl = np.mean(Rbg[:, 8] < 0.5)
+check(np.all(Rbg[:, 11] == 2) and 0.2 < gl < 0.8, "cage, 0.9 m/s: every fish bursts and glides (stage 2), gliding in %.0f %% of the samples" % (100 * gl))
+check(Rbg[:, 13].mean() < 0.85 * Rst[:, 13].mean() and np.mean((Rbg[:, 2] - 10.0) / 4.0) < 0.4,
+      "cage, 0.9 m/s: the burst and glide costs less (MO2 %.0f against %.0f steady) and holds the station (mean x/r %.2f)"
+      % (Rbg[:, 13].mean(), Rst[:, 13].mean(), np.mean((Rbg[:, 2] - 10.0) / 4.0)))
+f = f3.Fish3(0, 13.85, 8.0, 3.0, 0.0, None, dict(base["body"]), base["brain"], 0.0)     # on the downstream net, facing downstream
+f.stage, f.station, f.goal, f.pin = 1, [11.0, 8.0, 3.0], [10.4, 8.0, 3.0], 2.5
+st = {"net_escape": 1, "t_pin": 2.0, "net": [10.0, 8.0, 4.0, 1.0, 6.0]}
+f3.gait_override(f, 0, 100.0, st, (np.array([0.5]), np.array([0.0])), dict(base["body"]), 0.6)
+check(f.escape is not None and f.g["f"][2] == 3.2 and f.g["a"][2] == 1.0 and abs(f.g["b"][2]) == 1.0,
+      "the escape: a fish pressed against the net for 2.5 s turns hard (b %.1f) at its fastest gait (%.1f Hz)" % (f.g["b"][2], f.g["f"][2]))
 
 print("%d passed, %d failed" % (npass, nfail))
 sys.exit(1 if nfail else 0)

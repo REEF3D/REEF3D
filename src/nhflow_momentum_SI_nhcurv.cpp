@@ -41,8 +41,8 @@ Architect: Hans Bihs
 //    velocities (u . a) L_1, (u . b) L_2 in place of UH, VH (nh_curv_metric, nh_curv_vel: nUZx, nUZy)
 //  - the phi face terms of a cell (UH, VH Cartesian): from the mean normals and the mean face terms of the open
 //    faces of the two index directions, as the gravity term of cell_update (nh_cell_faces_curv)
-// Second order in space (fourth order on a turned uniform grid, nhflow_momentum_SI_ho.cpp), the nonlinear terms with the time levels
-// of the curvilinear hydrostatic step (no tl2).
+// Second order in space (fourth order on a turned uniform grid, nhflow_momentum_SI_ho.cpp), the nonlinear terms with the
+// second-order time levels of the Cartesian step (tl2; nh_curv_vel, nh_cell_faces_curv).
 // ---------------------------------------------------------------------------------------------------------------------
 
 void nhflow_momentum_SI::nh_curv_metric(lexer *p, int ie, int iw, bool oe, bool ow, int jn, int js, bool on, bool os)
@@ -114,8 +114,11 @@ void nhflow_momentum_SI::nh_curv_metric(lexer *p, int ie, int iw, bool oe, bool 
 void nhflow_momentum_SI::nh_curv_vel(lexer *p)
 {
     // the velocities of [u . grad z] and of the bed condition along the index directions, times the centre distances
+    if(!tl2)
+    {
     nUZx.assign(lN,0.0);
     nUZy.assign(lN,0.0);
+    }
 
     SLICELOOP4
     if(p->wet[IJ]==1)
@@ -124,8 +127,10 @@ void nhflow_momentum_SI::nh_curv_vel(lexer *p)
 
         for(k=0;k<p->knoz;++k)
         {
-        nUZx[PIJK] = nCT[4*q]*UHD[PIJK] + nCT[4*q+1]*VHD[PIJK];
-        nUZy[PIJK] = nCT[4*q+2]*UHD[PIJK] + nCT[4*q+3]*VHD[PIJK];
+        // (tl2: the velocities of t^{n+1}, the predictor plus the acceleration of the step before, as nh_prepare)
+        const double u = tl2 ? nUZx[PIJK] : UHD[PIJK], v = tl2 ? nUZy[PIJK] : VHD[PIJK];
+        nUZx[PIJK] = nCT[4*q]*u + nCT[4*q+1]*v;
+        nUZy[PIJK] = nCT[4*q+2]*u + nCT[4*q+3]*v;
         }
     }
 }
@@ -150,6 +155,14 @@ void nhflow_momentum_SI::nh_cell_faces_curv(lexer *p, fdm_nhf *d, double *cx, do
     if(os) { fnorm(p,2,i,j-1,nx,ny); bx += nx; by += ny; ++nb; }
 
     const double la = sqrt(ax*ax + ay*ay), lb = sqrt(bx*bx + by*by);
+
+    // tl2: a wall side counts in the mean of the face terms of its direction, with zero (as nh_cell_faces)
+
+    if(tl2 && na>0)
+    na += int(wall(p,i,j,1) + wall(p,i,j,2) + 0.5);
+
+    if(tl2 && nb>0)
+    nb += int(wall(p,i,j,3) + wall(p,i,j,4) + 0.5);
 
     if(la>0.0) { ax /= la; ay /= la; }
     if(lb>0.0) { bx /= lb; by /= lb; }
@@ -332,4 +345,45 @@ void nhflow_momentum_SI::nh_curv_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     pexchF(p,pgc,NQcx);
     pexchF(p,pgc,NQcy);
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The wall sides of a cell in the mean of its face terms on a curvilinear grid with the second-order time levels
+// (cell_update; the Cartesian branch there): a wall side of an index direction with an open face counts as a face,
+// its term is the one that keeps the normal velocity at the wall at zero, g H d_n eta = the column mean of the sources
+// of the predictor along the mean normal of the open faces of that direction (zero in free waves). Without the wall
+// sides a wall cell took the full gradient of its one open face, as the Cartesian step did before them.
+// (ax, ay), (bx, by): the sums of the normals of the open faces of the two index directions, na, nb their numbers,
+// ag, bg the sums of their face terms (per dt g). wa, wb: the number of wall sides counted
+// ---------------------------------------------------------------------------------------------------------------------
+void nhflow_momentum_SI::curv_wall_sides(lexer *p, double ax, double ay, double bx, double by, int na, int nb,
+                                         int &wa, int &wb, double &ag, double &bg)
+{
+    wa = na>0 ? int(wall(p,i,j,1) + wall(p,i,j,2) + 0.5) : 0;
+    wb = nb>0 ? int(wall(p,i,j,3) + wall(p,i,j,4) + 0.5) : 0;
+
+    if(wa==0 && wb==0)
+    return;
+
+    const double dt = p->dt;
+    double sx=0.0, sy=0.0;
+
+    for(k=0;k<p->knoz;++k)
+    {
+    sx += p->DZN[KP]*dt*(FSx[PIJK] - (Bx!=nullptr ? WL0(i,j)*Bx[IJK] : 0.0));
+    sy += p->DZN[KP]*dt*(FSy[PIJK] - (By!=nullptr ? WL0(i,j)*By[IJK] : 0.0));
+    }
+
+    if(wa>0)
+    {
+    const double l = sqrt(ax*ax + ay*ay);
+    ag += double(wa)*(l>0.0 ? (sx*ax + sy*ay)/l : 0.0)/(dt*g);
+    }
+
+    if(wb>0)
+    {
+    const double l = sqrt(bx*bx + by*by);
+    bg += double(wb)*(l>0.0 ? (sx*bx + sy*by)/l : 0.0)/(dt*g);
+    }
 }

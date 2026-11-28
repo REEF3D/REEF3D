@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW semi-implicit (A 210 13, theta 0.55), Stoker dam break on a flat frictionless bed (h_l 0.5 m, h_r 0.05 m, dam at x = 20 m, dx 0.05 m), flow Courant number 0.8 (N 47 0.4): the flow behind the bore has the Froude number 1.18 and takes the stage state of fast flow (A 236 1). Rel. L1 error of the depth at 4 s 2.7 % (0.9 % at a flow Courant number of 0.5, 0.4 % at 0.3); with q^n in all stages 9.9 %, the plateau swinging between 0.03 and 0.30 m, and no convergence with the time step.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 138,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI::fast_discharge across a bore",
+  "the weight of the cells between Froude number 0.5 and 1 (fast_weight)"
+ ]
+}
